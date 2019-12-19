@@ -1,6 +1,6 @@
 import React from 'react';
 require('semantic-ui-css/semantic.min.css');
-import { Icon, Label, Header, Segment } from 'semantic-ui-react';
+import { Icon, Label, Header, Segment, Divider } from 'semantic-ui-react';
 import { ReactiveComponent, If, Rspan } from 'oo7-react';
 import {
 	calls, runtime, chain, system, runtimeUp,
@@ -8,6 +8,7 @@ import {
 } from 'oo7-substrate';
 import Identicon from 'polkadot-identicon';
 import { Pretty } from './Pretty';
+import { NodesCards } from './NodesCards';
 
 export class App extends ReactiveComponent {
 	constructor() {
@@ -28,6 +29,8 @@ export class App extends ReactiveComponent {
 		return (<div>
 			<Heading />
 			<ArchipelMasterSegment />
+			<Divider hidden />
+			<ArchipelNodesListSegment />
 		</div>);
 	}
 }
@@ -58,7 +61,7 @@ class Heading extends React.Component {
 			</Label.Detail></Label>
 			<Label>Authorities <Label.Detail>
 				<Rspan className="value">{
-					runtime.core.authorities.mapEach((a, i) => <Identicon key={bytesToHex(a) + i} account={a} size={16} />)
+					runtime.core.authorities.mapEach((a, i) => <Identicon key={i} account={a} size={10} />)
 				}</Rspan>
 			</Label.Detail></Label>
 			<Label>Total issuance <Label.Detail>
@@ -78,11 +81,35 @@ class ArchipelMasterSegment extends React.Component {
             <Header as='h2'>
                 <Icon name='chess king' />
                 <Header.Content>
-                    Archipel Master
-                    <Header.Subheader><Pretty value={runtime.archipel.master} /></Header.Subheader>
+                    Archipel Master<br />
+                    <Header.Subheader><div className="master_wallet"><Identicon account={runtime.archipel.master} size={32} /> 
+					<Pretty value={runtime.archipel.master} /></div></Header.Subheader>
                 </Header.Content>
             </Header>
             <div style={{ paddingBottom: '1em' }}></div>
+        </Segment>
+    }
+}
+
+class ArchipelNodesListSegment extends React.Component {
+    constructor() {
+        super()
+    }
+
+    render() {
+		let master = runtime.archipel.master;
+		let masterIndex = runtime.archipel.accountsIndex(master);
+        return <Segment style={{ margin: '1em' }} padded>
+            <Header as='h2'>
+                <Header.Content>
+                    Achipel Nodes
+                    <Header.Subheader>Archipel has <Pretty value={runtime.archipel.accountsCount} /> nodes.</Header.Subheader>
+                </Header.Content>
+            </Header>
+            <div style={{ paddingBottom: '1em' }}>
+				<NodesCards count={runtime.archipel.accountsCount} master={master} masterIndex={masterIndex}/>
+			</div>
+		
         </Segment>
     }
 }
