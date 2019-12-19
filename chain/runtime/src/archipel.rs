@@ -12,6 +12,10 @@ decl_storage! {
         Metrics get(get_metrics): map T::AccountId => u32;
         // Current master storage
         Master get(get_master): Option<T::AccountId> = None;
+        // Accounts storage
+        Accounts get(get_account): map u32 => T::AccountId;
+        AccountsCount get(get_accounts_count): u32 = 0;
+        AccountsIndex get(get_accounts_index): map T::AccountId => u32;
     }
 }
 
@@ -57,6 +61,9 @@ decl_module! {
         fn add_metrics(origin, metrics_value: u32) -> Result {
             let sender = ensure_signed(origin)?;
 
+            // Adding account in map
+            Self::add_account(&sender)?;
+
             // Adding metrics into metrics map
             <Metrics<T>>::insert(&sender, metrics_value);
 
@@ -66,6 +73,28 @@ decl_module! {
             Ok(())
         }
 
+    }
+}
+
+impl<T: Trait> Module<T> {
+    // Adding account
+    fn add_account(account: &T::AccountId) -> Result {
+        // Checking if account exists already in storage
+        if !<AccountsIndex<T>>::exists(account) {
+
+            let accounts_count = Self::get_accounts_count();
+
+            // Incrementing accounts count and preventing overflow
+            let new_accounts_count = accounts_count.checked_add(1)
+            .ok_or("Overflow adding new node.")?;
+
+            // Adding account to account storage
+            <Accounts<T>>::insert(accounts_count, account);
+            <AccountsCount<T>>::put(new_accounts_count);
+            <AccountsIndex<T>>::insert(account, accounts_count);
+
+        }
+        Ok(())
     }
 }
 
@@ -190,8 +219,33 @@ mod tests {
             // set metrics
             assert_ok!(Archipel::add_metrics(Origin::signed(10), 4242));
 
+            // checking if account was successfully added to structures
+            assert_eq!(Archipel::get_accounts_count(), 1);
+            assert_eq!(Archipel::get_accounts_index(10), 0);
+            assert_eq!(Archipel::get_account(0), 10);
+
             // check metrics
             assert_eq!(Archipel::get_metrics(10), 4242);
+
+        })
+    }
+    #[test]
+    fn update_metrics_should_work() {
+        with_externalities(&mut build_ext(), || {
+            // set metrics 1
+            assert_ok!(Archipel::add_metrics(Origin::signed(10), 4242));
+
+            // set metrics 2
+            assert_ok!(Archipel::add_metrics(Origin::signed(10), 4243));
+
+            // checking if account structure was not altered
+            assert_eq!(Archipel::get_accounts_count(), 1);
+            assert_eq!(Archipel::get_accounts_index(10), 0);
+            assert_eq!(Archipel::get_account(0), 10);
+
+            // checking updated metrics
+            assert_eq!(Archipel::get_metrics(10), 4243);
+
         })
     }
 }
