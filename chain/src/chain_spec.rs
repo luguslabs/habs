@@ -109,7 +109,7 @@ fn testnet_genesis(
 			ids: endowed_accounts.clone(),
 		}),
 		balances: Some(BalancesConfig {
-			transaction_base_fee: 1,
+			transaction_base_fee: 0,
 			transaction_byte_fee: 0,
 			existential_deposit: 500,
 			transfer_fee: 0,
