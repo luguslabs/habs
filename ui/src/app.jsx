@@ -1,6 +1,6 @@
 import React from 'react';
 require('semantic-ui-css/semantic.min.css');
-import { Icon, Label, Header, Segment, Divider, Button } from 'semantic-ui-react';
+import { Icon, Label, Header, Segment, Divider } from 'semantic-ui-react';
 import { ReactiveComponent, If, Rspan } from 'oo7-react';
 import {
 	calls, runtime, chain, system, runtimeUp,
@@ -76,7 +76,7 @@ class ArchipelMasterSegment extends React.Component {
     }
 
     render() {
-		let master = runtime.archipel.master;
+	    let master = runtime.archipel.master;
 
         return <Segment style={{ margin: '1em' }} padded>
             <Header as='h2'>

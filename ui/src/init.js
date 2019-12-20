@@ -1,5 +1,4 @@
-const { setNodeUri, setNetworkDefault, nodeService } = require('oo7-substrate');
-const WebSocket = require('isomorphic-ws');
+const { setNodeUri, setNetworkDefault } = require('oo7-substrate');
 
 export function init() {
 
