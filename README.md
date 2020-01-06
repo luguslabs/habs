@@ -12,7 +12,7 @@ Archipel is the high avaliability solution for blockchain services. The first se
 
 | Sub-repo | Description |
 | --- | --- |
-| [Chain](chain/) | Chain is responsible for Archipel nodes state synchronisaiton. |
+| [Chain](chain/) | Chain is responsible for Archipel nodes state synchronisaiton |
 | [Orchestator](orchestrator/) | Orchestrator is the decision making component in Archipel federation |
 | [UI](ui/) | Shows the Archipel chain state |
 | [Deployer](deployer/) | Archipel End-To-End tests, build scripts and deploy tools |
