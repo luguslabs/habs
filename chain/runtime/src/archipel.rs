@@ -1,13 +1,15 @@
-use support::{decl_event, dispatch::Result, StorageMap, StorageValue};
-use support::{decl_module, decl_storage, ensure};
+use frame_support::{decl_module, decl_storage, decl_event, ensure, dispatch::DispatchResult};
 use system::ensure_signed;
 
-pub trait Trait: balances::Trait {
-    type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
+/// The module's configuration trait.
+pub trait Trait: system::Trait {
+	/// The overarching event type.
+	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
 }
 
+// This module's storage items.
 decl_storage! {
-    trait Store for Module<T: Trait> as ArchipelStorage {
+	trait Store for Module<T: Trait> as ArchipelModule {
         // Metrics storage
         Metrics get(get_metrics): map T::AccountId => u32;
         // Current master storage
@@ -19,24 +21,15 @@ decl_storage! {
     }
 }
 
-decl_event!(
-    pub enum Event<T>
-    where
-        <T as system::Trait>::AccountId,
-    {
-        MetricsUpdated(AccountId, u32),
-        NewMaster(AccountId),
-    }
-);
-
+// The module's dispatchable functions.
 decl_module! {
-    pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+	/// The module declaration.
+	pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+		// Initializing events
+		// this is needed only if you are using events in your module
+		fn deposit_event() = default;
 
-        // Enable events
-        fn deposit_event<T>() = default;
-
-        // Set master nodes
-        fn set_master(origin, old_master: T::AccountId) -> Result {
+		fn set_master(origin, old_master: T::AccountId) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
             let master = Self::get_master();
@@ -58,7 +51,7 @@ decl_module! {
         }
 
         // Add metrics
-        fn add_metrics(origin, metrics_value: u32) -> Result {
+        fn add_metrics(origin, metrics_value: u32) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
             // Adding account in map
@@ -72,13 +65,21 @@ decl_module! {
 
             Ok(())
         }
-
-    }
+	}
 }
+
+decl_event!(
+	pub enum Event<T> where AccountId = <T as system::Trait>::AccountId {
+		// Metics updated event
+		MetricsUpdated(AccountId, u32),
+		// Master changed event
+        NewMaster(AccountId),
+	}
+);
 
 impl<T: Trait> Module<T> {
     // Adding account
-    fn add_account(account: &T::AccountId) -> Result {
+    fn add_account(account: &T::AccountId) -> DispatchResult {
         // Checking if account exists already in storage
         if !<AccountsIndex<T>>::exists(account) {
 
@@ -90,7 +91,7 @@ impl<T: Trait> Module<T> {
 
             // Adding account to account storage
             <Accounts<T>>::insert(accounts_count, account);
-            <AccountsCount<T>>::put(new_accounts_count);
+            <AccountsCount>::put(new_accounts_count);
             <AccountsIndex<T>>::insert(account, accounts_count);
 
         }
@@ -98,88 +99,81 @@ impl<T: Trait> Module<T> {
     }
 }
 
+/// tests for this module
 #[cfg(test)]
 mod tests {
-    use primitives::{Blake2Hasher, H256};
-    use runtime_io::{with_externalities, TestExternalities};
-    use runtime_primitives::{
-        testing::{Digest, DigestItem, Header},
-        traits::{BlakeTwo256, IdentityLookup},
-        BuildStorage,
-    };
-    use support::{assert_noop, assert_ok, impl_outer_origin};
+	use super::*;
 
-    impl_outer_origin! {
-        pub enum Origin for ArchipelTest {}
-    }
+	use sp_core::H256;
+	use frame_support::{impl_outer_origin, assert_ok, assert_noop, parameter_types, weights::Weight};
+	use sp_runtime::{
+		traits::{BlakeTwo256, IdentityLookup}, testing::Header, Perbill,
+	};
 
-    #[derive(Clone, Eq, PartialEq)]
-    pub struct ArchipelTest;
+	impl_outer_origin! {
+		pub enum Origin for Test {}
+	}
 
-    impl system::Trait for ArchipelTest {
-        type Origin = Origin;
-        type Index = u64;
-        type BlockNumber = u64;
-        type Hash = H256;
-        type Hashing = BlakeTwo256;
-        type Digest = Digest;
-        type AccountId = u64;
-        type Lookup = IdentityLookup<Self::AccountId>;
-        type Header = Header;
-        type Event = ();
-        type Log = DigestItem;
-    }
+	// For testing the module, we construct most of a mock runtime. This means
+	// first constructing a configuration type (`Test`) which `impl`s each of the
+	// configuration traits of modules we want to use.
+	#[derive(Clone, Eq, PartialEq)]
+	pub struct Test;
+	parameter_types! {
+		pub const BlockHashCount: u64 = 250;
+		pub const MaximumBlockWeight: Weight = 1024;
+		pub const MaximumBlockLength: u32 = 2 * 1024;
+		pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
+	}
+	impl system::Trait for Test {
+		type Origin = Origin;
+		type Call = ();
+		type Index = u64;
+		type BlockNumber = u64;
+		type Hash = H256;
+		type Hashing = BlakeTwo256;
+		type AccountId = u64;
+		type Lookup = IdentityLookup<Self::AccountId>;
+		type Header = Header;
+		type Event = ();
+		type BlockHashCount = BlockHashCount;
+		type MaximumBlockWeight = MaximumBlockWeight;
+		type MaximumBlockLength = MaximumBlockLength;
+		type AvailableBlockRatio = AvailableBlockRatio;
+		type Version = ();
+		type ModuleToIndex = ();
+	}
+	impl Trait for Test {
+		type Event = ();
+	}
+	type ArchipelModule = Module<Test>;
 
-    impl balances::Trait for ArchipelTest {
-        type Balance = u64;
-        type OnFreeBalanceZero = ();
-        type OnNewAccount = ();
-        type Event = ();
-        type TransactionPayment = ();
-        type TransferPayment = ();
-        type DustRemoval = ();
-    }
-
-    impl super::Trait for ArchipelTest {
-        type Event = ();
-    }
-
-    type Archipel = super::Module<ArchipelTest>;
-
-    fn build_ext() -> TestExternalities<Blake2Hasher> {
-        let mut t = system::GenesisConfig::<ArchipelTest>::default()
-            .build_storage()
-            .unwrap()
-            .0;
-        t.extend(
-            balances::GenesisConfig::<ArchipelTest>::default()
-                .build_storage()
-                .unwrap()
-                .0,
-        );
-        t.into()
-    }
+	// This function basically just builds a genesis storage key/value store according to
+	// our desired mockup.
+	fn new_test_ext() -> sp_io::TestExternalities {
+		system::GenesisConfig::default().build_storage::<Test>().unwrap().into()
+	}
 
     #[test]
     fn set_master_should_work() {
-        with_externalities(&mut build_ext(), || {
+        new_test_ext().execute_with(|| {
             // set master
-            assert_ok!(Archipel::set_master(Origin::signed(10), 0));
+            assert_ok!(ArchipelModule::set_master(Origin::signed(10), 0));
 
             // check if master was correctly set
-            assert_eq!(Archipel::get_master(), Some(10));
+            assert_eq!(ArchipelModule::get_master(), Some(10));
         })
     }
 
     #[test]
     fn wrong_old_master_should_fail() {
-        with_externalities(&mut build_ext(), || {
+        new_test_ext().execute_with(|| {
             // set master
-            assert_ok!(Archipel::set_master(Origin::signed(10), 0));
+            assert_ok!(ArchipelModule::set_master(Origin::signed(10), 0));
 
             // wrong old master
             assert_noop!(
-                Archipel::set_master(Origin::signed(10), 0),
+                ArchipelModule::set_master(Origin::signed(10), 0),
                 "Incorrect old master report"
             );
         })
@@ -187,13 +181,13 @@ mod tests {
 
     #[test]
     fn me_old_master_should_fail() {
-        with_externalities(&mut build_ext(), || {
+        new_test_ext().execute_with(|| {
             // set master
-            assert_ok!(Archipel::set_master(Origin::signed(10), 0));
+            assert_ok!(ArchipelModule::set_master(Origin::signed(10), 0));
 
             // the same old master
             assert_noop!(
-                Archipel::set_master(Origin::signed(10), 10),
+                ArchipelModule::set_master(Origin::signed(10), 10),
                 "You are already master"
             );
         })
@@ -201,50 +195,50 @@ mod tests {
 
     #[test]
     fn change_master_should_work() {
-        with_externalities(&mut build_ext(), || {
+        new_test_ext().execute_with(|| {
             // set master
-            assert_ok!(Archipel::set_master(Origin::signed(10), 0));
+            assert_ok!(ArchipelModule::set_master(Origin::signed(10), 0));
 
             // change master
-            assert_ok!(Archipel::set_master(Origin::signed(20), 10));
+            assert_ok!(ArchipelModule::set_master(Origin::signed(20), 10));
 
             // check if master was correctly changed
-            assert_eq!(Archipel::get_master(), Some(20));
+            assert_eq!(ArchipelModule::get_master(), Some(20));
         })
     }
 
     #[test]
     fn add_metrics_should_work() {
-        with_externalities(&mut build_ext(), || {
+        new_test_ext().execute_with(|| {
             // set metrics
-            assert_ok!(Archipel::add_metrics(Origin::signed(10), 4242));
+            assert_ok!(ArchipelModule::add_metrics(Origin::signed(10), 4242));
 
             // checking if account was successfully added to structures
-            assert_eq!(Archipel::get_accounts_count(), 1);
-            assert_eq!(Archipel::get_accounts_index(10), 0);
-            assert_eq!(Archipel::get_account(0), 10);
+            assert_eq!(ArchipelModule::get_accounts_count(), 1);
+            assert_eq!(ArchipelModule::get_accounts_index(10), 0);
+            assert_eq!(ArchipelModule::get_account(0), 10);
 
             // check metrics
-            assert_eq!(Archipel::get_metrics(10), 4242);
+            assert_eq!(ArchipelModule::get_metrics(10), 4242);
 
         })
     }
     #[test]
     fn update_metrics_should_work() {
-        with_externalities(&mut build_ext(), || {
+        new_test_ext().execute_with(|| {
             // set metrics 1
-            assert_ok!(Archipel::add_metrics(Origin::signed(10), 4242));
+            assert_ok!(ArchipelModule::add_metrics(Origin::signed(10), 4242));
 
             // set metrics 2
-            assert_ok!(Archipel::add_metrics(Origin::signed(10), 4243));
+            assert_ok!(ArchipelModule::add_metrics(Origin::signed(10), 4243));
 
             // checking if account structure was not altered
-            assert_eq!(Archipel::get_accounts_count(), 1);
-            assert_eq!(Archipel::get_accounts_index(10), 0);
-            assert_eq!(Archipel::get_account(0), 10);
+            assert_eq!(ArchipelModule::get_accounts_count(), 1);
+            assert_eq!(ArchipelModule::get_accounts_index(10), 0);
+            assert_eq!(ArchipelModule::get_account(0), 10);
 
             // checking updated metrics
-            assert_eq!(Archipel::get_metrics(10), 4243);
+            assert_eq!(ArchipelModule::get_metrics(10), 4243);
 
         })
     }

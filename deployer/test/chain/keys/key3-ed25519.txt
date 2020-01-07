@@ -1,0 +1,5 @@
+Secret phrase `borrow initial guard hunt corn trust student opera now economy thumb argue` is account:
+  Secret seed:      0x5e4b8a226eb3435598b72ffbef1b4d37a64c10bea3b8d6ff28800e0b9898dcb7
+  Public key (hex): 0x61a9acd57b43de72b68152ee1b5685cd89af28753d05dd7958da0d1f1c9de7cd
+  Account ID:       0x61a9acd57b43de72b68152ee1b5685cd89af28753d05dd7958da0d1f1c9de7cd
+  SS58 Address:     5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj
