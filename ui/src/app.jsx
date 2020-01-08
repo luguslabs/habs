@@ -76,7 +76,7 @@ class ArchipelMasterSegment extends React.Component {
     }
 
     render() {
-	    let master = runtime.archipel.master;
+	    let master = runtime.archipelModule.master;
 
         return <Segment style={{ margin: '1em' }} padded>
             <Header as='h2'>
@@ -98,18 +98,18 @@ class ArchipelNodesListSegment extends React.Component {
     }
 
     render() {
-		let master = runtime.archipel.master;
-		let masterIndex = runtime.archipel.accountsIndex(master);
+		let master = runtime.archipelModule.master;
+		let masterIndex = runtime.archipelModule.accountsIndex(master);
 
         return <Segment style={{ margin: '1em' }} padded>
             <Header as='h2'>
                 <Header.Content>
                     Achipel Nodes
-                    <Header.Subheader>Archipel has <Pretty value={runtime.archipel.accountsCount} /> nodes.</Header.Subheader>
+                    <Header.Subheader>Archipel has <Pretty value={runtime.archipelModule.accountsCount} /> nodes.</Header.Subheader>
                 </Header.Content>
             </Header>
             <div style={{ paddingBottom: '1em' }}>
-				<NodesCards count={runtime.archipel.accountsCount} master={master} masterIndex={masterIndex}/>
+				<NodesCards count={runtime.archipelModule.accountsCount} master={master} masterIndex={masterIndex}/>
 			</div>
         </Segment>
     }

@@ -14,7 +14,7 @@ export class NodesCards extends ReactiveComponent {
     readyRender () {
         return (<Card.Group>
             {Array.from(Array(this.state.count).fill(0).keys()).map(i => {
-                let account = runtime.archipel.accounts(i);
+                let account = runtime.archipelModule.accounts(i);
 
                 return (
                 <Card key={i}>
@@ -33,7 +33,7 @@ export class NodesCards extends ReactiveComponent {
                             <b>Address</b>: <Pretty value={account} />
                         </Card.Meta>
                         <Card.Description>
-                            <b>Metrics</b>: <Pretty value={runtime.archipel.metrics(account)} />
+                            <b>Metrics</b>: <Pretty value={runtime.archipelModule.metrics(account)} />
                         </Card.Description>
                     </Card.Content>
                 </Card> 
