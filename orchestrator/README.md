@@ -6,5 +6,15 @@ It stops, starts, activates or deactivates the validator node according to the A
 
 ```bash
 yarn install
+export MNEMONIC="surface similar switch..."
 yarn run start
+```
+
+## Note 
+
+Please use **eslint** before every commit.
+
+```bash
+yarn run eslint
+yarn run eslint-fix
 ```
