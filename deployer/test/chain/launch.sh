@@ -7,6 +7,9 @@ function launch_node () {
     --network archipel \
     --ip "$2" \
     -v $(pwd):/tmp/files archipel/chain \
+    --rpc-cors "all" \
+    --unsafe-rpc-external \
+    --unsafe-ws-external \
     --base-path /tmp/files/$1 \
     --chain /tmp/files/customSpecRaw.json \
     --validator \
@@ -52,6 +55,10 @@ function get_node_identity () {
   local node_local_id=$(docker logs $1 2>&1 | grep "Local node identity is" | tail -1 | grep -oE '[^ ]+$' --color=never)
   eval $__resultvar="'$node_local_id'"
 }
+
+NODE1_IP="172.28.42.2"
+NODE2_IP="172.28.42.3"
+NODE3_IP="172.28.42.4"
 
 # Creating a docker network for Archipel chain
 echo "Creating docker network for archipel chain test..."
