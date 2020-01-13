@@ -1,4 +1,5 @@
-#!/bin/bash 
+#!/bin/bash
+ARCHIPEL_CHAIN_VERSION="0.0.1"
 # Launch Archipel node in docker container
 function launch_node () {
   echo "Starting $1..."
@@ -6,7 +7,7 @@ function launch_node () {
   docker run -d --name "$1" $3 \
     --network archipel \
     --ip "$2" \
-    -v $(pwd):/tmp/files archipel/chain \
+    -v $(pwd):/tmp/files luguslabs/archipel-chain:$ARCHIPEL_CHAIN_VERSION \
     --rpc-cors "all" \
     --unsafe-rpc-external \
     --unsafe-ws-external \
