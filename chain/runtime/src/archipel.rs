@@ -1,8 +1,8 @@
 use frame_support::{decl_module, decl_storage, decl_event, ensure, dispatch::DispatchResult};
-use system::ensure_signed;
+use {system::ensure_signed, timestamp};
 
 /// The module's configuration trait.
-pub trait Trait: system::Trait {
+pub trait Trait: timestamp::Trait + system::Trait {
 	/// The overarching event type.
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
 }
@@ -54,6 +54,9 @@ decl_module! {
         fn add_metrics(origin, metrics_value: u32) -> DispatchResult {
             let sender = ensure_signed(origin)?;
 
+            // Get timestamp
+            let now = <timestamp::Module<T>>::get();
+
             // Adding account in map
             Self::add_account(&sender)?;
 
@@ -61,7 +64,7 @@ decl_module! {
             <Metrics<T>>::insert(&sender, metrics_value);
 
             // Triggering metrics update event
-            Self::deposit_event(RawEvent::MetricsUpdated(sender, metrics_value));
+            Self::deposit_event(RawEvent::MetricsUpdated(sender, metrics_value, now));
 
             Ok(())
         }
@@ -69,9 +72,11 @@ decl_module! {
 }
 
 decl_event!(
-	pub enum Event<T> where AccountId = <T as system::Trait>::AccountId {
+    pub enum Event<T> where 
+        AccountId = <T as system::Trait>::AccountId,
+        Moment = <T as timestamp::Trait>::Moment {
 		// Metics updated event
-		MetricsUpdated(AccountId, u32),
+		MetricsUpdated(AccountId, u32, Moment),
 		// Master changed event
         NewMaster(AccountId),
 	}
