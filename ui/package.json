@@ -2,7 +2,7 @@
   "name": "archipel-ui",
   "version": "0.1.1",
   "private": true,
-  "author": ">",
+  "author": "Lugus Labs",
   "license": "apache 2",
   "dependencies": {
     "@polkadot/api": "^0.99.1",
