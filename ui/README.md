@@ -1,6 +1,6 @@
 # Archipel Front End 
 
-Front end created thanks to [substrate-front-end-template](git clone https://substrate-developer-hub/substrate-front-end-template.git) base.
+Front end created thanks to [substrate-front-end-template](https://substrate-developer-hub/substrate-front-end-template.git) base.
 
 
 ## Installation
