@@ -23,6 +23,7 @@ pub enum Alternative {
 	Development,
 	/// Whatever the current runtime is, with simple Alice/Bob auths.
 	LocalTestnet,
+	Template
 }
 
 /// Helper function to generate a crypto pair from seed
@@ -103,12 +104,26 @@ impl Alternative {
 				None,
 				None
 			),
+			Alternative::Template => ChainSpec::from_genesis(
+				"Template",
+				"template",
+				|| testnet_genesis(vec![],
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				vec![],
+				true),
+				vec![],
+				None,
+				None,
+				None,
+				None
+			),
 		})
 	}
 
 	pub(crate) fn from(s: &str) -> Option<Self> {
 		match s {
 			"dev" => Some(Alternative::Development),
+			"template" => Some(Alternative::Template),
 			"" | "local" => Some(Alternative::LocalTestnet),
 			_ => None,
 		}
