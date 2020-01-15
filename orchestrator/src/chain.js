@@ -7,7 +7,7 @@ const connect = async wsProvider => {
   const provider = new WsProvider(wsProvider);
 
   // Create and return Polkadot API
-  return ApiPromise.create(provider);
+  return ApiPromise.create({ provider });
 };
 
 // Listen events
@@ -19,7 +19,7 @@ const listenEvents = (api, metrics) => {
       // Add metrics if Metrics updated event was recieved
       if (event.section.toString() === 'archipelModule' && event.method.toString() === 'MetricsUpdated') {
         console.log(`Recieved metrics updated event from ${event.data[0]}`);
-        metrics.addMetrics(event.data[0], event.data[1], event.data[2]);
+        metrics.addMetrics(event.data[0].toString(), event.data[1].toString(), event.data[2].toString());
       }
     });
   });

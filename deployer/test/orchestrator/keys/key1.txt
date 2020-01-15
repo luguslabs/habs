@@ -1,0 +1,5 @@
+Secret phrase `mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud` is account:
+  Secret seed:      0xa774ab705356dc2cb76a26fc278604d8e3ed6d381eed72173d10b4e53be6f173
+  Public key (hex): 0xa412ff27d62c6f40943242e9be88bebb9d3ac95293f3f8be732465f66f79853c
+  Account ID:       0xa412ff27d62c6f40943242e9be88bebb9d3ac95293f3f8be732465f66f79853c
+  SS58 Address:     5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs

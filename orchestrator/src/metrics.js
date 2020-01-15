@@ -8,6 +8,7 @@ class Metrics {
       metrics,
       timestamp
     };
+    
     this.metrics.set(wallet, nodeMetrics);
   }
 

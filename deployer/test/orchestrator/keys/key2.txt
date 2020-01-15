@@ -1,0 +1,5 @@
+Secret phrase `fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer` is account:
+  Secret seed:      0x12d2ab88b65ba16572162d05fcf77fff6aeed38be7f33eea56d308e0836ff539
+  Public key (hex): 0xda778eef939033b7137f78e22cfa1c751c3c95a69710bb3bf8756195e3e0b377
+  Account ID:       0xda778eef939033b7137f78e22cfa1c751c3c95a69710bb3bf8756195e3e0b377
+  SS58 Address:     5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex

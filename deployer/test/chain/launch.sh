@@ -112,6 +112,7 @@ sleep 5
 
 # Relaunching nodes with bootnodes list
 launch_node "node1" "$NODE1_IP" "-p 9944:9944 -p 9933:9933 -p 9955:9955" "$BOOTNODES_LIST"
+#launch_node "node1" "$NODE1_IP" "" "$BOOTNODES_LIST"
 launch_node "node2" "$NODE2_IP" "" "$BOOTNODES_LIST"
 launch_node "node3" "$NODE3_IP" "" "$BOOTNODES_LIST"
 

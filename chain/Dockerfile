@@ -18,5 +18,5 @@ WORKDIR /root/
 COPY --from=builder /root/target/release/archipel .
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
-		libssl-dev
+		libssl-dev curl
 ENTRYPOINT [ "./archipel" ]
