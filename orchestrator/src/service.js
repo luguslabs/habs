@@ -50,16 +50,21 @@ const orchestrateService = async (api, metrics, mnemonic) => {
 };
 
 const becomeLeader = async (nodeKey, api, mnemonic) => {
-  console.log('Trying to be leader...');
-  const leaderSet = await setLeader(nodeKey, api, mnemonic);
+  try {
+    console.log('Trying to be leader...');
+    const leaderSet = await setLeader(nodeKey, api, mnemonic);
 
-  if (leaderSet === true) {
-    console.log('Leader was successfully set.');
-    console.log('Launching validator node...');
-    await serviceStart('polkadot', 'validate');
-  } else {
-    console.log('Can\'t set leader.');
-    console.log('Someone is already leader...');
+    if (leaderSet === true) {
+      console.log('Leader was successfully set.');
+      console.log('Launching validator node...');
+      await serviceStart('polkadot', 'validate');
+    } else {
+      console.log('Can\'t set leader.');
+      console.log('Someone is already leader...');
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
 };
 
