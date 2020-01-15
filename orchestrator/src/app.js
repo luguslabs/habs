@@ -14,7 +14,6 @@ process.on('SIGINT', function () {
 
 // Main function
 async function main () {
-
   // Checking env variables
   if (NODE_WS === undefined || MNEMONIC === undefined) {
     throw Error('Archipel needs at least NODE_WS and MNEMONIC variables to work.');
