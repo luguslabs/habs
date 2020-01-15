@@ -18,6 +18,8 @@ RUN ./target/release/archipel  build-spec --chain template --raw > archipelTempl
 FROM debian:buster-slim
 WORKDIR /root/
 COPY --from=builder /root/target/release/archipel .
+COPY --from=builder /root/archipelTemplateSpec.json .
+COPY --from=builder /root/archipelTemplateSpecRaw.json .
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
 		libssl-dev curl
