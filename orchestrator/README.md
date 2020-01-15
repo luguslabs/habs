@@ -17,6 +17,7 @@ MNEMONIC="mushroom ladder...."
 POLKADOT_NAME='validator_name'
 POLKADOT_KEY='0x5e4b8a22......'
 POLKADOT_IMAGE='chevdor/polkadot:0.4.4'
+POLKADOT_CONTAINER_PREFIX='node1-'
 ```
 
 ### Run

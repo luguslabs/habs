@@ -19,7 +19,8 @@ const orchestrateService = async (api, metrics, mnemonic) => {
     if (currentLeader === nodeKey) {
       console.log('Launching validator node...');
       await serviceStart('polkadot', 'validate');
-      // If someone else is leader
+
+    // If someone else is leader
     } else {
       // Get validator metrics known
       const validatorMetrics = metrics.getMetrics(currentLeader);

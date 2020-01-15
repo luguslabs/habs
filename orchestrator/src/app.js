@@ -2,7 +2,7 @@ const { connect, listenEvents, addMetrics } = require('./chain');
 const { Metrics } = require('./metrics');
 const { orchestrateService, serviceStart } = require('./service');
 
-// Working with env variables
+// Import env variables from .env file
 const dotenv = require('dotenv');
 dotenv.config();
 const { NODE_WS, MNEMONIC } = process.env;
