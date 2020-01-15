@@ -1,7 +1,11 @@
-const { NODE_WS, MNEMONIC } = process.env;
 const { connect, listenEvents, addMetrics } = require('./chain');
 const { Metrics } = require('./metrics');
-const { orchestrateService } = require('./service');
+const { orchestrateService, serviceStart } = require('./service');
+
+// Working with env variables
+const dotenv = require('dotenv');
+dotenv.config();
+const { NODE_WS, MNEMONIC } = process.env;
 
 // Catch SIGINT and exit
 process.on('SIGINT', function () {
@@ -10,8 +14,20 @@ process.on('SIGINT', function () {
 
 // Main function
 async function main () {
+
+  // Checking env variables
+  if (NODE_WS === undefined || MNEMONIC === undefined) {
+    throw Error('Archipel needs at least NODE_WS and MNEMONIC variables to work.');
+  }
+
   // Connection to Polkadot API
+  console.log('Connecting to Archipel Chain node...');
   const api = await connect(NODE_WS);
+
+  // Starting service in passive mode
+  console.log('Starting service in passive mode...');
+  await serviceStart('polkadot', 'passive');
+  console.log('Service was started in passive mode...');
 
   // Creating metrics object
   const metrics = new Metrics();
@@ -29,4 +45,4 @@ async function main () {
   setInterval(() => { metrics.showMetrics(); }, 5000);
 }
 
-main().catch(error => console.error('Error: ' + error));
+main().catch(console.error);
