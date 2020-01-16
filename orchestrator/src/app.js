@@ -6,7 +6,7 @@ const debug = require('debug')('app');
 // Import env variables from .env file
 const dotenv = require('dotenv');
 dotenv.config();
-const { NODE_WS, MNEMONIC } = process.env;
+const { NODE_WS, MNEMONIC, ALIVE_TIME } = process.env;
 
 // Catch SIGINT and exit
 process.on('SIGINT', function () {
@@ -17,8 +17,8 @@ process.on('SIGINT', function () {
 async function main () {
   try {
     // Checking env variables
-    if (NODE_WS === undefined || MNEMONIC === undefined) {
-      throw Error('Archipel needs at least NODE_WS and MNEMONIC variables to work.');
+    if (NODE_WS === undefined || MNEMONIC === undefined || ALIVE_TIME === undefined) {
+      throw Error('Archipel needs at least NODE_WS, MNEMONIC, ALIVE_TIME variables to work.');
     }
 
     // Connection to Polkadot API
@@ -27,7 +27,7 @@ async function main () {
 
     // Starting service in passive mode
     console.log('Starting service in passive mode...');
-    await serviceStart('polkadot', 'passive');
+    await serviceStart('polkadot', 'sync');
     console.log('Service was started in passive mode...');
 
     // Creating metrics object
@@ -40,7 +40,7 @@ async function main () {
     setInterval(addMetrics, 20000, 42, api, MNEMONIC);
 
     // Orchestrate service every 30 seconds
-    setInterval(orchestrateService, 30000, api, metrics, MNEMONIC);
+    setInterval(orchestrateService, 30000, api, metrics, MNEMONIC, ALIVE_TIME);
 
     // Showing metrics just for debug
     setInterval(() => { metrics.showMetrics(); }, 5000);

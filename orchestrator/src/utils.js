@@ -10,6 +10,5 @@ const getKeysFromSeed = function (_seed) {
 };
 
 module.exports = {
-  getKeysFromSeed,
-  throwIfMissing
+  getKeysFromSeed
 };

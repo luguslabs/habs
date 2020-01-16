@@ -20,7 +20,7 @@ const polkadotStart = async mode => {
     }
 
     // Launch service in specific mode
-    if (mode === 'validate') {
+    if (mode === 'active') {
       await startServiceContainer('active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['polkadot', '--chain', 'alex', '--name', POLKADOT_NAME, '--validator', '--key', POLKADOT_KEY], '/root/.local/share/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
     } else {
       await startServiceContainer('passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['polkadot', '--chain', 'alex', '--name', POLKADOT_NAME], '/root/.local/share/polkadot', POLKADOT_PREFIX + 'polkadot-volume');

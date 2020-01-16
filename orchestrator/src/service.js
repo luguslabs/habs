@@ -4,7 +4,7 @@ const { polkadotStart } = require('./polkadot');
 const debug = require('debug')('service');
 
 // TODO: Detect if I am offline and turn service in passive mode
-const orchestrateService = async (api, metrics, mnemonic) => {
+const orchestrateService = async (api, metrics, mnemonic, aliveTime) => {
   try {
     console.log('Orchestrating service.....');
     // Get node address from seed
@@ -18,10 +18,20 @@ const orchestrateService = async (api, metrics, mnemonic) => {
     // If current leader is already set
     if (currentLeader !== '') {
       console.log(`Current Leader: ${currentLeader}`);
+
       // If you are the current leader
       if (currentLeader === nodeKey) {
-        console.log('Launching validator node...');
-        await serviceStart('polkadot', 'validate');
+        // The node is not isolated launching service in active mode
+        if (metrics.anyOneAlive(nodeKey, aliveTime)) {
+          console.log('Found someone online...');
+          console.log('Launching validator node...');
+          await serviceStart('polkadot', 'active');
+        // The node is isolated launching service in passive mode
+        } else {
+          console.log('Seems that no one is online...');
+          console.log('Launching sync node...');
+          await serviceStart('polkadot', 'passive');
+        }
 
       // If someone else is leader
       } else {
@@ -32,7 +42,7 @@ const orchestrateService = async (api, metrics, mnemonic) => {
           const nowTime = new Date().getTime();
           const lastSeenAgo = nowTime - validatorMetrics.timestamp;
           // Checking if it can be considered alive
-          if (lastSeenAgo > 60000) {
+          if (lastSeenAgo > aliveTime) {
             console.log('Leader is not alive for 1min...');
             await becomeLeader(currentLeader, api, mnemonic);
           } else {
@@ -40,7 +50,7 @@ const orchestrateService = async (api, metrics, mnemonic) => {
           }
         // If there is no metrics about validator we will set timestamp and metrics to 0
         } else {
-          console.log('No info about validator...');
+          console.log('No info about node...');
           console.log('Adding empty info about current leader and doing nothing...');
           metrics.addMetrics(currentLeader, 0, 0);
         }

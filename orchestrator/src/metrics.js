@@ -1,3 +1,5 @@
+const debug = require('debug')('metrics');
+
 // Metrics class to simplify metrics management
 class Metrics {
   constructor () {
@@ -21,6 +23,20 @@ class Metrics {
       console.log(`Date: ${new Date(parseInt(value.timestamp)).toString()}`);
       console.log('--------------------------------------------------------------------------');
     });
+  }
+
+  anyOneAlive (excludeNode, aliveTime) {
+    const nowTime = new Date().getTime();
+    for (const [key, value] of this.metrics.entries()) {
+      if (key !== excludeNode) {
+        const lastSeenAgo = nowTime - value.timestamp;
+        if (lastSeenAgo < aliveTime) {
+          debug('metrics', `${key} is alive.`);
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   getMetrics (wallet) {

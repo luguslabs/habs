@@ -14,6 +14,7 @@ function launch_orchestrator () {
     --env POLKADOT_IMAGE="$6" \
     --env POLKADOT_PREFIX="$7" \
     --env DEBUG=* \
+    --env ALIVE_TIME=60000 \
     luguslabs/archipel-orchestrator:$ARCHIPEL_ORCHESTRATOR_VERSION 
 
   echo "Waiting 5 seconds to be shure that orchestrator is started..."
