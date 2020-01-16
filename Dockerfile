@@ -50,7 +50,7 @@ COPY --from=builder-chain /root/archipelTemplateSpec.json ./chain
 COPY --from=builder-chain /root/archipelTemplateSpecRaw.json ./chain
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
-		libssl-dev curl supervisor nodejs
+		libssl-dev curl nodejs supervisor
 
 ####################################
 # import orchestrator build
