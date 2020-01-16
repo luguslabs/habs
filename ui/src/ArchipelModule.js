@@ -19,7 +19,7 @@ function Main (props) {
       if (!newMaster.isEmpty) {
         setCurrentMaster(newMaster.toString());
       } else {
-        setCurrentMaster('Service down. No master');
+        setCurrentMaster('None');
       }
     }).then(unsub => {
       unsubscribe = unsub;

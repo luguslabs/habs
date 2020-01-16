@@ -75,7 +75,7 @@ const addMetrics = async (metrics, api, mnemonic) => {
           });
         }
       });
-    console.log('Transaction was sent');
+    debug('addMetrics', 'Transaction was sent.');
     return true;
   } catch (error) {
     debug('addMetrics', error);
