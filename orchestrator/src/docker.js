@@ -1,5 +1,6 @@
 const Docker = require('dockerode');
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+const debug = require('debug')('docker');
 
 // Docker image pull progress
 const onProgress = event => {
@@ -29,7 +30,7 @@ const getContainerByName = async name => {
       return element.Names[0] === '/' + name ? element : false;
     });
   } catch (error) {
-    console.error(error);
+    debug('getContainerByName', error);
     throw error;
   }
 };
@@ -42,7 +43,7 @@ const getVolumeByName = async name => {
       return element.Name === name ? element : false;
     });
   } catch (error) {
-    console.error(error);
+    debug('getVolumeByName', error);
     throw error;
   }
 };
@@ -60,7 +61,7 @@ const startContainer = async containerData => {
 
     return true;
   } catch (error) {
-    console.error(error);
+    debug('startContainer', error);
     throw error;
   }
 };
@@ -76,41 +77,46 @@ const createVolume = async name => {
       await docker.createVolume(options);
       return true;
     } else {
-      console.log('Volume already exists.');
+      debug('createVolume', 'Volume already exists.');
       return false;
     }
   } catch (error) {
-    console.error(error);
+    debug('createVolume', error);
     throw error;
   }
 };
 
 const prepareAndStart = async (containerData, upName, downName, containerUp, containerDown) => {
-  // Settng container name
-  containerData.name = upName;
+  try {
+    // Settng container name
+    containerData.name = upName;
 
-  // We must stop down container if necessary
-  if (containerDown !== undefined) {
-    console.log(`Stopping ${downName} container...`);
-    await removeContainer(downName);
-  }
-
-  if (containerUp === undefined) {
-    // Starting container
-    console.log(`Starting ${upName} container...`);
-    await startContainer(containerData);
-    return true;
-  } else {
-    // If container exits but is not in running state
-    // We will stop and restart it
-    if (containerUp.State !== 'running') {
-      console.log(`Restarting container ${containerData.name}...`);
-      await removeContainer(containerData.name);
-      await startContainer(containerData);
+    // We must stop down container if necessary
+    if (containerDown !== undefined) {
+      console.log(`Stopping ${downName} container...`);
+      await removeContainer(downName);
     }
 
-    console.log('Service is already started.');
-    return false;
+    if (containerUp === undefined) {
+      // Starting container
+      console.log(`Starting ${upName} container...`);
+      await startContainer(containerData);
+      return true;
+    } else {
+      // If container exits but is not in running state
+      // We will stop and restart it
+      if (containerUp.State !== 'running') {
+        console.log(`Restarting container ${containerData.name}...`);
+        await removeContainer(containerData.name);
+        await startContainer(containerData);
+      }
+
+      console.log('Service is already started.');
+      return false;
+    }
+  } catch (error) {
+    debug('prepareAndStart', error);
+    throw error;
   }
 };
 
@@ -149,7 +155,7 @@ const startServiceContainer = async (type, activeName, passiveName, image, cmd, 
       return await prepareAndStart(containerData, passiveName, activeName, containerPassive, containerActive);
     }
   } catch (error) {
-    console.error(error);
+    debug('startServiceContainer', error);
     throw error;
   }
 };
@@ -168,13 +174,12 @@ const removeContainer = async name => {
       return false;
     }
   } catch (error) {
-    console.error(error);
+    debug('removeContainer', error);
     throw error;
   }
 };
 
 module.exports = {
   startServiceContainer,
-  removeContainer,
-  getContainerByName
+  removeContainer
 };

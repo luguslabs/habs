@@ -39,9 +39,6 @@ function add_key () {
 
 # Add keys to node keystore
 function add_keys_to_node () {
-  # Necessary to make curl calls
-  echo "Installing curl in $1 container..."
-  docker exec "$1" apt-get install -y curl
   # Add aura key to keystore
   add_key "$1" "aura" "$2" "$3"
   # Add granpa key to keystore
