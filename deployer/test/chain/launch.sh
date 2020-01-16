@@ -16,7 +16,7 @@ function launch_node () {
     --validator \
     --name "$1" $4 \
 
-  echo "Waiting 5 seconds to be shure that node is started..."
+  echo "Waiting 5 seconds to be sure that node is started..."
   sleep 5
 }
 

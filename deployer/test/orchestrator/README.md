@@ -1,6 +1,6 @@
 # Archipel Orchestrator Test
 
-This repository contains scripts to bootstrap 3 Archipel orchestrator deployment.
+This directory contains scripts to bootstrap 3 Archipel orchestrator deployment.
 
 ## Warning! For testing purposes only!
 

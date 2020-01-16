@@ -1,6 +1,6 @@
 # Archipel Chain Test
 
-This repository contains scripts to bootstrap 3 Nodes Archipel chain deployment.
+This directory contains scripts to bootstrap 3 Nodes Archipel chain deployment.
 
 These scripts will use predefined keys from **keys** directory and chain spec from **customSpecRaw.json**.
 
