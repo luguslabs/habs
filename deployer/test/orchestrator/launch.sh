@@ -13,7 +13,7 @@ function launch_orchestrator () {
     --env POLKADOT_KEY="$5" \
     --env POLKADOT_IMAGE="$6" \
     --env POLKADOT_PREFIX="$7" \
-    --env DEBUG=* \
+    --env DEBUG="app,chain,docker,metrics,polkadot,service" \
     --env ALIVE_TIME=60000 \
     luguslabs/archipel-orchestrator:$ARCHIPEL_ORCHESTRATOR_VERSION 
 

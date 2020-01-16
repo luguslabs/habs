@@ -8,7 +8,7 @@ It stops, starts, activates or deactivates the validator node according to the A
 ```bash
 # .env
 NODE_ENV=development
-DEBUG=*
+DEBUG="app,chain,docker,metrics,polkadot,service"
 
 # Setting Archipel Variables
 NODE_WS=ws://127.0.0.1:9944

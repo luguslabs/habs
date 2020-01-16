@@ -126,8 +126,6 @@ const setLeader = async (oldLeader, api, mnemonic) => {
               }
             });
             resolve(true);
-          } else {
-            reject(new Error('Transaction failed.'));
           }
         }).catch(err => reject(err));
     });

@@ -3,10 +3,11 @@ const { getKeysFromSeed } = require('./utils');
 const { polkadotStart } = require('./polkadot');
 const debug = require('debug')('service');
 
-// TODO: Detect if I am offline and turn service in passive mode
+// Orchestrate service
 const orchestrateService = async (api, metrics, mnemonic, aliveTime) => {
   try {
     console.log('Orchestrating service.....');
+
     // Get node address from seed
     const nodeKey = getKeysFromSeed(mnemonic).address;
     console.log(`Current node key: ${nodeKey}`);
@@ -18,42 +19,12 @@ const orchestrateService = async (api, metrics, mnemonic, aliveTime) => {
     // If current leader is already set
     if (currentLeader !== '') {
       console.log(`Current Leader: ${currentLeader}`);
-
       // If you are the current leader
       if (currentLeader === nodeKey) {
-        // The node is not isolated launching service in active mode
-        if (metrics.anyOneAlive(nodeKey, aliveTime)) {
-          console.log('Found someone online...');
-          console.log('Launching validator node...');
-          await serviceStart('polkadot', 'active');
-        // The node is isolated launching service in passive mode
-        } else {
-          console.log('Seems that no one is online...');
-          console.log('Launching sync node...');
-          await serviceStart('polkadot', 'passive');
-        }
-
+        await currentLeaderAction(nodeKey, aliveTime, metrics);
       // If someone else is leader
       } else {
-        // Get validator metrics known
-        const validatorMetrics = metrics.getMetrics(currentLeader);
-        // If validator already sent an Metrics Update
-        if (validatorMetrics !== undefined && validatorMetrics.timestamp !== 0) {
-          const nowTime = new Date().getTime();
-          const lastSeenAgo = nowTime - validatorMetrics.timestamp;
-          // Checking if it can be considered alive
-          if (lastSeenAgo > aliveTime) {
-            console.log('Leader is not alive for 1min...');
-            await becomeLeader(currentLeader, api, mnemonic);
-          } else {
-            console.log('All is OK leader is alive...');
-          }
-        // If there is no metrics about validator we will set timestamp and metrics to 0
-        } else {
-          console.log('No info about node...');
-          console.log('Adding empty info about current leader and doing nothing...');
-          metrics.addMetrics(currentLeader, 0, 0);
-        }
+        await otherLeaderAction(metrics, currentLeader, aliveTime, api, mnemonic);
       }
     // Leader is not already set (first time boot)
     } else {
@@ -63,6 +34,54 @@ const orchestrateService = async (api, metrics, mnemonic, aliveTime) => {
   } catch (error) {
     debug('orchestrateService', error);
     console.error(error);
+  }
+};
+
+// Act if other node is leader
+const otherLeaderAction = async (metrics, currentLeader, aliveTime, api, mnemonic) => {
+  try {
+    // Get validator metrics known
+    const validatorMetrics = metrics.getMetrics(currentLeader);
+    // If validator already sent an Metrics Update
+    if (validatorMetrics !== undefined && validatorMetrics.timestamp !== 0) {
+      const nowTime = new Date().getTime();
+      const lastSeenAgo = nowTime - validatorMetrics.timestamp;
+      // Checking if it can be considered alive
+      if (lastSeenAgo > aliveTime) {
+        console.log('Leader is not alive for 1min...');
+        await becomeLeader(currentLeader, api, mnemonic);
+      } else {
+        console.log('All is OK leader is alive...');
+      }
+    // If there is no metrics about validator we will set timestamp and metrics to 0
+    } else {
+      console.log('No info about node...');
+      console.log('Adding empty info about current leader and doing nothing...');
+      metrics.addMetrics(currentLeader, 0, 0);
+    }
+  } catch (error) {
+    debug('otherLeaderAction', error);
+    throw error;
+  }
+};
+
+// Act if your node is leader
+const currentLeaderAction = async (nodeKey, aliveTime, metrics) => {
+  try {
+    // The node is not isolated launching service in active mode
+    if (metrics.anyOneAlive(nodeKey, aliveTime)) {
+      console.log('Found someone online...');
+      console.log('Launching validator node...');
+      await serviceStart('polkadot', 'active');
+    // The node is isolated launching service in passive mode
+    } else {
+      console.log('Seems that no one is online...');
+      console.log('Launching sync node...');
+      await serviceStart('polkadot', 'passive');
+    }
+  } catch (error) {
+    debug('currentLeader', error);
+    throw error;
   }
 };
 
