@@ -39,8 +39,8 @@ async function main () {
     // Adding metrics every 20 seconds
     setInterval(addMetrics, 20000, 42, api, MNEMONIC);
 
-    // Orchestrate service every 10 seconds
-    setInterval(orchestrateService, 10000, api, metrics, MNEMONIC);
+    // Orchestrate service every 30 seconds
+    setInterval(orchestrateService, 30000, api, metrics, MNEMONIC);
 
     // Showing metrics just for debug
     setInterval(() => { metrics.showMetrics(); }, 5000);

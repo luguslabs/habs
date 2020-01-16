@@ -3,6 +3,7 @@ const { getKeysFromSeed } = require('./utils');
 const { polkadotStart } = require('./polkadot');
 const debug = require('debug')('service');
 
+// TODO: Detect if I am offline and turn service in passive mode
 const orchestrateService = async (api, metrics, mnemonic) => {
   try {
     console.log('Orchestrating service.....');
@@ -27,13 +28,13 @@ const orchestrateService = async (api, metrics, mnemonic) => {
         // Get validator metrics known
         const validatorMetrics = metrics.getMetrics(currentLeader);
         // If validator already sent an Metrics Update
-        if (validatorMetrics !== undefined) {
+        if (validatorMetrics !== undefined && validatorMetrics.timestamp !== 0) {
           const nowTime = new Date().getTime();
           const lastSeenAgo = nowTime - validatorMetrics.timestamp;
           // Checking if it can be considered alive
           if (lastSeenAgo > 60000) {
             console.log('Leader is not alive for 1min...');
-            await becomeLeader(nodeKey, api, mnemonic);
+            await becomeLeader(currentLeader, api, mnemonic);
           } else {
             console.log('All is OK leader is alive...');
           }
@@ -55,6 +56,7 @@ const orchestrateService = async (api, metrics, mnemonic) => {
   }
 };
 
+// Set leader onchain and launch service
 const becomeLeader = async (nodeKey, api, mnemonic) => {
   try {
     console.log('Trying to be leader...');
@@ -74,6 +76,7 @@ const becomeLeader = async (nodeKey, api, mnemonic) => {
   }
 };
 
+// Start a service
 const serviceStart = async (name, mode) => {
   try {
     // If service is Polkadot launching it

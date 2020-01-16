@@ -9,11 +9,6 @@ const getKeysFromSeed = function (_seed) {
   return keyring.addFromUri(_seed);
 };
 
-// Throw an error if called
-const throwIfMissing = () => {
-  throw Error('Missing parameter');
-};
-
 module.exports = {
   getKeysFromSeed,
   throwIfMissing

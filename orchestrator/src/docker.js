@@ -2,12 +2,12 @@ const Docker = require('dockerode');
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 const debug = require('debug')('docker');
 
-// Docker image pull progress
+// Pull docker image progress
 const onProgress = event => {
   if (event.progress) console.log(event.progress);
 };
 
-// Docker pull promise
+// Pull docker image
 const dockerPull = async image => new Promise((resolve, reject) => {
   // Pulling docker image
   docker.pull(image, (error, stream) => {
@@ -22,7 +22,7 @@ const dockerPull = async image => new Promise((resolve, reject) => {
   });
 });
 
-// Gets container instance by name
+// Get container instance by name
 const getContainerByName = async name => {
   try {
     const containers = await docker.listContainers({ all: true });
@@ -35,7 +35,7 @@ const getContainerByName = async name => {
   }
 };
 
-// Gets volume instance by name
+// Get volume instance by name
 const getVolumeByName = async name => {
   try {
     const volumes = await docker.listVolumes();
@@ -48,7 +48,7 @@ const getVolumeByName = async name => {
   }
 };
 
-// Starts container with special config
+// Pulling image, creating and strating a container
 const startContainer = async containerData => {
   try {
     // Pulling image
@@ -66,7 +66,7 @@ const startContainer = async containerData => {
   }
 };
 
-// Creating validator volume
+// Creating a volume
 const createVolume = async name => {
   try {
     const volume = await getVolumeByName(name);
@@ -86,6 +86,7 @@ const createVolume = async name => {
   }
 };
 
+// Remove 'down' container and start 'up' container
 const prepareAndStart = async (containerData, upName, downName, containerUp, containerDown) => {
   try {
     // Settng container name
@@ -120,7 +121,7 @@ const prepareAndStart = async (containerData, upName, downName, containerUp, con
   }
 };
 
-// Starting container
+// Start passive or active service container
 const startServiceContainer = async (type, activeName, passiveName, image, cmd, mountTarget, mountSource) => {
   try {
     // Creating volume
@@ -160,7 +161,7 @@ const startServiceContainer = async (type, activeName, passiveName, image, cmd, 
   }
 };
 
-// Stopping validator node
+// Stop and remove container
 const removeContainer = async name => {
   try {
     const containerByName = await getContainerByName(name);

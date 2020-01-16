@@ -2,6 +2,15 @@ const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { getKeysFromSeed } = require('./utils');
 const debug = require('debug')('chain');
 
+// Show transaction status in debug
+const transactionShowStatus = (status, where) => {
+  if (status.isInvalid) debug(where, 'Transaction is invalid.');
+  if (status.isDropped) debug(where, 'Transaction is dropped.');
+  if (status.isUsurped) debug(where, 'Transaction is usurped.');
+  if (status.isReady) debug(where, 'Transaction is ready.');
+  if (status.isFuture) debug(where, 'Transaction is future.');
+};
+
 // Conecting to provider
 const connect = async wsProvider => {
   try {
@@ -22,7 +31,6 @@ const listenEvents = async (api, metrics) => {
     await api.query.system.events((events) => {
       // Loop through events
       events.forEach(({ event = [] }) => {
-        console.log(event.toString());
         // Add metrics if Metrics updated event was recieved
         if (event.section.toString() === 'archipelModule' && event.method.toString() === 'MetricsUpdated') {
           console.log(`Recieved metrics updated event from ${event.data[0]}`);
@@ -43,6 +51,10 @@ const addMetrics = async (metrics, api, mnemonic) => {
     const keys = getKeysFromSeed(mnemonic);
     // Get account nonce
     const nonce = await api.query.system.accountNonce(keys.address);
+
+    // Nonce show
+    debug('addMetrics', `Nonce: ${nonce.toString()}`);
+
     // create, sign and send transaction
     await api.tx.archipelModule
       // create transaction
@@ -51,6 +63,8 @@ const addMetrics = async (metrics, api, mnemonic) => {
       .sign(keys, { nonce })
       // Send transaction
       .send(({ events = [], status }) => {
+        // Debug show transaction status
+        transactionShowStatus(status, 'addMetrics');
         if (status.isFinalized) {
           events.forEach(async ({ event: { data, method, section } }) => {
             if (section.toString() === 'archipelModule' && method.toString() === 'MetricsUpdated') {
@@ -61,6 +75,7 @@ const addMetrics = async (metrics, api, mnemonic) => {
           });
         }
       });
+    console.log('Transaction was sent');
     return true;
   } catch (error) {
     debug('addMetrics', error);
@@ -78,6 +93,7 @@ const getLeader = async api => {
   }
 };
 
+// Set leader
 const setLeader = async (oldLeader, api, mnemonic) => {
   try {
     // Get keys from mnemonic
@@ -85,6 +101,9 @@ const setLeader = async (oldLeader, api, mnemonic) => {
 
     // Get account nonce
     const nonce = await api.query.system.accountNonce(keys.address);
+
+    // Nonce show
+    debug('setLeader', `Nonce: ${nonce.toString()}`);
 
     return new Promise((resolve, reject) => {
       // create, sign and send transaction
@@ -95,6 +114,8 @@ const setLeader = async (oldLeader, api, mnemonic) => {
         .sign(keys, { nonce })
         // Send transaction
         .send(({ events = [], status }) => {
+          // Debug show transaction status
+          transactionShowStatus(status, 'setLeader');
           if (status.isFinalized) {
             events.forEach(async ({ event: { data, method, section } }) => {
               if (section.toString() === 'archipelModule' && method.toString() === 'NewMaster') {

@@ -17,7 +17,7 @@
   "author": "Lugus Labs",
   "license": "Apache-2.0",
   "dependencies": {
-    "@polkadot/api": "^0.99.1",
+    "@polkadot/api": "^0.100.1",
     "@polkadot/keyring": "^1.7.1",
     "@polkadot/util": "^1.7.1",
     "debug": "^4.1.1",

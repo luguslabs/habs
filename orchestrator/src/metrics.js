@@ -1,3 +1,4 @@
+// Metrics class to simplify metrics management
 class Metrics {
   constructor () {
     this.metrics = new Map();
