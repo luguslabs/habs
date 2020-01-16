@@ -49,4 +49,4 @@ including:
 * `REACT_APP_DEVELOPMENT_KEYRING` overriding `config[DEVELOPMENT_KEYRING]`
 
 ## References
-* [Based on Substrate Front End Template](https://substrate-developer-hub/substrate-front-end-template.git)
+* [Based on Substrate Front End Template](https://github.com/substrate-developer-hub/substrate-front-end-template)
