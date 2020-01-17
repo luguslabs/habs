@@ -45,7 +45,7 @@ const listenEvents = async (api, metrics) => {
 };
 
 // Send metrics
-const addMetrics = async (metrics, api, mnemonic) => {
+const addMetrics = async (api, metrics, mnemonic) => {
   try {
     // Get keys from mnemonic
     const keys = getKeysFromSeed(mnemonic);
@@ -94,7 +94,7 @@ const getLeader = async api => {
 };
 
 // Set leader
-const setLeader = async (oldLeader, api, mnemonic) => {
+const setLeader = async (api, oldLeader, mnemonic) => {
   try {
     // Get keys from mnemonic
     const keys = getKeysFromSeed(mnemonic);

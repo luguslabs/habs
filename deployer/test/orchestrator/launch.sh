@@ -15,6 +15,7 @@ function launch_orchestrator () {
     --env POLKADOT_PREFIX="$7" \
     --env DEBUG="app,chain,docker,metrics,polkadot,service" \
     --env ALIVE_TIME=60000 \
+    --env SERVICE="polkadot" \
     luguslabs/archipel-orchestrator:$ARCHIPEL_ORCHESTRATOR_VERSION 
 
   echo "Waiting 5 seconds to be sure that orchestrator is started..."

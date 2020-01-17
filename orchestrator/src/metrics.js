@@ -6,6 +6,7 @@ class Metrics {
     this.metrics = new Map();
   }
 
+  // Add metrics into Map
   addMetrics (wallet, metrics, timestamp) {
     var nodeMetrics = {
       metrics,
@@ -15,6 +16,7 @@ class Metrics {
     this.metrics.set(wallet, nodeMetrics);
   }
 
+  // Show all metrics from Map
   showMetrics () {
     this.metrics.forEach((value, key) => {
       console.log(`--------- Node: ${key} ---------`);
@@ -25,6 +27,7 @@ class Metrics {
     });
   }
 
+  // If any node in Map is alive
   anyOneAlive (excludeNode, aliveTime) {
     const nowTime = new Date().getTime();
     for (const [key, value] of this.metrics.entries()) {
@@ -39,6 +42,7 @@ class Metrics {
     return false;
   }
 
+  // Get metrics of a node
   getMetrics (wallet) {
     return this.metrics.get(wallet);
   }

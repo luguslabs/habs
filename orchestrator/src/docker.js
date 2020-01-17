@@ -1,5 +1,3 @@
-const Docker = require('dockerode');
-const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 const debug = require('debug')('docker');
 
 // Pull docker image progress
@@ -8,7 +6,7 @@ const onProgress = event => {
 };
 
 // Pull docker image
-const dockerPull = async image => new Promise((resolve, reject) => {
+const dockerPull = async (docker, image) => new Promise((resolve, reject) => {
   // Pulling docker image
   docker.pull(image, (error, stream) => {
     console.log(`Pulling ${image} image...`);
@@ -23,7 +21,7 @@ const dockerPull = async image => new Promise((resolve, reject) => {
 });
 
 // Get container instance by name
-const getContainerByName = async name => {
+const getContainerByName = async (docker, name) => {
   try {
     const containers = await docker.listContainers({ all: true });
     return containers.find(element => {
@@ -36,7 +34,7 @@ const getContainerByName = async name => {
 };
 
 // Get volume instance by name
-const getVolumeByName = async name => {
+const getVolumeByName = async (docker, name) => {
   try {
     const volumes = await docker.listVolumes();
     return volumes.Volumes.find(element => {
@@ -49,10 +47,10 @@ const getVolumeByName = async name => {
 };
 
 // Pulling image, creating and strating a container
-const startContainer = async containerData => {
+const startContainer = async (docker, containerData) => {
   try {
     // Pulling image
-    await dockerPull(containerData.Image);
+    await dockerPull(docker, containerData.Image);
 
     // Starting container
     console.log('Creating and starting container...');
@@ -67,9 +65,9 @@ const startContainer = async containerData => {
 };
 
 // Creating a volume
-const createVolume = async name => {
+const createVolume = async (docker, name) => {
   try {
-    const volume = await getVolumeByName(name);
+    const volume = await getVolumeByName(docker, name);
     if (volume === undefined) {
       const options = {
         Name: name
@@ -87,7 +85,7 @@ const createVolume = async name => {
 };
 
 // Remove 'down' container and start 'up' container
-const prepareAndStart = async (containerData, upName, downName, containerUp, containerDown) => {
+const prepareAndStart = async (docker, containerData, upName, downName, containerUp, containerDown) => {
   try {
     // Settng container name
     containerData.name = upName;
@@ -95,21 +93,21 @@ const prepareAndStart = async (containerData, upName, downName, containerUp, con
     // We must stop down container if necessary
     if (containerDown !== undefined) {
       console.log(`Stopping ${downName} container...`);
-      await removeContainer(downName);
+      await removeContainer(docker, downName);
     }
 
     if (containerUp === undefined) {
       // Starting container
       console.log(`Starting ${upName} container...`);
-      await startContainer(containerData);
+      await startContainer(docker, containerData);
       return true;
     } else {
       // If container exits but is not in running state
       // We will stop and restart it
       if (containerUp.State !== 'running') {
         console.log(`Restarting container ${containerData.name}...`);
-        await removeContainer(containerData.name);
-        await startContainer(containerData);
+        await removeContainer(docker, containerData.name);
+        await startContainer(docker, containerData);
       }
 
       console.log('Service is already started.');
@@ -122,10 +120,10 @@ const prepareAndStart = async (containerData, upName, downName, containerUp, con
 };
 
 // Start passive or active service container
-const startServiceContainer = async (type, activeName, passiveName, image, cmd, mountTarget, mountSource) => {
+const startServiceContainer = async (docker, type, activeName, passiveName, image, cmd, mountTarget, mountSource) => {
   try {
     // Creating volume
-    await createVolume(mountSource);
+    await createVolume(docker, mountSource);
 
     // Constructing container data
     const containerData = {
@@ -145,15 +143,15 @@ const startServiceContainer = async (type, activeName, passiveName, image, cmd, 
     };
 
     // Get passive and active containers
-    const containerPassive = await getContainerByName(passiveName);
-    const containerActive = await getContainerByName(activeName);
+    const containerPassive = await getContainerByName(docker, passiveName);
+    const containerActive = await getContainerByName(docker, activeName);
 
     // If we want to start active container
     if (type === 'active') {
-      return await prepareAndStart(containerData, activeName, passiveName, containerActive, containerPassive);
+      return await prepareAndStart(docker, containerData, activeName, passiveName, containerActive, containerPassive);
     // We want to start passive container
     } else {
-      return await prepareAndStart(containerData, passiveName, activeName, containerPassive, containerActive);
+      return await prepareAndStart(docker, containerData, passiveName, activeName, containerPassive, containerActive);
     }
   } catch (error) {
     debug('startServiceContainer', error);
@@ -162,9 +160,9 @@ const startServiceContainer = async (type, activeName, passiveName, image, cmd, 
 };
 
 // Stop and remove container
-const removeContainer = async name => {
+const removeContainer = async (docker, name) => {
   try {
-    const containerByName = await getContainerByName(name);
+    const containerByName = await getContainerByName(docker, name);
     console.log(`Deleting container ${name}...`);
     if (containerByName !== undefined) {
       const container = await docker.getContainer(containerByName.Id);
