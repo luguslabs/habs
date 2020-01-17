@@ -18,13 +18,11 @@ class Metrics {
 
   // Show all metrics from Map
   showMetrics () {
+    debug('showMetrics', '--------- Stored metrics ---------');
     this.metrics.forEach((value, key) => {
-      console.log(`--------- Node: ${key} ---------`);
-      console.log(`Metrics: ${value.metrics}`);
-      console.log(`Timestamp: ${value.timestamp}`);
-      console.log(`Date: ${new Date(parseInt(value.timestamp)).toString()}`);
-      console.log('--------------------------------------------------------------------------');
+      debug('showMetrics', `${key} - [${value.metrics}] (${new Date(parseInt(value.timestamp)).toString()}`);
     });
+    debug('showMetrics', '----------------------------------');
   }
 
   // If any node in Map is alive

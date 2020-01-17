@@ -40,7 +40,7 @@ async function main () {
 
     // Connection to Polkadot API
     console.log('Connecting to Archipel Chain node...');
-    const api = await connect(NODE_WS);
+    const api = await connect(NODE_WS, MNEMONIC);
 
     // Creating Docker instance
     const docker = new Docker({ socketPath: '/var/run/docker.sock' });
@@ -56,14 +56,14 @@ async function main () {
     // Listening events and filling metrics object
     listenEvents(api, metrics);
 
-    // Adding metrics every 20 seconds
-    setInterval(addMetrics, 20000, api, 42, MNEMONIC);
+    // Adding metrics every 10 seconds
+    setInterval(addMetrics, 10000, api, 42, MNEMONIC);
 
-    // Orchestrate service every 30 seconds
-    setInterval(orchestrateService, 30000, docker, api, metrics, MNEMONIC, ALIVE_TIME, SERVICE);
+    // Orchestrate service every 20 seconds
+    setInterval(orchestrateService, 20000, docker, api, metrics, MNEMONIC, ALIVE_TIME, SERVICE);
 
     // Showing metrics just for debug
-    setInterval(() => { metrics.showMetrics(); }, 5000);
+    setInterval(() => { metrics.showMetrics(); }, 10000);
   } catch (error) {
     debug('main', error);
     console.error(error);

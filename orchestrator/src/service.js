@@ -3,6 +3,10 @@ const { getKeysFromSeed } = require('./utils');
 const { polkadotStart } = require('./polkadot');
 const debug = require('debug')('service');
 
+// No liveness data from leader count
+let noLivenessFromLeader = 0;
+const noLivenessThreshold = 5;
+
 // Orchestrate service
 const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, service) => {
   try {
@@ -10,7 +14,7 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
 
     // Get node address from seed
     const nodeKey = getKeysFromSeed(mnemonic).address;
-    console.log(`Current node key: ${nodeKey}`);
+    debug('orchestrateService', `Current Node Key: ${nodeKey}`);
 
     // Get current leader from chain
     let currentLeader = await getLeader(api);
@@ -18,10 +22,11 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
 
     // If current leader is already set
     if (currentLeader !== '') {
-      console.log(`Current Leader: ${currentLeader}`);
+      debug('orchestrateService', `Current Leader: ${currentLeader}`);
       // If you are the current leader
       if (currentLeader === nodeKey) {
-        await currentLeaderAction(docker, nodeKey, aliveTime, metrics, service);
+        console.log('Current node is leader.');
+        await serviceStartIfAnyoneActive(docker, nodeKey, aliveTime, metrics, service);
       // If someone else is leader
       } else {
         await otherLeaderAction(docker, metrics, currentLeader, aliveTime, api, mnemonic, service, nodeKey);
@@ -29,7 +34,7 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
     // Leader is not already set (first time boot)
     } else {
       console.log('There is no leader set...');
-      await becomeLeader(docker, nodeKey, api, mnemonic, service);
+      await becomeLeader(docker, nodeKey, nodeKey, api, mnemonic, service, metrics, aliveTime);
     }
   } catch (error) {
     debug('orchestrateService', error);
@@ -40,35 +45,37 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
 // Act if other node is leader
 const otherLeaderAction = async (docker, metrics, currentLeader, aliveTime, api, mnemonic, service, nodeKey) => {
   try {
-    // Get validator metrics known
-    const validatorMetrics = metrics.getMetrics(currentLeader);
-    // If validator already sent an Metrics Update
-    if (validatorMetrics !== undefined && validatorMetrics.timestamp !== 0) {
+    // Get leader metrics known
+    const leaderMetrics = metrics.getMetrics(currentLeader);
+
+    // If leader already sent an Metrics Update
+    if (leaderMetrics !== undefined) {
       const nowTime = new Date().getTime();
-      const lastSeenAgo = nowTime - validatorMetrics.timestamp;
-      // Checking if it can be considered alive
+      const lastSeenAgo = nowTime - leaderMetrics.timestamp;
+
+      // Checking if leader can be considered alive
       if (lastSeenAgo > aliveTime) {
-        console.log('Leader is not alive for 1min...');
-        // Checking if anyone is alive
-        // If anyone is alive try to become leader
-        if (metrics.anyOneAlive(nodeKey, aliveTime)) {
-          console.log('Found someone online...');
-          console.log('Trying to become leader node...');
-          await becomeLeader(docker, currentLeader, api, mnemonic, service);
-        // If nobody is online force sync node
-        } else {
-          console.log('Seems that no one is online...');
-          console.log('Forcing sync node...');
-          await serviceStart(docker, service, 'passive');
-        }
+        await becomeLeader(docker, currentLeader, nodeKey, api, mnemonic, service, metrics, aliveTime);
       } else {
-        console.log('All is OK leader is alive...');
+        console.log(`Leader ${currentLeader} is alive no action required...`);
       }
-    // If there is no metrics about validator we will set timestamp and metrics to 0
+
+    // If there is no metrics recieved from leader node
     } else {
-      console.log('No info about node...');
-      console.log('Adding empty info about current leader and doing nothing...');
-      metrics.addMetrics(currentLeader, 0, 0);
+      // How much checks remains
+      const checksNumber = noLivenessThreshold - noLivenessFromLeader;
+
+      if (checksNumber > 0) {
+        console.log('No liveness data from recieved from leader node...');
+        console.log(`Will try to get leader place in ${checksNumber} checks...`);
+        // Incrementing noLivenessFromLeader counter
+        noLivenessFromLeader++;
+
+      // No metrics recieved for noLivenessThreshold times. Leader is offline.
+      } else {
+        console.log(`Can't check leader liveness for ${noLivenessThreshold} times.`);
+        await becomeLeader(docker, currentLeader, nodeKey, api, mnemonic, service, metrics, aliveTime);
+      }
     }
   } catch (error) {
     debug('otherLeaderAction', error);
@@ -76,42 +83,41 @@ const otherLeaderAction = async (docker, metrics, currentLeader, aliveTime, api,
   }
 };
 
-// Act if your node is leader
-const currentLeaderAction = async (docker, nodeKey, aliveTime, metrics, service) => {
+// Set leader onchain and launch service
+const becomeLeader = async (docker, oldLeaderKey, nodeKey, api, mnemonic, service, metrics, aliveTime) => {
   try {
-    // The node is not isolated launching service in active mode
-    if (metrics.anyOneAlive(nodeKey, aliveTime)) {
-      console.log('Found someone online...');
-      console.log('Launching validator node...');
-      await serviceStart(docker, service, 'active');
-    // The node is isolated launching service in passive mode
+    console.log('Trying to become leader...');
+    const leaderSet = await setLeader(api, oldLeaderKey, mnemonic);
+
+    if (leaderSet === true) {
+      console.log('Leader was successfully set.');
+      await serviceStartIfAnyoneActive(docker, nodeKey, aliveTime, metrics, service);
     } else {
-      console.log('Seems that no one is online...');
-      console.log('Launching sync node...');
-      await serviceStart(docker, service, 'passive');
+      console.log('Can\'t set leader.');
+      console.log('Transaction failed or someone already took the leader place...');
     }
   } catch (error) {
-    debug('currentLeader', error);
+    debug('becomeLeader', error);
     throw error;
   }
 };
 
-// Set leader onchain and launch service
-const becomeLeader = async (docker, nodeKey, api, mnemonic, service) => {
+// Start active service is there is anyone online
+const serviceStartIfAnyoneActive = async (docker, nodeKey, aliveTime, metrics, service) => {
   try {
-    console.log('Trying to be leader...');
-    const leaderSet = await setLeader(api, nodeKey, mnemonic);
-
-    if (leaderSet === true) {
-      console.log('Leader was successfully set.');
-      console.log('Launching validator node...');
+    // The node is not isolated launching service in active mode
+    if (metrics.anyOneAlive(nodeKey, aliveTime)) {
+      console.log('Found someone online...');
+      console.log('Launching active node...');
       await serviceStart(docker, service, 'active');
+    // The node is isolated launching service in passive mode
     } else {
-      console.log('Can\'t set leader.');
-      console.log('Someone is already leader...');
+      console.log('Seems that no one is online...');
+      console.log('Launching passive node...');
+      await serviceStart(docker, service, 'passive');
     }
   } catch (error) {
-    debug('becomeLeader', error);
+    debug('currentLeader', error);
     throw error;
   }
 };
