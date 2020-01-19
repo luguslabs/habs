@@ -33,7 +33,7 @@ fi
 
 ARCHIPEL_PUBLIC_KEY=$(subkey inspect "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
-if [ -z "$ARCHIPEL_SS58_ADDRESS" ]
+if [ -z "$ARCHIPEL_PUBLIC_KEY" ]
 then
       echo "\$ARCHIPEL_PUBLIC_KEY no found using subkey"
       exit 1
@@ -42,9 +42,6 @@ fi
 echo "decoded from seed : ARCHIPEL_SS58_ADDRESS : $ARCHIPEL_SS58_ADDRESS"
 echo "decoded from seed : ARCHIPEL_PUBLIC_KEY : $ARCHIPEL_PUBLIC_KEY"
 
-# Constants
-# ARCHIPEL_KEY_TYPE possible values : gran babe imon para
-ARCHIPEL_KEY_TYPE=imon
 
 # Valorized config spec chain template with envs varabales
 
@@ -59,8 +56,13 @@ cp  -f /root/chain/archipelTemplateSpec.json /root/chain/archipelSpec.json
 cat /root/chain/archipelSpec.json | jq '.bootNodes = []'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
-#TODO add bootnodes list from env vars
-
+# add bootnodes list if not empty
+if [ ! -z "$ARCHIPEL_BOOTNODES" ]
+then
+      echo "\$ARCHIPEL_BOOTNODES  is not empty. Add list to  archipelSpec.json"
+      cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_BOOTNODES "$ARCHIPEL_BOOTNODES"'.bootNodes = [$ARCHIPEL_BOOTNODES]'  > /tmp/archipelSpecTmp.json
+      mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+fi
 
 # replace  "name": "Template"
 cat /root/chain/archipelSpec.json | jq  '.name = "Archipel"'  > /tmp/archipelSpecTmp.json
@@ -98,8 +100,13 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 # generate raw spec file 
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json
 
+
 # launch chain 
-exec /root/chain/archipel --chain=/root/chain/archipelSpecRaw.json  --base-path /root/chain/data
-
-
-#TODO insert account key in node after start
+exec /root/chain/archipel \
+      --chain=/root/chain/archipelSpecRaw.json \
+      --base-path /root/chain/data \
+      --rpc-cors "all" \
+      --unsafe-rpc-external \
+      --unsafe-ws-external \
+      --validator \
+      --name "$ARCHIPEL_NODE_ALIAS"

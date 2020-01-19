@@ -75,6 +75,7 @@ COPY --from=builder-orchestrator /usr/src/app /usr/src/app
 COPY deployer/start_chain.sh /usr/local/bin/
 COPY deployer/start_orchestrator.sh /usr/local/bin/
 COPY deployer/node_status.sh /usr/local/bin/
+COPY deployer/author_insertKey.sh /usr/local/bin/
 COPY deployer/supervisord.conf /etc/supervisord/
 
 ENTRYPOINT ["supervisord","-c","/etc/supervisord/supervisord.conf"]

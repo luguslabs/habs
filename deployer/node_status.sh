@@ -5,15 +5,18 @@ do
   echo "---------PEER_ID-----------"
   curl -H "Content-Type: application/json" -s -d '{"id":1, "jsonrpc":"2.0", "method": "system_networkState", "params":[]}' http://localhost:9933 | jq  '.result.peerId'
   echo "---------------------------"
-  echo "---------isSyncing-----------"
+  echo "---------isSyncing---------"
   curl -H "Content-Type: application/json" -s -d '{"id":1, "jsonrpc":"2.0", "method": "system_health", "params":[]}' http://localhost:9933 | jq  '.result.isSyncing'
   echo "---------------------------"
-  echo "---------peers-----------"
+  echo "---------peers-------------"
   curl -H "Content-Type: application/json" -s -d '{"id":1, "jsonrpc":"2.0", "method": "system_health", "params":[]}' http://localhost:9933 | jq  '.result.peers'
   echo "---------------------------"
   sleep 10
 
 done
+
+
+
 
 
 # API culr exemple
