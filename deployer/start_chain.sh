@@ -15,6 +15,37 @@ then
       exit 1
 fi
 
+if [ -z "$ARCHIPEL_AUTHORITIES_LIST" ]
+then
+      echo "\$ARCHIPEL_AUTHORITIES_LIST is empty"
+      exit 1
+fi
+
+echo "ARCHIPEL_AUTHORITIES_LIST is:"
+echo $ARCHIPEL_AUTHORITIES_LIST
+#sanitize ARCHIPEL_AUTHORITIES_LIST
+#remove potential bad  char
+echo "remove potential bad char"
+echo "${ARCHIPEL_AUTHORITIES_LIST}" 
+ARCHIPEL_AUTHORITIES_LIST_CLEAN=$(echo $ARCHIPEL_AUTHORITIES_LIST | tr -d ' ' | tr -d '"' | tr -d '[' | tr -d ']' | tr "," "\n")
+
+if [ -z "$ARCHIPEL_AUTHORITIES_LIST_CLEAN" ]
+then
+      echo "\$ARCHIPEL_AUTHORITIES_LIST is empty"
+      exit 1
+fi
+#create ARCHIPEL_AUTHORITIES_LIST format for config file
+
+ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG=""
+for authority in $ARCHIPEL_AUTHORITIES_LIST_CLEAN
+do
+    if [ -z "$ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG" ] 
+    then
+     ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG=$(echo "\"$authority\"")
+    else
+      ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG=$(echo "${ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG},\"$authority\"")
+    fi
+done
 
 if [ ! -f /usr/local/bin/subkey ]
 then
@@ -30,7 +61,6 @@ then
       exit 1
 fi
 
-
 ARCHIPEL_PUBLIC_KEY=$(subkey inspect "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
 if [ -z "$ARCHIPEL_PUBLIC_KEY" ]
@@ -41,7 +71,7 @@ fi
 
 echo "decoded from seed : ARCHIPEL_SS58_ADDRESS : $ARCHIPEL_SS58_ADDRESS"
 echo "decoded from seed : ARCHIPEL_PUBLIC_KEY : $ARCHIPEL_PUBLIC_KEY"
-
+echo "formated ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG : $ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG"
 
 # Valorized config spec chain template with envs varabales
 
@@ -92,15 +122,15 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS" '.genesis.runtime.balances.balances = [[$ARCHIPEL_SS58_ADDRESS , 1152921504606846976]]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
-# add SS58 Adress as sudo key 
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS" '.genesis.runtime.sudo.key = $ARCHIPEL_SS58_ADDRESS'  > /tmp/archipelSpecTmp.json
+# Remove sudo  
+cat /root/chain/archipelSpec.json | jq 'del(.genesis.runtime.sudo)'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-
 
 # generate raw spec file 
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json
 
 
+# remove data option volume to add ??? 
 # launch chain 
 exec /root/chain/archipel \
       --chain=/root/chain/archipelSpecRaw.json \
