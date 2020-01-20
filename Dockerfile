@@ -12,42 +12,15 @@ RUN ./scripts/init.sh && cargo build --release
 RUN ./target/release/archipel  build-spec --chain template > archipelTemplateSpec.json
 RUN ./target/release/archipel  build-spec --chain template --raw > archipelTemplateSpecRaw.json
 
-
 ###########################
 # Build subkey tool step
 ###########################
-
-#$ curl https://getsubstrate.io -sSf | bash -s -- --fast
 RUN cargo install --force --git https://github.com/paritytech/substrate subkey
-#RUN /usr/local/cargo/bin/subkey --help
-#RUN cargo build -p subkey
-
-###########################
-# Archipel orchestrator build step
-###########################
-
-FROM node:10 as builder-orchestrator
-
-# Create app directory
-WORKDIR /usr/src/app
-
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY orchestrator/package*.json ./
-
-RUN npm install
-# If you are building your code for production
-# RUN npm ci --only=production
-
-# Bundle app source
-COPY orchestrator/ .
-
 
 ####################################
 # Create Archipel docker image
 ####################################
-FROM debian:buster-slim
+FROM node:10-buster
 WORKDIR /root/
 
 ####################################
@@ -60,13 +33,18 @@ COPY --from=builder-chain /root/archipelTemplateSpecRaw.json ./chain
 COPY --from=builder-chain /usr/local/cargo/bin/subkey /usr/local/bin/
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
-		libssl-dev curl nodejs supervisor jq
+		libssl-dev curl supervisor jq
+
 
 ####################################
-# import orchestrator build
+# import orchestrator
 ####################################
+WORKDIR /usr/src/app  
+COPY orchestrator/package*.json ./
+COPY orchestrator/ .
+RUN npm install
 
-COPY --from=builder-orchestrator /usr/src/app /usr/src/app
+WORKDIR /root
 
 ####################################
 # import scripts and supervisord conf  
