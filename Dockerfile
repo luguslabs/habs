@@ -20,7 +20,7 @@ RUN cargo install --force --git https://github.com/paritytech/substrate subkey
 ####################################
 # Create Archipel docker image
 ####################################
-FROM node:10-buster
+FROM node:10-buster-slim
 WORKDIR /root/
 
 ####################################
@@ -33,8 +33,7 @@ COPY --from=builder-chain /root/archipelTemplateSpecRaw.json ./chain
 COPY --from=builder-chain /usr/local/cargo/bin/subkey /usr/local/bin/
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
-		libssl-dev curl supervisor jq
-
+		libssl-dev curl supervisor jq build-essential
 
 ####################################
 # import orchestrator
