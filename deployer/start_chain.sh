@@ -128,7 +128,7 @@ cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARC
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # add SS58 Adress to grandpa.authorities 
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS_ED25519" '.genesis.runtime.grandpa.authorities = [[$ARCHIPEL_SS58_ADDRESS_ED25519 , 1]]'  > /tmp/archipelSpecTmp.json
+cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_ED25519 "$ARCHIPEL_SS58_ADDRESS_ED25519" '.genesis.runtime.grandpa.authorities = [[$ARCHIPEL_SS58_ADDRESS_ED25519 , 1]]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # add SS58 Adress to indices
@@ -136,7 +136,7 @@ cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARC
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # add SS58 Adress to indices
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.balances.balances = [[$ARCHIPEL_SS58_ADDRESS_SR25519 , 1152921504606846976]]'  > /tmp/archipelSpecTmp.json
+cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.balances.balances = [[$ARCHIPEL_SS58_ADDRESS_SR25519 , 1152921504606846976]]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # Remove sudo  
