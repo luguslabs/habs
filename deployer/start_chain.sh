@@ -119,10 +119,6 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 cat /root/chain/archipelSpec.json | jq  '.id = "archipel"'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
-# replace "protocolId"
-cat /root/chain/archipelSpec.json | jq  '.protocolId = "1984"'  > /tmp/archipelSpecTmp.json
-mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-
 # add SS58 Adress to aura.authorities 
 cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.aura.authorities = [$ARCHIPEL_SS58_ADDRESS_SR25519]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
