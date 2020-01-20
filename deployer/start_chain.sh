@@ -153,3 +153,4 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
       --unsafe-ws-external \
       --validator \
       --name "$ARCHIPEL_NODE_ALIAS"
+      
