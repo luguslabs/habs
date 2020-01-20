@@ -135,8 +135,8 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.balances.balances = [[$ARCHIPEL_SS58_ADDRESS_SR25519 , 1152921504606846976]]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
-# Remove sudo  
-cat /root/chain/archipelSpec.json | jq 'del(.genesis.runtime.sudo)'  > /tmp/archipelSpecTmp.json
+# add SS58 Adress as sudo key 
+cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.sudo.key = $ARCHIPEL_SS58_ADDRESS_SR25519'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # generate raw spec file 
