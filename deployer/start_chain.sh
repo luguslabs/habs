@@ -145,7 +145,7 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # remove data option volume to add ??? 
 # launch chain 
-exec /root/chain/archipel \
+/root/chain/archipel \
       --chain=/root/chain/archipelSpecRaw.json \
       --base-path /root/chain/data \
       --rpc-cors "all" \
