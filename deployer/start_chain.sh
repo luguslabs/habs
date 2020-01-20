@@ -15,37 +15,35 @@ then
       exit 1
 fi
 
-if [ -z "$ARCHIPEL_AUTHORITIES_LIST" ]
+if [ -z "$ARCHIPEL_AUTHORITIES_SR25519_LIST" ]
 then
-      echo "\$ARCHIPEL_AUTHORITIES_LIST is empty"
+      echo "\$ARCHIPEL_AUTHORITIES_SR25519_LIST is empty"
       exit 1
 fi
 
-echo "ARCHIPEL_AUTHORITIES_LIST is:"
-echo $ARCHIPEL_AUTHORITIES_LIST
+echo "ARCHIPEL_AUTHORITIES_SR25519_LIST is:"
+echo $ARCHIPEL_AUTHORITIES_SR25519_LIST
+#sanitize ARCHIPEL_AUTHORITIES_SR25519_LIST
+#remove potential bad  char
+ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN=$(echo $ARCHIPEL_AUTHORITIES_SR25519_LIST | tr -d ' ' | tr -d '"' | tr -d '[' | tr -d ']' | tr "," "\n")
+
+if [ -z "$ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN" ]
+then
+      echo "\$ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN is empty"
+      exit 1
+fi
+
+echo "ARCHIPEL_AUTHORITIES_ED25519_LIST is:"
+echo $ARCHIPEL_AUTHORITIES_ED25519_LIST
 #sanitize ARCHIPEL_AUTHORITIES_LIST
 #remove potential bad  char
-echo "remove potential bad char"
-echo "${ARCHIPEL_AUTHORITIES_LIST}" 
-ARCHIPEL_AUTHORITIES_LIST_CLEAN=$(echo $ARCHIPEL_AUTHORITIES_LIST | tr -d ' ' | tr -d '"' | tr -d '[' | tr -d ']' | tr "," "\n")
+ARCHIPEL_AUTHORITIES_ED25519_LIST_CLEAN=$(echo $ARCHIPEL_AUTHORITIES_ED25519_LIST | tr -d ' ' | tr -d '"' | tr -d '[' | tr -d ']' | tr "," "\n")
 
-if [ -z "$ARCHIPEL_AUTHORITIES_LIST_CLEAN" ]
+if [ -z "$ARCHIPEL_AUTHORITIES_ED25519_LIST_CLEAN" ]
 then
-      echo "\$ARCHIPEL_AUTHORITIES_LIST is empty"
+      echo "\$ARCHIPEL_AUTHORITIES_ED25519_LIST_CLEAN is empty"
       exit 1
 fi
-#create ARCHIPEL_AUTHORITIES_LIST format for config file
-
-ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG=""
-for authority in $ARCHIPEL_AUTHORITIES_LIST_CLEAN
-do
-    if [ -z "$ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG" ] 
-    then
-     ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG=$(echo "\"$authority\"")
-    else
-      ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG=$(echo "${ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG},\"$authority\"")
-    fi
-done
 
 if [ ! -f /usr/local/bin/subkey ]
 then
@@ -88,7 +86,8 @@ echo "decoded from seed : ARCHIPEL_SS58_ADDRESS_ED25519 : $ARCHIPEL_SS58_ADDRESS
 echo "decoded from seed : ARCHIPEL_PUBLIC_KEY_ED25519 : $ARCHIPEL_PUBLIC_KEY_ED25519"
 echo "decoded from seed : ARCHIPEL_SS58_ADDRESS_SR25519 : $ARCHIPEL_SS58_ADDRESS_SR25519"
 echo "decoded from seed : ARCHIPEL_PUBLIC_KEY_SR25519 : $ARCHIPEL_PUBLIC_KEY_SR25519"
-echo "formated ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG : $ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG"
+echo "ARCHIPEL_AUTHORITIES_ED25519_LIST_CLEAN : $ARCHIPEL_AUTHORITIES_ED25519_LIST_CLEAN"
+echo "ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN : $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN"
 
 # Valorized config spec chain template with envs varabales
 
@@ -119,19 +118,42 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 cat /root/chain/archipelSpec.json | jq  '.id = "archipel"'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
+
 # add SS58 Adress to aura.authorities 
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.aura.authorities = [$ARCHIPEL_SS58_ADDRESS_SR25519]'  > /tmp/archipelSpecTmp.json
-mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+ cat /root/chain/archipelSpec.json | jq '.genesis.runtime.aura.authorities = []'  > /tmp/archipelSpecTmp.json
+ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+for AUTH in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
+do
+ cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.aura.authorities += [$AUTH]'  > /tmp/archipelSpecTmp.json
+ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+done
 
 # add SS58 Adress to grandpa.authorities 
 cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_ED25519 "$ARCHIPEL_SS58_ADDRESS_ED25519" '.genesis.runtime.grandpa.authorities = [[$ARCHIPEL_SS58_ADDRESS_ED25519 , 1]]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # add SS58 Adress to indices
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.indices.ids = [$ARCHIPEL_SS58_ADDRESS_SR25519]'  > /tmp/archipelSpecTmp.json
+cat /root/chain/archipelSpec.json | jq '.genesis.runtime.indices.ids = []'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+for AUTH in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
+do
+ cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.indices.ids += [$AUTH]'  > /tmp/archipelSpecTmp.json
+ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+done
 
-# add SS58 Adress to indices
+# add SS58 Adress balances 
+# cat /root/chain/archipelSpec.json | jq '.genesis.runtime.balances.balances = []'  > /tmp/archipelSpecTmp.json
+# mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+#  for AUTH in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
+#  do
+#   AUTH_BALANCE=$(echo "[\"$AUTH\",1152921504606847000]")
+#   echo $AUTH_BALANCE
+#   cat /root/chain/archipelSpec.json | jq --arg AUTH_BALANCE $AUTH_BALANCE '.genesis.runtime.balances.balances[] += $AUTH_BALANCE' > /tmp/archipelSpecTmp.json
+#   mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+#  done
+
+ # | jq 'del(.genesis.runtime.sudo)'
+
 cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.balances.balances = [[$ARCHIPEL_SS58_ADDRESS_SR25519 , 1152921504606846976]]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
