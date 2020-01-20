@@ -53,24 +53,41 @@ then
       exit 1
 fi
 
-ARCHIPEL_SS58_ADDRESS=$(subkey inspect "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_SS58_ADDRESS_ED25519=$(subkey --ed25519 inspect "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
-if [ -z "$ARCHIPEL_SS58_ADDRESS" ]
+if [ -z "$ARCHIPEL_SS58_ADDRESS_ED25519" ]
 then
-      echo "\$ARCHIPEL_SS58_ADDRESS no found using subkey"
+      echo "\$ARCHIPEL_SS58_ADDRESS_ED25519 no found using subkey"
       exit 1
 fi
 
-ARCHIPEL_PUBLIC_KEY=$(subkey inspect "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_SS58_ADDRESS_SR25519=$(subkey --sr25519 inspect "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
-if [ -z "$ARCHIPEL_PUBLIC_KEY" ]
+if [ -z "$ARCHIPEL_SS58_ADDRESS_SR25519" ]
 then
-      echo "\$ARCHIPEL_PUBLIC_KEY no found using subkey"
+      echo "\$ARCHIPEL_SS58_ADDRESS_SR25519 no found using subkey"
       exit 1
 fi
 
-echo "decoded from seed : ARCHIPEL_SS58_ADDRESS : $ARCHIPEL_SS58_ADDRESS"
-echo "decoded from seed : ARCHIPEL_PUBLIC_KEY : $ARCHIPEL_PUBLIC_KEY"
+ARCHIPEL_PUBLIC_KEY_ED25519=$(subkey --ed25519 inspect "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+
+if [ -z "$ARCHIPEL_PUBLIC_KEY_ED25519" ]
+then
+      echo "\$ARCHIPEL_PUBLIC_KEY_ED25519 no found using subkey"
+      exit 1
+fi
+
+ARCHIPEL_PUBLIC_KEY_SR25519=$(subkey --sr25519 inspect "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+if [ -z "$ARCHIPEL_PUBLIC_KEY_SR25519" ]
+then
+      echo "\$ARCHIPEL_PUBLIC_KEY_SR25519 no found using subkey"
+      exit 1
+fi
+
+echo "decoded from seed : ARCHIPEL_SS58_ADDRESS_ED25519 : $ARCHIPEL_SS58_ADDRESS_ED25519"
+echo "decoded from seed : ARCHIPEL_PUBLIC_KEY_ED25519 : $ARCHIPEL_PUBLIC_KEY_ED25519"
+echo "decoded from seed : ARCHIPEL_SS58_ADDRESS_SR25519 : $ARCHIPEL_SS58_ADDRESS_SR25519"
+echo "decoded from seed : ARCHIPEL_PUBLIC_KEY_SR25519 : $ARCHIPEL_PUBLIC_KEY_SR25519"
 echo "formated ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG : $ARCHIPEL_AUTHORITIES_LIST_FOR_CONFIG"
 
 # Valorized config spec chain template with envs varabales
@@ -107,19 +124,19 @@ cat /root/chain/archipelSpec.json | jq  '.protocolId = "1984"'  > /tmp/archipelS
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # add SS58 Adress to aura.authorities 
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS" '.genesis.runtime.aura.authorities = [$ARCHIPEL_SS58_ADDRESS]'  > /tmp/archipelSpecTmp.json
+cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.aura.authorities = [$ARCHIPEL_SS58_ADDRESS_SR25519]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # add SS58 Adress to grandpa.authorities 
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS" '.genesis.runtime.grandpa.authorities = [[$ARCHIPEL_SS58_ADDRESS , 1]]'  > /tmp/archipelSpecTmp.json
+cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS_ED25519" '.genesis.runtime.grandpa.authorities = [[$ARCHIPEL_SS58_ADDRESS_ED25519 , 1]]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # add SS58 Adress to indices
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS" '.genesis.runtime.indices.ids = [$ARCHIPEL_SS58_ADDRESS]'  > /tmp/archipelSpecTmp.json
+cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.indices.ids = [$ARCHIPEL_SS58_ADDRESS_SR25519]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # add SS58 Adress to indices
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS" '.genesis.runtime.balances.balances = [[$ARCHIPEL_SS58_ADDRESS , 1152921504606846976]]'  > /tmp/archipelSpecTmp.json
+cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.balances.balances = [[$ARCHIPEL_SS58_ADDRESS_SR25519 , 1152921504606846976]]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # Remove sudo  
