@@ -6,13 +6,9 @@ export NODE_ENV=production
 # NODE_WS, MNEMONIC, ALIVE_TIME
 # Setting Archipel Variables
 export NODE_WS="ws://127.0.0.1:9944"
-export MNEMONIC="TOBEDEFINE"
+export MNEMONIC=$ARCHIPEL_KEY_SEED
 
 # Polkadot Validator Variables
-export POLKADOT_NAME=
-export POLKADOT_KEY=
-export POLKADOT_IMAGE=
-export POLKADOT_CONTAINER_PREFIX=
-
+export POLKADOT_NAME=$ARCHIPEL_NODE_ALIAS
 
 exec node src/app.js
