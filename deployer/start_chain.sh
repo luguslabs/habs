@@ -129,8 +129,18 @@ do
 done
 
 # add SS58 Adress to grandpa.authorities 
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_ED25519 "$ARCHIPEL_SS58_ADDRESS_ED25519" '.genesis.runtime.grandpa.authorities = [[$ARCHIPEL_SS58_ADDRESS_ED25519 , 1]]'  > /tmp/archipelSpecTmp.json
+
+cat /root/chain/archipelSpec.json | jq '.genesis.runtime.grandpa.authorities = ["REPLACE_AUTHORITIES_HERE"]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+LIST_TO_INJECT=""
+for ITEM in $ARCHIPEL_AUTHORITIES_ED25519_LIST_CLEAN
+do
+      ITEM_OUTPUT=$(echo "[\"$ITEM\",1]")
+      LIST_TO_INJECT="$LIST_TO_INJECT $ITEM_OUTPUT,"
+done
+# remove last , of loop
+LIST_TO_INJECT=${LIST_TO_INJECT%?} 
+sed -i "s/\"REPLACE_AUTHORITIES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
 # add SS58 Adress to indices
 cat /root/chain/archipelSpec.json | jq '.genesis.runtime.indices.ids = []'  > /tmp/archipelSpecTmp.json
@@ -141,21 +151,18 @@ do
  mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 done
 
-# add SS58 Adress balances 
-# cat /root/chain/archipelSpec.json | jq '.genesis.runtime.balances.balances = []'  > /tmp/archipelSpecTmp.json
-# mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-#  for AUTH in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
-#  do
-#   AUTH_BALANCE=$(echo "[\"$AUTH\",1152921504606847000]")
-#   echo $AUTH_BALANCE
-#   cat /root/chain/archipelSpec.json | jq --arg AUTH_BALANCE $AUTH_BALANCE '.genesis.runtime.balances.balances[] += $AUTH_BALANCE' > /tmp/archipelSpecTmp.json
-#   mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-#  done
-
- # | jq 'del(.genesis.runtime.sudo)'
-
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.balances.balances = [[$ARCHIPEL_SS58_ADDRESS_SR25519 , 1152921504606846976]]'  > /tmp/archipelSpecTmp.json
+# add SS58 Adress Balances 
+cat /root/chain/archipelSpec.json | jq '.genesis.runtime.balances.balances = ["REPLACE_BALANCES_HERE"]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+LIST_TO_INJECT=""
+for ITEM in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
+do
+      ITEM_OUTPUT=$(echo "[\"$ITEM\",1152921504606847000]")
+      LIST_TO_INJECT="$LIST_TO_INJECT $ITEM_OUTPUT,"
+done
+# remove last , of loop
+LIST_TO_INJECT=${LIST_TO_INJECT%?} 
+sed -i "s/\"REPLACE_BALANCES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
 # add SS58 Adress as sudo key 
 cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.sudo.key = $ARCHIPEL_SS58_ADDRESS_SR25519'  > /tmp/archipelSpecTmp.json
@@ -176,3 +183,5 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
       --validator \
       --name "$ARCHIPEL_NODE_ALIAS"
       
+
+# help cmd : cat  /root/chain/archipelSpec.json | jq 'del(.genesis.runtime.system.code)'  
