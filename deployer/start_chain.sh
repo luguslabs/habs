@@ -157,8 +157,8 @@ LIST_TO_INJECT=${LIST_TO_INJECT%?}
 sed -i "s/\"REPLACE_BALANCES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
 # add SS58 Adress as sudo key 
-#cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.sudo.key = $ARCHIPEL_SS58_ADDRESS_SR25519'  > /tmp/archipelSpecTmp.json
-#mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_CHAIN_SUDO "$ARCHIPEL_CHAIN_SUDO" '.genesis.runtime.sudo.key = $ARCHIPEL_CHAIN_SUDO'  > /tmp/archipelSpecTmp.json
+mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # generate raw spec file 
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json

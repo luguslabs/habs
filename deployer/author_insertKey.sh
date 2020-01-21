@@ -1,6 +1,4 @@
 #!/bin/sh 
-
-
 if [ -z "$ARCHIPEL_KEY_SEED" ]
 then
       echo "\$ARCHIPEL_KEY_SEED is empty"
@@ -43,7 +41,7 @@ do
     "id":1,
     "method":"author_insertKey",
     "params": [
-      "aura",
+      "gran",
        "'"$ARCHIPEL_KEY_SEED"'",
        "'"$ARCHIPEL_PUBLIC_KEY_ED25519"'"
     ]
