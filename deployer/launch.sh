@@ -6,9 +6,9 @@ ARCHIPEL_VERSION="latest"
 function launch_archipel () {
   echo "Starting $1..."
   # Launching docker container of node
-  docker run -d --name "$1" \
+  docker run -d --name "$1" $9 \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    $9 \
+    -v $(pwd)/$1:/root/chain/data \
     --network archipel \
     --ip "${10}" \
     --env ARCHIPEL_NODE_ALIAS=$1 \
