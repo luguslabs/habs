@@ -1,7 +1,6 @@
-#!/bin/sh 
+#!/bin/bash 
 
 #check env vars.
-
 
 if [ -z "$ARCHIPEL_NODE_ALIAS" ]
 then
@@ -102,13 +101,6 @@ cp  -f /root/chain/archipelTemplateSpec.json /root/chain/archipelSpec.json
 cat /root/chain/archipelSpec.json | jq '.bootNodes = []'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
-# add bootnodes list if not empty
-if [ ! -z "$ARCHIPEL_BOOTNODES" ]
-then
-      echo "\$ARCHIPEL_BOOTNODES  is not empty. Add list to  archipelSpec.json"
-      cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_BOOTNODES "$ARCHIPEL_BOOTNODES"'.bootNodes = [$ARCHIPEL_BOOTNODES]'  > /tmp/archipelSpecTmp.json
-      mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-fi
 
 # replace  "name": "Template"
 cat /root/chain/archipelSpec.json | jq  '.name = "Archipel"'  > /tmp/archipelSpecTmp.json
@@ -172,8 +164,19 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json
 
 
+# add bootnodes list if not empty
+if [ ! -z "$ARCHIPEL_BOOTNODES" ]
+then
+      echo "\$ARCHIPEL_BOOTNODES  is not empty. Add list to  archipelSpec.json"
+      cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_BOOTNODES "$ARCHIPEL_BOOTNODES"'.bootNodes = [$ARCHIPEL_BOOTNODES]'  > /tmp/archipelSpecTmp.json
+      mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+fi
 # remove data option volume to add ??? 
 # launch chain 
+
+if [ ! -z "$ARCHIPEL_BOOTNODES" ]
+then
+
 /root/chain/archipel \
       --chain=/root/chain/archipelSpecRaw.json \
       --base-path /root/chain/data \
@@ -182,6 +185,21 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
       --unsafe-ws-external \
       --validator \
       --name "$ARCHIPEL_NODE_ALIAS"
+      --bootnodes "$ARCHIPEL_BOOTNODES"
+
+else
+
+/root/chain/archipel \
+      --chain=/root/chain/archipelSpecRaw.json \
+      --base-path /root/chain/data \
+      --rpc-cors "all" \
+      --unsafe-rpc-external \
+      --unsafe-ws-external \
+      --validator \
+      --name "$ARCHIPEL_NODE_ALIAS"
+fi
+
+
       
 
 # help cmd : cat  /root/chain/archipelSpec.json | jq 'del(.genesis.runtime.system.code)'  
