@@ -43,15 +43,14 @@ COPY orchestrator/package*.json ./
 COPY orchestrator/ .
 RUN npm install
 
-WORKDIR /root
+WORKDIR /root/
 
 ####################################
 # import scripts and supervisord conf  
 ####################################
 
-COPY deployer/start_chain.sh /usr/local/bin/
-COPY deployer/start_orchestrator.sh /usr/local/bin/
-COPY deployer/node_status.sh /usr/local/bin/
+COPY deployer/start-chain.sh /usr/local/bin/
+COPY deployer/start-orchestrator.sh /usr/local/bin/
 COPY deployer/supervisord.conf /etc/supervisord/
 
 ENTRYPOINT ["supervisord","-c","/etc/supervisord/supervisord.conf"]

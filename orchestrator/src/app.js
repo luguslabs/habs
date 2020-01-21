@@ -1,4 +1,4 @@
-const { connect, listenEvents, addMetrics } = require('./chain');
+const { connect, listenEvents, addMetrics, chainNodeInfo } = require('./chain');
 const { Metrics } = require('./metrics');
 const { orchestrateService, serviceStart } = require('./service');
 const Docker = require('dockerode');
@@ -64,6 +64,9 @@ async function main () {
 
     // Showing metrics just for debug
     setInterval(() => { metrics.showMetrics(); }, 10000);
+
+    // Showing chain node info
+    setInterval(chainNodeInfo, 10000, api);
   } catch (error) {
     debug('main', error);
     console.error(error);

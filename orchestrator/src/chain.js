@@ -128,7 +128,7 @@ const getPeerNumber = async api => {
     const peers = await api.rpc.system.peers();
     return peers.length;
   } catch (error) {
-    debug('getLeader', error);
+    debug('getPeerNumber', error);
     return 0;
   }
 };
@@ -180,11 +180,27 @@ const setLeader = async (api, oldLeader, mnemonic) => {
   }
 };
 
+const chainNodeInfo = async api => {
+  try {
+    const networkState = await api.rpc.system.networkState();
+    const health = await api.rpc.system.health();
+
+    console.log('--------------- Chain node network state and health ----------------');
+    console.log(`Peer ID: ${networkState.peerId}`);
+    console.log(`Peer number: ${health.peers}`);
+    console.log(`Is syncing?: ${health.isSyncing}`);
+    console.log('--------------------------------------------------------------------');
+  } catch (error) {
+    debug('chainNodeInfo', error);
+  }
+};
+
 module.exports = {
   connect,
   listenEvents,
   addMetrics,
   getLeader,
   setLeader,
-  getPeerNumber
+  getPeerNumber,
+  chainNodeInfo
 };
