@@ -62,7 +62,7 @@ const addMetrics = async (api, metrics, mnemonic) => {
   try {
     // Get peers number
     const peersNumber = await getPeerNumber(api);
-    debug('orchestrateService', `This node has ${peersNumber} peers.`);
+    debug('addMetrics', `This node has ${peersNumber} peers.`);
 
     if (peersNumber !== 0) {
       console.log('Archipel node has some peers so adding metrics...');
