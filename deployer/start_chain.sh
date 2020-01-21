@@ -157,24 +157,13 @@ LIST_TO_INJECT=${LIST_TO_INJECT%?}
 sed -i "s/\"REPLACE_BALANCES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
 # add SS58 Adress as sudo key 
-cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.sudo.key = $ARCHIPEL_SS58_ADDRESS_SR25519'  > /tmp/archipelSpecTmp.json
-mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+#cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_SS58_ADDRESS_SR25519 "$ARCHIPEL_SS58_ADDRESS_SR25519" '.genesis.runtime.sudo.key = $ARCHIPEL_SS58_ADDRESS_SR25519'  > /tmp/archipelSpecTmp.json
+#mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
 # generate raw spec file 
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json
 
-
-# add bootnodes list if not empty
-if [ ! -z "$ARCHIPEL_BOOTNODES" ]
-then
-      echo "\$ARCHIPEL_BOOTNODES  is not empty. Add list to  archipelSpec.json"
-      cat /root/chain/archipelSpec.json | jq --arg ARCHIPEL_BOOTNODES "$ARCHIPEL_BOOTNODES"'.bootNodes = [$ARCHIPEL_BOOTNODES]'  > /tmp/archipelSpecTmp.json
-      mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-fi
-# remove data option volume to add ??? 
-# launch chain 
-
-if [ ! -z "$ARCHIPEL_BOOTNODES" ]
+if [ ! -z "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" ]
 then
 
 /root/chain/archipel \
@@ -184,8 +173,8 @@ then
       --unsafe-rpc-external \
       --unsafe-ws-external \
       --validator \
-      --name "$ARCHIPEL_NODE_ALIAS"
-      --bootnodes "$ARCHIPEL_BOOTNODES"
+      --name "$ARCHIPEL_NODE_ALIAS" \
+      $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS
 
 else
 
@@ -200,6 +189,5 @@ else
 fi
 
 
-      
 
 # help cmd : cat  /root/chain/archipelSpec.json | jq 'del(.genesis.runtime.system.code)'  

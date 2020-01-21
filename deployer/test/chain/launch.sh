@@ -98,7 +98,7 @@ get_node_identity "node3" NODE3_LOCAL_ID
 echo "Local node3 identity is '$NODE3_LOCAL_ID'"
 
 # Constructing bootnodes list
-BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID,/ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID,/ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
+BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "Bootnodes list is '$BOOTNODES_LIST'"
 
 # Recreating nodes containers
