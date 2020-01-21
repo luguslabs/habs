@@ -1,4 +1,5 @@
 const debug = require('debug')('docker');
+const { streamToString } = require('./utils');
 
 // Pull docker image progress
 const onProgress = event => {
@@ -19,6 +20,25 @@ const dockerPull = async (docker, image) => new Promise((resolve, reject) => {
     }, onProgress);
   });
 });
+
+// Execute a command in a docker container
+const dockerExecute = async (docker, name, command) => {
+  try {
+    // Get container instance
+    const container = docker.getContainer(name);
+
+    // Exec a command and get a stream
+    const exec = await container.exec({ Cmd: command, AttachStdin: true, AttachStdout: true });
+    const stream = await exec.start();
+
+    // Convert stream to a string to return it
+    return await streamToString(stream);
+  } catch (error) {
+    debug('getContainerByName', error);
+    console.error(error);
+    return false;
+  }
+};
 
 // Get container instance by name
 const getContainerByName = async (docker, name) => {
@@ -180,5 +200,6 @@ const removeContainer = async (docker, name) => {
 
 module.exports = {
   startServiceContainer,
-  removeContainer
+  removeContainer,
+  dockerExecute
 };

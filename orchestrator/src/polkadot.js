@@ -1,4 +1,4 @@
-const { startServiceContainer } = require('./docker');
+const { startServiceContainer, dockerExecute } = require('./docker');
 const debug = require('debug')('polkadot');
 
 // Import env variables from .env file
@@ -24,6 +24,13 @@ const checkEnvVars = () => {
   }
 };
 
+// Import wallets to polkadot keystore
+const polkadotWalletsImport = async (docker, containerName) => {
+  console.log('Importing wallets to keystore');
+  const result = await dockerExecute(docker, containerName, ['polkadot', '--version']);
+  console.log(result);
+};
+
 // Polkadot start function
 const polkadotStart = async (docker, mode) => {
   try {
@@ -33,8 +40,10 @@ const polkadotStart = async (docker, mode) => {
     // Launch service in specific mode
     if (mode === 'active') {
       await startServiceContainer(docker, 'active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['polkadot', '--chain', 'alex', '--name', POLKADOT_NAME, '--validator', '--key', POLKADOT_KEY], '/root/.local/share/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      await polkadotWalletsImport(docker, POLKADOT_PREFIX + 'polkadot-validator');
     } else if (mode === 'passive') {
       await startServiceContainer(docker, 'passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['polkadot', '--chain', 'alex', '--name', POLKADOT_NAME], '/root/.local/share/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      await polkadotWalletsImport(docker, POLKADOT_PREFIX + 'polkadot-sync');
     } else {
       throw new Error(`Mode '${mode}' is unknown.`);
     }
