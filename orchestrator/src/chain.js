@@ -60,42 +60,52 @@ const listenEvents = async (api, metrics) => {
 // Send metrics
 const addMetrics = async (api, metrics, mnemonic) => {
   try {
-    // Get keys from mnemonic
-    const keys = getKeysFromSeed(mnemonic);
+    // Get peers number
+    const peersNumber = await getPeerNumber(api);
+    debug('orchestrateService', `This node has ${peersNumber} peers.`);
 
-    // Get account nonce
-    // const nonce = await api.query.system.accountNonce(keys.address);
-    const nonce = globalNonce;
-    // Nonce show
-    debug('addMetrics', `Nonce: ${nonce}`);
+    if (peersNumber !== 0) {
+      console.log('Archipel node has some peers so adding metrics...');
+      // Get keys from mnemonic
+      const keys = getKeysFromSeed(mnemonic);
 
-    // Incrementing global nonce
-    globalNonce++;
+      // Get account nonce
+      // const nonce = await api.query.system.accountNonce(keys.address);
+      const nonce = globalNonce;
+      // Nonce show
+      debug('addMetrics', `Nonce: ${nonce}`);
 
-    debug('addMetrics', `Global Nonce: ${globalNonce}`);
+      // Incrementing global nonce
+      globalNonce++;
 
-    // create, sign and send transaction
-    await api.tx.archipelModule
-      // create transaction
-      .addMetrics(metrics)
-      // Sign transcation
-      .sign(keys, { nonce })
-      // Send transaction
-      .send(({ events = [], status }) => {
-        // Debug show transaction status
-        transactionShowStatus(status, 'addMetrics');
-        if (status.isFinalized) {
-          events.forEach(async ({ event: { data, method, section } }) => {
-            if (section.toString() === 'archipelModule' && method.toString() === 'MetricsUpdated') {
-              // Show transaction data for Debug
-              debug('addMetrics', 'Transaction was successfully sent and generated an event.');
-              debug('addMetrics', `JSON Data: [${JSON.parse(data.toString())}]`);
-            }
-          });
-        }
-      });
-    debug('addMetrics', 'Transaction was sent.');
-    return true;
+      debug('addMetrics', `Global Nonce: ${globalNonce}`);
+
+      // create, sign and send transaction
+      await api.tx.archipelModule
+        // create transaction
+        .addMetrics(metrics)
+        // Sign transcation
+        .sign(keys, { nonce })
+        // Send transaction
+        .send(({ events = [], status }) => {
+          // Debug show transaction status
+          transactionShowStatus(status, 'addMetrics');
+          if (status.isFinalized) {
+            events.forEach(async ({ event: { data, method, section } }) => {
+              if (section.toString() === 'archipelModule' && method.toString() === 'MetricsUpdated') {
+                // Show transaction data for Debug
+                debug('addMetrics', 'Transaction was successfully sent and generated an event.');
+                debug('addMetrics', `JSON Data: [${JSON.parse(data.toString())}]`);
+              }
+            });
+          }
+        });
+      debug('addMetrics', 'Transaction was sent.');
+      return true;
+    } else {
+      console.log('Archipel node has no peers. Waiting for peers before adding metrics...');
+      return false;
+    }
   } catch (error) {
     debug('addMetrics', error);
     return false;
@@ -109,6 +119,17 @@ const getLeader = async api => {
   } catch (error) {
     debug('getLeader', error);
     return false;
+  }
+};
+
+// Get peer number connected to Archipel node
+const getPeerNumber = async api => {
+  try {
+    const peers = await api.rpc.system.peers();
+    return peers.length;
+  } catch (error) {
+    debug('getLeader', error);
+    return 0;
   }
 };
 
@@ -164,5 +185,6 @@ module.exports = {
   listenEvents,
   addMetrics,
   getLeader,
-  setLeader
+  setLeader,
+  getPeerNumber
 };

@@ -1,4 +1,4 @@
-const { getLeader, setLeader } = require('./chain.js');
+const { getLeader, setLeader, getPeerNumber } = require('./chain.js');
 const { getKeysFromSeed } = require('./utils');
 const { polkadotStart } = require('./polkadot');
 const debug = require('debug')('service');
@@ -12,29 +12,38 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
   try {
     console.log('Orchestrating service.....');
 
-    // Get node address from seed
-    const nodeKey = getKeysFromSeed(mnemonic).address;
-    debug('orchestrateService', `Current Node Key: ${nodeKey}`);
+    // Get peers number
+    const peersNumber = await getPeerNumber(api);
+    debug('orchestrateService', `This node has ${peersNumber} peers.`);
 
-    // Get current leader from chain
-    let currentLeader = await getLeader(api);
-    currentLeader = currentLeader.toString();
+    if (peersNumber !== 0) {
+      console.log('Archipel node has some peers so orchestrating...');
+      // Get node address from seed
+      const nodeKey = getKeysFromSeed(mnemonic).address;
+      debug('orchestrateService', `Current Node Key: ${nodeKey}`);
 
-    // If current leader is already set
-    if (currentLeader !== '') {
-      debug('orchestrateService', `Current Leader: ${currentLeader}`);
-      // If you are the current leader
-      if (currentLeader === nodeKey) {
-        console.log('Current node is leader.');
-        await serviceStartIfAnyoneActive(docker, nodeKey, aliveTime, metrics, service);
-      // If someone else is leader
+      // Get current leader from chain
+      let currentLeader = await getLeader(api);
+      currentLeader = currentLeader.toString();
+
+      // If current leader is already set
+      if (currentLeader !== '') {
+        debug('orchestrateService', `Current Leader: ${currentLeader}`);
+        // If you are the current leader
+        if (currentLeader === nodeKey) {
+          console.log('Current node is leader.');
+          await serviceStartIfAnyoneActive(docker, nodeKey, aliveTime, metrics, service);
+        // If someone else is leader
+        } else {
+          await otherLeaderAction(docker, metrics, currentLeader, aliveTime, api, mnemonic, service, nodeKey);
+        }
+      // Leader is not already set (first time boot)
       } else {
-        await otherLeaderAction(docker, metrics, currentLeader, aliveTime, api, mnemonic, service, nodeKey);
+        console.log('There is no leader set...');
+        await becomeLeader(docker, nodeKey, nodeKey, api, mnemonic, service, metrics, aliveTime);
       }
-    // Leader is not already set (first time boot)
     } else {
-      console.log('There is no leader set...');
-      await becomeLeader(docker, nodeKey, nodeKey, api, mnemonic, service, metrics, aliveTime);
+      console.log('Archipel node has no peers. Waiting for peers before orchestrating...');
     }
   } catch (error) {
     debug('orchestrateService', error);
