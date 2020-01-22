@@ -10,7 +10,7 @@ function launch_archipel () {
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $(pwd)/$1:/root/chain/data \
     --network archipel \
-    --ip "$6" \do
+    --ip "$6" \
     --env ARCHIPEL_NODE_ALIAS=$1 \
     --env ARCHIPEL_KEY_SEED="$2" \
     --env ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="$7" \
