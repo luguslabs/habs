@@ -24,7 +24,7 @@ const checkEnvVars = () => {
   try {
     // Checking env variables
     if (NODE_WS === undefined || MNEMONIC === undefined || ALIVE_TIME === undefined || SERVICE === undefined) {
-      throw Error('Archipel needs at least NODE_WS, MNEMONIC, ALIVE_TIME variables to work.');
+      throw Error('Archipel needs at least NODE_WS, MNEMONIC, ALIVE_TIME, SERVICE variables to work.');
     }
   } catch (error) {
     debug('checkEnvVars', error);
@@ -70,6 +70,7 @@ async function main () {
   } catch (error) {
     debug('main', error);
     console.error(error);
+    process.exit();
   }
 }
 

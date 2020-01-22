@@ -18,9 +18,14 @@ SERVICE='polkadot'
 
 # Polkadot Validator Variables
 POLKADOT_NAME='validator1'
-POLKADOT_KEY='0x5e4b...'
-POLKADOT_IMAGE='chevdor/polkadot:0.4.4'
+POLKADOT_IMAGE='parity/polkadot:latest'
 POLKADOT_PREFIX='node1-'
+POLKADOT_KEY_GRAN='april shift pupil quit ...'
+POLKADOT_KEY_BABE='region run sunset rule ...'
+POLKADOT_KEY_ACCO='produce hover hurdle lobster ...'
+POLKADOT_KEY_IMON='screen sustain clog husband ...'
+POLKADOT_KEY_AUDI='oak tail stomach fluid ...'
+
 ```
 
 ### Run
