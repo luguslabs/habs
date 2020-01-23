@@ -49,8 +49,8 @@ WORKDIR /root/
 # import scripts and supervisord conf  
 ####################################
 
-COPY deployer/start-chain.sh /usr/local/bin/
-COPY deployer/start-orchestrator.sh /usr/local/bin/
-COPY deployer/supervisord.conf /etc/supervisord/
+COPY deployer/docker/start-chain.sh /usr/local/bin/
+COPY deployer/docker/start-orchestrator.sh /usr/local/bin/
+COPY deployer/docker/supervisord.conf /etc/supervisord/
 
 ENTRYPOINT ["supervisord","-c","/etc/supervisord/supervisord.conf"]
