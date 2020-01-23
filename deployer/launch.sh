@@ -87,7 +87,8 @@ echo "Bootnodes list is '$BOOTNODES_LIST'"
 
 # Recreating nodes containers
 # Removing nodes containers
-docker rm -f archipel1 archipel2 archipel3
+docker stop archipel{1,2,3}
+docker rm archipel{1,2,3}
 echo "Sleeping 5 seconds to be shure that nodes are stopped and deleted..."
 sleep 5
 
