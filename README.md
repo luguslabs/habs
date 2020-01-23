@@ -6,7 +6,7 @@ Welcome to **Archipel** monorepository!
 
 ## Overview
 
-Archipel is the high avaliability solution for blockchain services. The first service supported is the Polkadot validator.
+Archipel is the high availability solution for blockchain services. The first service supported is the Polkadot validator.
 
 ## Content
 
