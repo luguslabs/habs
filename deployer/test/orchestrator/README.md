@@ -13,12 +13,12 @@ This directory contains scripts to bootstrap 3 Archipel orchestrator deployment.
 Launch bootstrap
 
 ```bash
-bash launch.sh
+./launch.sh
 ```
 
 ## Remove deployment
 
 ```bash
-sudo bash remove.sh
+./remove.sh
 ```
 

@@ -16,25 +16,25 @@ This directory contains scripts to bootstrap a federation of 3 Archipel Nodes.
 ## Launch 
 
 ```bash
-bash launch.sh
+./launch.sh
 ```
 
 ## Remove deployment
 
 ```bash
-sudo bash remove.sh
+./remove.sh
 ```
 
 ## Stop Archipel Node
 ```bash
-bash stop-node.sh $NODENUMBER
+./stop-node.sh $NODENUMBER
 ```
 * NODENUMBER must be 1,2 or 3.
 * Warning! Before using this script you must launch Archipel Federation with launch script.
 
 ## Restart Archipel Node
 ```bash
-bash restart-node.sh $NODENUMBER
+./restart-node.sh $NODENUMBER
 ```
 * NODENUMBER must be 1,2 or 3.
 * Warning! Before using this script you must launch Archipel Federation with launch script.

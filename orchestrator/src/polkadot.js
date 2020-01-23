@@ -6,6 +6,9 @@ const { u8aToHex } = require('@polkadot/util');
 // Cleaning up variable
 let cleaningUp = false;
 
+// Imported key list
+const importedKeys = [];
+
 // Import env variables from .env file
 const dotenv = require('dotenv');
 dotenv.config();
@@ -41,29 +44,36 @@ const importAKey = async (docker, containerName, mnemonic, crypto, type) => {
   try {
     // Get public key hex from mnemonic
     const publicKey = u8aToHex(getKeysFromSeed(mnemonic, crypto).publicKey);
-    debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);
+    // Check if the key was already imported
+    if (!importedKeys.includes(publicKey)) {
+      debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);
 
-    // Constructing command to import key
-    const command = ['curl', 'http://localhost:9933', '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-                    `{
-                      "jsonrpc":"2.0",
-                      "id":1,
-                      "method":"author_insertKey",
-                      "params": [
-                        "${type}",
-                        "${mnemonic}",
-                        "${publicKey}"
-                      ]
-    }`];
-    debug('importAKey', `Executing command: [${command.toString()}]`);
+      // Constructing command to import key
+      const command = ['curl', 'http://localhost:9933', '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+                      `{
+                        "jsonrpc":"2.0",
+                        "id":1,
+                        "method":"author_insertKey",
+                        "params": [
+                          "${type}",
+                          "${mnemonic}",
+                          "${publicKey}"
+                        ]
+      }`];
+      debug('importAKey', `Executing command: [${command.toString()}]`);
 
-    // Importing key by executing command in docker container
-    const result = await dockerExecute(docker, containerName, command);
-    debug('importAKey', `Command result: "${result}"`);
+      // Importing key by executing command in docker container
+      const result = await dockerExecute(docker, containerName, command);
+      debug('importAKey', `Command result: "${result}"`);
 
-    // Checking result
-    if (result !== '\'{"jsonrpc":"2.0","result":null,"id":1}') {
-      throw Error(`Can't add key. Error: ${result}`);
+      // Checking result
+      if (result !== '\'{"jsonrpc":"2.0","result":null,"id":1}') {
+        throw Error(`Can't add key. Error: ${result}`);
+      } else {
+        importedKeys.push(publicKey);
+      }
+    } else {
+      debug('importAKey', `Key ${publicKey} was already imported to keystore.`);
     }
   } catch (error) {
     debug('importAKey', error);
@@ -98,7 +108,6 @@ const polkadotStart = async (docker, mode) => {
     checkEnvVars();
 
     // Launch service in specific mode
-    // TODO: Add keys only one time
     // TODO: Don't sleep before key add
     if (mode === 'active') {
       await startServiceContainer(docker, 'active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', POLKADOT_NAME, '--validator', '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');

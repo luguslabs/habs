@@ -15,13 +15,13 @@ These scripts will use predefined keys from **keys** directory and chain spec fr
 Launch bootstrap
 
 ```bash
-bash launch.sh
+./launch.sh
 ```
 
 ## Remove deployment
 
 ```bash
-sudo bash remove.sh
+./remove.sh
 ```
 
 ## Using
