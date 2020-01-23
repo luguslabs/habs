@@ -1,6 +1,7 @@
 const { connect, listenEvents, addMetrics, chainNodeInfo } = require('./chain');
 const { Metrics } = require('./metrics');
-const { orchestrateService, serviceStart } = require('./service');
+const { catchExitSignals } = require('./utils');
+const { orchestrateService, serviceStart, serviceCleanUp } = require('./service');
 const Docker = require('dockerode');
 const debug = require('debug')('app');
 
@@ -13,11 +14,6 @@ const {
   ALIVE_TIME,
   SERVICE
 } = process.env;
-
-// Catch SIGINT
-process.on('SIGINT', function () {
-  process.exit();
-});
 
 // Check if all necessary env vars were set
 const checkEnvVars = () => {
@@ -44,6 +40,9 @@ async function main () {
 
     // Creating Docker instance
     const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+
+    // Attach service cleaup to exit signals
+    catchExitSignals(serviceCleanUp, docker, SERVICE);
 
     // Creating Metrics instance
     const metrics = new Metrics();

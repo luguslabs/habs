@@ -180,8 +180,10 @@ const setLeader = async (api, oldLeader, mnemonic) => {
   }
 };
 
+// Show chain node info
 const chainNodeInfo = async api => {
   try {
+    // Get network state and system health
     const networkState = await api.rpc.system.networkState();
     const health = await api.rpc.system.health();
 
@@ -192,6 +194,7 @@ const chainNodeInfo = async api => {
     console.log('--------------------------------------------------------------------');
   } catch (error) {
     debug('chainNodeInfo', error);
+    console.error(error);
   }
 };
 

@@ -19,7 +19,26 @@ const streamToString = stream => {
   });
 };
 
+// Cleanup on exit
+const catchExitSignals = (cleanUpCallback, docker, service) => {
+  // catching signals and calling cleanup callback before exit
+  ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
+    'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
+  ].forEach(sig => {
+    process.on(sig, async () => {
+      if (typeof sig === 'string') {
+        console.log('Received %s - terminating app ...', sig);
+        // Waiting for cleanup to be finished
+        await cleanUpCallback(docker, service);
+        // Exiting
+        process.exit(1);
+      }
+    });
+  });
+};
+
 module.exports = {
   getKeysFromSeed,
-  streamToString
+  streamToString,
+  catchExitSignals
 };

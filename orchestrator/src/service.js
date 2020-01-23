@@ -1,6 +1,6 @@
 const { getLeader, setLeader, getPeerNumber } = require('./chain.js');
 const { getKeysFromSeed } = require('./utils');
-const { polkadotStart } = require('./polkadot');
+const { polkadotStart, polkadotCleanUp } = require('./polkadot');
 const debug = require('debug')('service');
 
 // No liveness data from leader count
@@ -146,7 +146,22 @@ const serviceStart = async (docker, service, mode) => {
   }
 };
 
+// Cleanup a service
+const serviceCleanUp = async (docker, service) => {
+  try {
+    if (service === 'polkadot') {
+      await polkadotCleanUp(docker);
+    } else {
+      throw Error(`Service ${service} is not supported yet.`);
+    }
+  } catch (error) {
+    debug('serviceCleanUp', error);
+    console.error(error);
+  }
+};
+
 module.exports = {
   orchestrateService,
-  serviceStart
+  serviceStart,
+  serviceCleanUp
 };

@@ -1,7 +1,10 @@
-const { startServiceContainer, dockerExecute } = require('./docker');
+const { startServiceContainer, dockerExecute, removeContainer } = require('./docker');
 const debug = require('debug')('polkadot');
 const { getKeysFromSeed } = require('./utils');
 const { u8aToHex } = require('@polkadot/util');
+
+// Cleaning up variable
+let cleaningUp = false;
 
 // Import env variables from .env file
 const dotenv = require('dotenv');
@@ -98,11 +101,11 @@ const polkadotStart = async (docker, mode) => {
     // TODO: Add keys only one time
     // TODO: Don't sleep before key add
     if (mode === 'active') {
-      await startServiceContainer(docker, 'active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', POLKADOT_NAME, '--validator', "--pruning=archive", "--wasm-execution", "Compiled"], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      await startServiceContainer(docker, 'active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', POLKADOT_NAME, '--validator', '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
       await new Promise(resolve => setTimeout(resolve, 5000));
       await polkadotKeysImport(docker, POLKADOT_PREFIX + 'polkadot-validator');
     } else if (mode === 'passive') {
-      await startServiceContainer(docker, 'passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', POLKADOT_NAME, "--pruning=archive", "--wasm-execution", "Compiled"], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      await startServiceContainer(docker, 'passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', POLKADOT_NAME, '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
       await new Promise(resolve => setTimeout(resolve, 5000));
       await polkadotKeysImport(docker, POLKADOT_PREFIX + 'polkadot-sync');
     } else {
@@ -114,6 +117,25 @@ const polkadotStart = async (docker, mode) => {
   }
 };
 
+// Cleaning up polkadot service
+const polkadotCleanUp = async docker => {
+  try {
+    // Checking if cleaning up process was already started
+    if (!cleaningUp) {
+      cleaningUp = true;
+      console.log('Cleaning containers before exit...');
+      await removeContainer(docker, POLKADOT_PREFIX + 'polkadot-sync');
+      await removeContainer(docker, POLKADOT_PREFIX + 'polkadot-validator');
+    } else {
+      console.log('Cleaning up was already started...');
+    }
+  } catch (error) {
+    debug('cleanUp', error);
+    console.error(error);
+  }
+};
+
 module.exports = {
-  polkadotStart
+  polkadotStart,
+  polkadotCleanUp
 };
