@@ -111,11 +111,15 @@ const polkadotStart = async (docker, mode) => {
     // TODO: Don't sleep before key add
     if (mode === 'active') {
       await startServiceContainer(docker, 'active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', POLKADOT_NAME, '--validator', '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      // Waiting to be sure that container is started
       await new Promise(resolve => setTimeout(resolve, 5000));
+      // Adding validator keys
       await polkadotKeysImport(docker, POLKADOT_PREFIX + 'polkadot-validator');
     } else if (mode === 'passive') {
       await startServiceContainer(docker, 'passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', POLKADOT_NAME, '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      // Waiting to be sure that container is started
       await new Promise(resolve => setTimeout(resolve, 5000));
+      // Adding validator keys
       await polkadotKeysImport(docker, POLKADOT_PREFIX + 'polkadot-sync');
     } else {
       throw new Error(`Mode '${mode}' is unknown.`);

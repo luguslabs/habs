@@ -1,3 +1,4 @@
 **/target
 **/node_modules
 deployer/archipel*
+deployer/test/chain/node*

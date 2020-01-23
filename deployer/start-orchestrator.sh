@@ -6,4 +6,4 @@ export MNEMONIC="$ARCHIPEL_KEY_SEED"
 export ALIVE_TIME=60000
 
 # Launch orchestrator
-node src/app.js
+exec node src/app.js
