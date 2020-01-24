@@ -18,8 +18,8 @@ const {
   POLKADOT_PREFIX,
   POLKADOT_KEY_GRAN,
   POLKADOT_KEY_BABE,
-  POLKADOT_KEY_ACCO,
   POLKADOT_KEY_IMON,
+  POLKADOT_KEY_PARA,
   POLKADOT_KEY_AUDI
 } = process.env;
 
@@ -29,9 +29,9 @@ const checkEnvVars = () => {
     // Checking if all necessary variables where set
     if (POLKADOT_NAME === undefined || POLKADOT_IMAGE === undefined ||
         POLKADOT_PREFIX === undefined || POLKADOT_KEY_GRAN === undefined ||
-        POLKADOT_KEY_BABE === undefined || POLKADOT_KEY_ACCO === undefined ||
+        POLKADOT_KEY_BABE === undefined || POLKADOT_KEY_PARA === undefined ||
         POLKADOT_KEY_IMON === undefined || POLKADOT_KEY_AUDI === undefined) {
-      throw Error('Polkadot Service needs POLKADOT_[NAME, KEY, IMAGE, PREFIX], POLKADOT_KEY_[GRAN, BABE, ACCO, IMON, AUDI] env variables set.');
+      throw Error('Polkadot Service needs POLKADOT_[NAME, KEY, IMAGE, PREFIX], POLKADOT_KEY_[GRAN, BABE, IMON, PARA, AUDI] env variables set.');
     }
   } catch (error) {
     debug('checkEnvVars', error);
@@ -89,8 +89,8 @@ const polkadotKeysImport = async (docker, containerName) => {
     // Importing 5 validator keys into keystore
     await importAKey(docker, containerName, POLKADOT_KEY_GRAN, 'ed25519', 'gran');
     await importAKey(docker, containerName, POLKADOT_KEY_BABE, 'sr25519', 'babe');
-    await importAKey(docker, containerName, POLKADOT_KEY_ACCO, 'sr25519', 'acco');
     await importAKey(docker, containerName, POLKADOT_KEY_IMON, 'sr25519', 'imon');
+    await importAKey(docker, containerName, POLKADOT_KEY_PARA, 'sr25519', 'para');
     await importAKey(docker, containerName, POLKADOT_KEY_AUDI, 'sr25519', 'audi');
 
     console.log('Keys were successfully added to keystore...');
@@ -120,7 +120,6 @@ const polkadotStart = async (docker, mode) => {
       // Waiting to be sure that container is started
       await new Promise(resolve => setTimeout(resolve, 5000));
       // Adding validator keys
-      
       await polkadotKeysImport(docker, POLKADOT_PREFIX + 'polkadot-sync');
     } else {
       throw new Error(`Mode '${mode}' is unknown.`);
