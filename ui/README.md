@@ -44,7 +44,7 @@ and open `build/index.html` in your favorite browser.
 ```bash
 docker run -it -p 8080:80 luguslabs/archipel-ui
 ```
-* After run you can access the Archipel UI at http://localhost:8080
+* After run you can access the Archipel UI at http://localhost:8080.
 
 
 ## Configuration
