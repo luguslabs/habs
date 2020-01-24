@@ -161,9 +161,6 @@ then
       /root/chain/archipel \
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
-            --rpc-cors "all" \
-            --unsafe-rpc-external \
-            --unsafe-ws-external \
             --validator \
             --name "$ARCHIPEL_NODE_ALIAS" \
             $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS &
@@ -171,9 +168,6 @@ else
       /root/chain/archipel \
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
-            --rpc-cors "all" \
-            --unsafe-rpc-external \
-            --unsafe-ws-external \
             --validator \
             --name "$ARCHIPEL_NODE_ALIAS" &
 fi
