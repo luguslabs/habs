@@ -3,7 +3,7 @@
 ###########################
 FROM rust:buster as builder-chain
 WORKDIR /root/  
-COPY chain .
+COPY ./chain .
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
 		g++ libssl-dev gcc clang libclang-dev make \
@@ -48,9 +48,9 @@ WORKDIR /root/
 ####################################
 # import scripts and supervisord conf  
 ####################################
-COPY deployer/docker/start-chain.sh /usr/local/bin/
-COPY deployer/docker/start-orchestrator.sh /usr/local/bin/
-COPY deployer/docker/supervisord.conf /etc/supervisord/
+COPY ./deployer/archipel-docker/start-chain.sh /usr/local/bin/
+COPY ./deployer/archipel-docker/start-orchestrator.sh /usr/local/bin/
+COPY ./deployer/archipel-docker/supervisord.conf /etc/supervisord/
 
 EXPOSE 30333
 

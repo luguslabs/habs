@@ -96,7 +96,7 @@ launch_archipel "archipel1" \
                 "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
                 "validator1" \
                 "node1-" \
-                "-p 9944:9944" \
+                "" \
                 "$NODE1_IP" \
                 "$BOOTNODES_LIST" \
 
@@ -115,6 +115,19 @@ launch_archipel "archipel3" \
                 "" \
                 "$NODE3_IP" \
                 "$BOOTNODES_LIST" \
+
+
+echo "Launching an Archipel node..."
+docker run -d \
+      -p 9944:9944 -p 9933:9933 -p 30333:30333 \
+      -v $(pwd)/archipel-node:/root/chain/data \
+      --name "archipel-node" \
+      --network archipel \
+      --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
+      --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
+      --env ARCHIPEL_NODE_ALIAS="archipel-node" \
+      --env ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="$BOOTNODES_LIST" \
+      luguslabs/archipel-node
 
 echo "Launching and Opening Archipel UI..."
 docker run -d -p 8080:80 --name archipel-ui luguslabs/archipel-ui
