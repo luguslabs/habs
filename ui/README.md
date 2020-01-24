@@ -16,6 +16,15 @@ cd ./ui
 yarn install
 ```
 
+## Build with Docker
+```bash
+# Clone the repository
+git clone https://github.com/luguslabs/archipel.git
+cd ./ui
+docker build --build-arg PROVIDER_SOCKET=ws://127.0.0.1 -t luguslabs/archipel-ui .
+```
+* **PROVIDER_SOCKET** - Archipel node provider Websocket.
+
 ## Usage
 
 You can start the template in development mode to connect to a locally running node
@@ -30,6 +39,13 @@ You can also build the app in production mode,
 yarn build
 ```
 and open `build/index.html` in your favorite browser.
+
+## Run with Docker
+```bash
+docker run -it -p 8080:80 luguslabs/archipel-ui
+```
+* After run you can access the Archipel UI at http://localhost:8080
+
 
 ## Configuration
 
