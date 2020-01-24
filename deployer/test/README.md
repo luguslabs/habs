@@ -14,13 +14,13 @@ This directory contains scripts to bootstrap a federation of 3 Archipel Nodes.
 
 * Docker
 
-## Launch deployment
+## Launch federation
 
 ```bash
 ./launch.sh
 ```
 
-## Remove deployment
+## Remove federation
 
 ```bash
 ./remove.sh
@@ -40,7 +40,9 @@ This directory contains scripts to bootstrap a federation of 3 Archipel Nodes.
 * NODENUMBER must be 1,2 or 3.
 * Warning! Before using this script you must launch Archipel Federation with launch script.
 
-## Archipel Chain Node WS Endpoint
+## Archipel Chain Node Endpoints
 ```bash
-ws://127.0.0.1:9944
+Websocket: 127.0.0.1:9944
+RPC: 127.0.0.1:9933
+P2P: 127.0.0.1:30333
 ```
