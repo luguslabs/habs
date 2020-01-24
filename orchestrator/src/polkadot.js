@@ -120,6 +120,7 @@ const polkadotStart = async (docker, mode) => {
       // Waiting to be sure that container is started
       await new Promise(resolve => setTimeout(resolve, 5000));
       // Adding validator keys
+      
       await polkadotKeysImport(docker, POLKADOT_PREFIX + 'polkadot-sync');
     } else {
       throw new Error(`Mode '${mode}' is unknown.`);
