@@ -87,7 +87,7 @@ Shows the Archipel chain state with the current leader node and all federation n
 | --- | --- |
 | [archipel-docker](deployer/archipel-docker/) | docker image contains Archipel Chain and orchestrator components. Versioning also available on [docker hub luguslabs/archipel](https://hub.docker.com/repository/docker/luguslabs/archipel) |
 | [archipel-node-docker](deployer/archipel-node-docker) |  docker image to run a single archipel Node. Versioning also available on [docker hub luguslabs/archipel-node](https://hub.docker.com/r/luguslabs/archipel-node)|
-| [test](deployer/test) | scripts to sandbox test all Archipel functionalities |
+| [test](deployer/test) | scripts to sandbox and test all Archipel functionalities |
 
 
 ## [DAppNodePackage](https://github.com/luguslabs/DAppNodePackage-archipel)
