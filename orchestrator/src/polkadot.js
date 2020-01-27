@@ -67,10 +67,10 @@ const importAKey = async (docker, containerName, mnemonic, crypto, type) => {
       debug('importAKey', `Command result: "${result}"`);
 
       // Checking result
-      if (result !== '\'{"jsonrpc":"2.0","result":null,"id":1}') {
-        throw Error(`Can't add key. Error: ${result}`);
-      } else {
+      if (result.includes('"result":null')) {
         importedKeys.push(publicKey);
+      } else {
+        throw Error(`Can't add key. ${result}`);
       }
     } else {
       debug('importAKey', `Key ${publicKey} was already imported to keystore.`);
