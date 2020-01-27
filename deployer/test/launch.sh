@@ -51,7 +51,7 @@ docker network create archipel --subnet=172.28.42.0/16
 
 launch_archipel "archipel1" \
                 "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
-                "validator1" \
+                "archipel-validator1" \
                 "node1-" \
                 "-p 9944:9944" \
                 "$NODE1_IP" \
@@ -59,7 +59,7 @@ launch_archipel "archipel1" \
 
 launch_archipel "archipel2" \
                 "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
-                "validator2" \
+                "archipel-validator2" \
                 "node2-" \
                 "" \
                 "$NODE2_IP" \
@@ -67,7 +67,7 @@ launch_archipel "archipel2" \
 
 launch_archipel "archipel3" \
                 "borrow initial guard hunt corn trust student opera now economy thumb argue" \
-                "validator3" \
+                "archipel-validator3" \
                 "node3-" \
                 "" \
                 "$NODE3_IP" \
@@ -94,7 +94,7 @@ sleep 5
 
 launch_archipel "archipel1" \
                 "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
-                "validator1" \
+                "archipel-validator1" \
                 "node1-" \
                 "" \
                 "$NODE1_IP" \
@@ -102,7 +102,7 @@ launch_archipel "archipel1" \
 
 launch_archipel "archipel2" \
                 "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
-                "validator2" \
+                "archipel-validator2" \
                 "node2-" \
                 "" \
                 "$NODE2_IP" \
@@ -110,7 +110,7 @@ launch_archipel "archipel2" \
 
 launch_archipel "archipel3" \
                 "borrow initial guard hunt corn trust student opera now economy thumb argue" \
-                "validator3" \
+                "archipel-validator3" \
                 "node3-" \
                 "" \
                 "$NODE3_IP" \
@@ -119,7 +119,7 @@ launch_archipel "archipel3" \
 
 echo "Launching an Archipel node..."
 docker run -d \
-      -p 9944:9944 -p 9933:9933 -p 30333:30333 \
+      -p 9944:9944 \
       -v $(pwd)/archipel-node:/root/chain/data \
       --name "archipel-node" \
       --network archipel \
