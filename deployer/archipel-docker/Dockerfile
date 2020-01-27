@@ -9,8 +9,8 @@ RUN	apt-get -y update; \
 		g++ libssl-dev gcc clang libclang-dev make \
 		git pkg-config curl time rhash
 RUN ./scripts/init.sh && cargo build --release
-RUN ./target/release/archipel  build-spec --chain template > archipelTemplateSpec.json
-RUN ./target/release/archipel  build-spec --chain template --raw > archipelTemplateSpecRaw.json
+RUN ./target/release/archipel build-spec --chain template > archipelTemplateSpec.json
+RUN ./target/release/archipel build-spec --chain template --raw > archipelTemplateSpecRaw.json
 
 ###########################
 # Build subkey tool step

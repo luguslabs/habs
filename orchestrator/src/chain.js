@@ -115,7 +115,7 @@ const addMetrics = async (api, metrics, mnemonic) => {
 // Get current leader from Runtime
 const getLeader = async api => {
   try {
-    return await api.query.archipelModule.master();
+    return await api.query.archipelModule.leader();
   } catch (error) {
     debug('getLeader', error);
     return false;
@@ -154,7 +154,7 @@ const setLeader = async (api, oldLeader, mnemonic) => {
       // create, sign and send transaction
       api.tx.archipelModule
         // create transaction
-        .setMaster(oldLeader)
+        .setLeader(oldLeader)
         // Sign and transcation
         .sign(keys, { nonce })
         // Send transaction
@@ -163,7 +163,7 @@ const setLeader = async (api, oldLeader, mnemonic) => {
           transactionShowStatus(status, 'setLeader');
           if (status.isFinalized) {
             events.forEach(async ({ event: { data, method, section } }) => {
-              if (section.toString() === 'archipelModule' && method.toString() === 'NewMaster') {
+              if (section.toString() === 'archipelModule' && method.toString() === 'NewLeader') {
                 // Show transaction data for Debug
                 console.log('Transaction was successfully sent and generated an event.');
                 console.log(`JSON Data: [${JSON.parse(data.toString())}]`);

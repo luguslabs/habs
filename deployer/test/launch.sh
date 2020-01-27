@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #!/bin/bash
-ARCHIPEL_VERSION="latest"
+ARCHIPEL_VERSION="test"
 # Launch Archipel orchestrator in docker container
 function launch_archipel () {
   echo "Starting $1..."
@@ -127,10 +127,10 @@ docker run -d \
       --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
       --env ARCHIPEL_NODE_ALIAS="archipel-node" \
       --env ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="$BOOTNODES_LIST" \
-      luguslabs/archipel-node
+      luguslabs/archipel-node:test
 
 echo "Launching and Opening Archipel UI..."
-docker run -d -p 8080:80 --name archipel-ui luguslabs/archipel-ui
+docker run -d -p 8080:80 --name archipel-ui luguslabs/archipel-ui:test
 echo "Archipel UI is running at http://localhost:8080 ..."
 
 echo "Archipel was created."

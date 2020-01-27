@@ -1,3 +1,9 @@
+[package]
+authors = ['Vladimir Ostapenco', 'François Branciard']
+edition = '2018'
+name = 'archipel-runtime'
+version = '2.0.0'
+
 [dependencies.aura]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
@@ -189,11 +195,6 @@ std = [
     'transaction-payment/std',
 ]
 
-[package]
-authors = ['Vladimir Ostapenco', 'François Branciard']
-edition = '2018'
-name = 'archipel-runtime'
-version = '2.0.0'
 [build-dependencies.wasm-builder-runner]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'substrate-wasm-builder-runner'

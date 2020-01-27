@@ -5,7 +5,7 @@ import { useSubstrate } from './substrate-lib';
 
 function Main (props) {
   const { api } = useSubstrate();
-  const [currentMaster, setCurrentMaster] = useState();
+  const [currentLeader, setCurrentLeader] = useState();
 
   const [accountsCount, setAccountsCount] = useState(0);
 
@@ -15,11 +15,11 @@ function Main (props) {
 
   useEffect(() => {
     let unsubscribe;
-    api.query.archipelModule.master(newMaster => {
-      if (!newMaster.isEmpty) {
-        setCurrentMaster(newMaster.toString());
+    api.query.archipelModule.leader(newLeader => {
+      if (!newLeader.isEmpty) {
+        setCurrentLeader(newLeader.toString());
       } else {
-        setCurrentMaster('None');
+        setCurrentLeader('None');
       }
     }).then(unsub => {
       unsubscribe = unsub;
@@ -63,13 +63,13 @@ function Main (props) {
 
   return (
     <Grid.Column>
-      <h1>Archipel Master</h1>
-      {currentMaster}
+      <h1>Archipel Leader</h1>
+      {currentLeader}
       <h1>Archipel has {accountsCount} Nodes</h1>
       <Table celled striped size='small'>
         <Table.Body>{accounts.map((account, index) =>
           <Table.Row key={account}>
-            <Table.Cell>{account === currentMaster ? <Icon name='chess king' /> : ''}</Table.Cell>
+            <Table.Cell>{account === currentLeader ? <Icon name='chess king' /> : ''}</Table.Cell>
             <Table.Cell>{account}</Table.Cell>
             <Table.Cell>{metrics[index]}</Table.Cell>
           </Table.Row>
@@ -82,6 +82,6 @@ function Main (props) {
 
 export default function ArchipelModule (props) {
   const { api } = useSubstrate();
-  return (api.query.archipelModule && api.query.archipelModule.master
+  return (api.query.archipelModule && api.query.archipelModule.leader
     ? <Main {...props} /> : null);
 }
