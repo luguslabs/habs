@@ -85,6 +85,9 @@ echo "Local archipel3 node identity is '$NODE3_LOCAL_ID'"
 BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "Bootnodes list is '$BOOTNODES_LIST'"
 
+echo "Sleeping 10 sec before node remove to be sure that keys are added..."
+sleep 10
+
 # Recreating nodes containers
 # Removing nodes containers
 docker stop archipel{1,2,3}
