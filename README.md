@@ -4,9 +4,23 @@
 
 Welcome to **Archipel** monorepository!
 
-## Overview
+## What is Archipel
 
 Archipel is the high availability solution for blockchain services. The first service supported is the Polkadot validator.
+
+
+## Why Archipel
+
+- Nowadays, many blockchain services are centralized on cloud infrastructure. We can imagine that in a few years some of blockchain services can be banned from public cloud services. Moreover, cloud providers can have interruption of services and network issues.
+- To have decentralized infrastructure at your home, we must overcome some issues too : it’s really difficult to maintain good quality of service at home : you can have internet box or power cuts. For example it is very risky to install a Proof-of-Stake validator at home. Your PoS validator must be always up 24/7 and ready to execute it’s duty. If not, you will be slashed by the network and lose money.
+To solve this problem we want to create a solution for high availability of blockchain services by federating few nodes between friends and family.
+
+
+## How it works 
+
+We use DAppNode Packages system and hardwares as a root base for the solution.
+DAppnode solution is a good solution to launch a node (bitcoin, ethereum etc ...) or p2p software. But in addition to that to achieve a HA service ( like a validator node) we must add an additional service layer on top of it.
+ We built a daemon Archipel Orchestrator. This daemon is running on each validator nodes. It interacts with the a substrate specific to manage the validator leadership mutex. 
 
 ## Content
 
