@@ -64,8 +64,8 @@ Orchestrator is a node program that is responsible of serveral actions. It :
 - starts/stops external docker services to guarantee the HA.
 - switches the external service from active to passive mode.
 - switches the external service from passive to active mode.
-- retreves state from the archipel chain
-- propagates transactions `set_Leader` and `add_metrics`
+- retrieves state from the archipel chain.
+- propagates transactions `set_Leader` and `add_metrics` in archipel chain.
 - implements the leadership algorithm. With Archipel chain state as inputs. As output, we have a transactions sent and external services start/stop/switch.
 
 In our first scenario for Archipel, the external service targeted is a polkadot validator. Active mode is a pokadot node with validator option. The passive mode is a polkadot full node only synching.
