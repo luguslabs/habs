@@ -61,7 +61,17 @@ As all the project is dockerize, you can launch also 1, 2, or 3 Archipel chain c
 
 ## [Orchestrator](https://github.com/luguslabs/archipel/tree/master/orchestrator)
 
-In our first case, the active mode is a polkadot in validator option and a passive mode is a polkadot node just synching. The orechtrator is aand leadership decisions
+Orchestrator is a node program that is responsible of serveral actions. It :
+- starts/stops external docker services to guarantee the HA.
+- switches the external service from active to passive mode.
+- switches the external service from passive to active mode.
+- retreves state from the archipel chain
+- propagates transactin set_Leader and add_metrics
+- implements the leadership algorithm. With archipel state as inputs. As output, we have a transactions sent and external services start/stop/switch.
+
+We choose Node js because of the [Substrate js api reference](https://github.com/polkadot-js/api) and well coverage.
+
+In our first scenario for Archipel, the external service targeted is a polkadot validator. Active mode is a pokadot node with validator option. The passive mode is a polkadot full node only synching.
  
  
 ## [UI](https://github.com/luguslabs/archipel/tree/master/ui)
