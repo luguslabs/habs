@@ -48,8 +48,7 @@ The [Archipel runtime](https://github.com/luguslabs/archipel/blob/master/chain/r
 - `set_leader(origin, old_leader: T::AccountId)`: 
 
 When the algorithm in the orchestrator detect a leadership necessity to start. Before starting in active mode (aka validator mode), a `set_leader` transaction is propagated by the candidate node. In this `set_leader` call function, the candidate node must indicates parameter `old_leader` : the current node seen as bad or down leader from his point of view. The candidate node will only start his validator duty, if it sees his `set_leader` transaction finilized sucessflully.
-This `set_leader` call, with 3 nodes in the archipel, allows to prevent 2 nodes to start validating in the same time. We will see if this simpe algorithm must be evolved to cover all equivocation. In the algorithm, we will prefere an archipel service down instead of [equivocation] on the network and heavy slashes.(https://guide.kusama.network/en/latest/try/secure-validator-setup/#high-availability)
-
+This `set_leader` call, with 3 nodes in the archipel, allows to prevent 2 nodes to start validating in the same time. We will see if this simpe algorithm must be evolved to cover all equivocation. In the algorithm, we will prefere an archipel service down instead of [equivocation](https://guide.kusama.network/en/latest/try/secure-validator-setup/#high-availability) on the network and heavy slashes.
 - `add_metrics(origin, metrics_value: u32)`: 
 
 It is an heartbeat transaction that allow to detect node liveness and detect network or power crash of the current leader. If no transactions received `add_metrics` from an entities, the orchestrator will react. `metrics_value` parameter is not used at te moment. In the future, metrics details could be added and stored to have a more accurate state or leaders selection optmisations. 
@@ -66,20 +65,30 @@ Orchestrator is a node program that is responsible of serveral actions. It :
 - switches the external service from active to passive mode.
 - switches the external service from passive to active mode.
 - retreves state from the archipel chain
-- propagates transactin set_Leader and add_metrics
-- implements the leadership algorithm. With archipel state as inputs. As output, we have a transactions sent and external services start/stop/switch.
+- propagates transactions `set_Leader` and `add_metrics`
+- implements the leadership algorithm. With Archipel chain state as inputs. As output, we have a transactions sent and external services start/stop/switch.
+
+In our first scenario for Archipel, the external service targeted is a polkadot validator. Active mode is a pokadot node with validator option. The passive mode is a polkadot full node only synching.
+We have others services to target in mind.
+
+Note :
 
 We choose Node js because of the [Substrate js api reference](https://github.com/polkadot-js/api) and well coverage.
 
-In our first scenario for Archipel, the external service targeted is a polkadot validator. Active mode is a pokadot node with validator option. The passive mode is a polkadot full node only synching.
- 
+
  
 ## [UI](https://github.com/luguslabs/archipel/tree/master/ui)
-TODO
+
+Shows the Archipel chain state with the current leader node and all federation nodes status and metrics.
 
 ## [Deployer](https://github.com/luguslabs/archipel/tree/master/deployer)
 
-TODO
+| folder| Description |
+| --- | --- |
+| [archipel-docker](deployer/archipel-docker/) | docker image contains Archipel Chain and orchestrator components. Versioning also available on [docker hub luguslabs/archipel](https://hub.docker.com/repository/docker/luguslabs/archipel) |
+| [archipel-node-docker](deployer/archipel-node-docker) |  docker image to run a single archipel Node. Versioning also available on [docker hub luguslabs/archipel-node](https://hub.docker.com/r/luguslabs/archipel-node)|
+| [test](deployer/test) | scripts to sandbox test all Archipel functionalities |
+
 
 ## [DAppNodePackage](https://github.com/luguslabs/DAppNodePackage-archipel)
 
