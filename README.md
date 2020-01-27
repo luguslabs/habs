@@ -21,13 +21,16 @@ To solve this problem we want to create a solution for high availability of bloc
 We use DAppNode Packages system and hardwares as a root base for the solution.
 DAppnode solution is a good solution to launch a node (bitcoin, ethereum etc ...) or p2p software. But in addition to that to achieve a HA service ( like a validator node) we must add an additional service layer on top of it.
 The archipel service is composed of 3 parts :
-- archipel chain : federate federated node
-- orchestrator : launch service and leadership decisions
-- ui : basic interface to see the current status of the ederated nodes.
+- [Archipel chain](https://github.com/luguslabs/archipel/tree/master/chain) : federate node to shared common state and metrics.
+- [Orchestrator](https://github.com/luguslabs/archipel/tree/master/orchestrator) : deamon that launch the external service in active or passive mode decided according to the substrate chain state.
+- [UI](https://github.com/luguslabs/archipel/tree/master/ui) : basic interface to see the archipel federation state.
 ### archipel chain 
 To federate several nodes and have a shared state to elect leader, we create a specific Substrate runtime to achived this. Substrate is a framework to easely create specific blockchain logic. This runtime also collect all nodes metrics of federation. Used for the leader selection. 
 All DappNode hardware inside a federation run this substrate chain. We call it the substrate chain.
 ### orchestrator
+
+In our first case, the active mode is a polkadot in validator option and a passive mode is a polkadot node just synching. The orechtrator is aand leadership decisions
+- ui : basic interface to see the current status of the ederated nodes.
  We built a daemon Archipel Orchestrator. This daemon is running on each validator nodes. It interacts with the a substrate specific to manage the validator leadership mutex. 
 ### ui
 
