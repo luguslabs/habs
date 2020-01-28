@@ -53,11 +53,13 @@ docker run -d -p 8080:80 luguslabs/archipel-ui
 
 ## [Archipel Chain](https://github.com/luguslabs/archipel/tree/master/chain)
 To federate several nodes and have a shared state to elect leader, we created a specific blockchain using Substrate framework. 
+
 [Substrate](https://substrate.dev/) is a Parity framework that allows creating application-specific blockchains. 
-We created a Substrate runtime that collects all nodes metrics and sets federation leader. This helps Archipel orchestrator to select the best leader appropriately in the federation. 
-We call this specific blockchain the Archipel Substrate Chain or Archipel Chain.
-All nodes inside a federation, run Archipel Chain.
-In the current implementation, an Archipel must be composed of 3 nodes. That means that to operate, you have to set up 3 nodes. Try to set up nodes in different locations using different ISPs.
+
+We created a Substrate runtime that collects all nodes metrics and sets federation leader. This helps Archipel orchestrator to select the best leader appropriately in the federation. We call this specific blockchain the Archipel Substrate Chain or Archipel Chain. 
+
+All nodes inside a federation, run Archipel Chain. In the current implementation, an Archipel must be composed of 3 nodes. That means that to operate, you have to set up 3 nodes. Try to set up nodes in different locations using different ISPs.
+
 The idea is that in Archipel federation, all participants are trusted. They can be friends or family or other trusted social links. That allows us to have a fast chain consensus. 
 
 ## [Orchestrator](https://github.com/luguslabs/archipel/tree/master/orchestrator)
