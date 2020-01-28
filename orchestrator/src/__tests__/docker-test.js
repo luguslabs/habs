@@ -113,7 +113,7 @@ test('Check if passive container will be down after the active container launch'
   await removeContainer(docker, activeName);
 });
 
-test.only('Execute a command in docker container', async () => {
+test('Execute a command in docker container', async () => {
   await startServiceContainer(docker, 'active', activeName, passiveName, image, command, mountDir, volume);
 
   const commandToExecute = ['echo', 'Hello world'];
