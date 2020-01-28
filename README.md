@@ -1,6 +1,8 @@
 # Archipel
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+[![Website archipel.id](https://img.shields.io/badge/Website-archipel.id-brightgreen.svg)](https://archipel.id/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Twitter Follow](https://img.shields.io/twitter/follow/luguslabs.svg?style=social&label=Follow)](https://twitter.com/luguslabs)
 
 Welcome to **Archipel** monorepository!
 
@@ -19,7 +21,7 @@ To solve this problem, we are creating a solution to provide high availability f
 
 ## How it works ?
 The idea behind Archipel is federating some nodes between friends and family.
-We are using [DAppNode](https://dappnode.io/) as the infrastructure layer for our solution. 
+We are using [DAppNode](https://dappnode.io/) as the infrastructure layer for our solution. We want here to thanks DAppNode Teams for their amazing work and also supports for months now.
 With DAppNode, you can launch a blockchain node (Bitcoin, Ethereum ...) or any P2P software.
 To achieve the high availability of services, we are adding a service layer (Archipel) on top of it.
 
@@ -87,7 +89,12 @@ DAppNode package wrapping Archipel stack.
 It allows installing Archipel from the DAppNode interface in one click.
 
 ## Building
-Please refer to the README instructions in sub-repositories.
+Please refer to the README instructions in sub-repositories:
+
+- [chain/README.md](chain/README.md)
+- [orchestrator/README.md](orchestrator/README.md)
+- [deployer/README.md](deployer/README.md)
+- [ui/README.md](ui/README.md)
 
 ## Running with Docker
 ### Archipel (Validator Archipel Chain Node + Orchestrator)
@@ -162,10 +169,6 @@ docker run -d -p 8080:80 luguslabs/archipel-ui
 ```
 * The Archipel UI will be avaliable at http://localhost:8080
 * Make sure that the 8080 port is available 
-
-## References
-
-* [Project Website](https://archipel.id)
 
 ## Acknowledgements
 <p align="center">
