@@ -105,13 +105,14 @@ impl<T: Trait> Module<T> {
     }
 }
 
-/// tests for this module
+/// Test for this module
 #[cfg(test)]
 mod tests {
     use super::*;
 
     use frame_support::{
-        assert_noop, assert_ok, impl_outer_origin, parameter_types, weights::Weight,
+        assert_noop, assert_ok, impl_outer_event, impl_outer_origin, parameter_types,
+        weights::Weight,
     };
     use sp_core::H256;
     use sp_runtime::{
@@ -121,11 +122,11 @@ mod tests {
     };
 
     impl_outer_origin! {
-        pub enum Origin for Test {}
+        pub enum Origin for TestArchipel {}
     }
 
     #[derive(Clone, Eq, PartialEq, Debug)]
-    pub struct Test;
+    pub struct TestArchipel;
     parameter_types! {
         pub const BlockHashCount: u64 = 250;
         pub const MaximumBlockWeight: Weight = 1024;
@@ -133,7 +134,7 @@ mod tests {
         pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
         pub const MinimumPeriod: u64 = 5;
     }
-    impl system::Trait for Test {
+    impl system::Trait for TestArchipel {
         type Origin = Origin;
         type Call = ();
         type Index = u64;
@@ -143,7 +144,7 @@ mod tests {
         type AccountId = u64;
         type Lookup = IdentityLookup<Self::AccountId>;
         type Header = Header;
-        type Event = ();
+        type Event = TestEvent;
         type BlockHashCount = BlockHashCount;
         type MaximumBlockWeight = MaximumBlockWeight;
         type MaximumBlockLength = MaximumBlockLength;
@@ -152,24 +153,36 @@ mod tests {
         type ModuleToIndex = ();
     }
 
-    impl Trait for Test {
-        type Event = ();
+    mod archipel {
+        pub use crate::archipel::Event;
     }
 
-    impl timestamp::Trait for Test {
+    impl_outer_event! {
+        pub enum TestEvent for TestArchipel {
+            archipel<T>,
+        }
+    }
+
+    impl Trait for TestArchipel {
+        type Event = TestEvent;
+    }
+
+    impl timestamp::Trait for TestArchipel {
         type Moment = u64;
         type OnTimestampSet = ();
         type MinimumPeriod = MinimumPeriod;
     }
 
-    type ArchipelModule = Module<Test>;
+    pub type ArchipelModule = Module<TestArchipel>;
+    pub type System = system::Module<TestArchipel>;
+    pub type Timestamp = timestamp::Module<TestArchipel>;
 
     pub struct ExtBuilder;
 
     impl ExtBuilder {
         pub fn build() -> sp_io::TestExternalities {
             let storage = system::GenesisConfig::default()
-                .build_storage::<Test>()
+                .build_storage::<TestArchipel>()
                 .unwrap();
             sp_io::TestExternalities::from(storage)
         }
@@ -259,6 +272,48 @@ mod tests {
 
             // checking updated metrics
             assert_eq!(ArchipelModule::get_metrics(10), 4243);
+        })
+    }
+    #[test]
+    fn update_metrics_event_should_work() {
+        ExtBuilder::build().execute_with(|| {
+            // Set metrics
+            assert_ok!(ArchipelModule::add_metrics(Origin::signed(10), 65));
+
+            // construct event that should be emitted in the method call directly above
+            let expected_event = TestEvent::archipel(RawEvent::MetricsUpdated(10, 65, 0));
+
+            // iterate through array of `EventRecord`s
+            assert!(System::events().iter().any(|a| a.event == expected_event));
+        })
+    }
+    #[test]
+    fn set_leader_event_should_work() {
+        ExtBuilder::build().execute_with(|| {
+            // set leader
+            assert_ok!(ArchipelModule::set_leader(Origin::signed(10), 0));
+
+            // construct event that should be emitted in the method call directly above
+            let expected_event = TestEvent::archipel(RawEvent::NewLeader(10));
+
+            // iterate through array of `EventRecord`s
+            assert!(System::events().iter().any(|a| a.event == expected_event));
+        })
+    }
+    #[test]
+    fn check_timestamp_update_metrics_event_should_work() {
+        ExtBuilder::build().execute_with(|| {
+            // Set timestamp
+            Timestamp::set_timestamp(42);
+
+            // Set metrics
+            assert_ok!(ArchipelModule::add_metrics(Origin::signed(10), 65));
+
+            // construct event that should be emitted in the method call directly above
+            let expected_event = TestEvent::archipel(RawEvent::MetricsUpdated(10, 65, 42));
+
+            // iterate through array of `EventRecord`s
+            assert!(System::events().iter().any(|a| a.event == expected_event));
         })
     }
 }
