@@ -131,10 +131,10 @@ EOF
 
 # Launch docker container
 docker run -d --name "archipel-node" \
-      -p 9944:9944 \
-      -v /root/chain/data \
-      --env-file .env \
-      luguslabs/archipel-node:latest
+  -p 9944:9944 \
+  -v /root/chain/data \
+  --env-file .env \
+  luguslabs/archipel-node:latest
 ```
 
 ### Environment Variables
