@@ -22,6 +22,14 @@ Build Wasm and native code:
 cargo build --release
 ```
 
+## Build with Docker
+```bash
+# Clone the repository
+git clone https://github.com/luguslabs/archipel.git
+cd ./chain
+docker build -t luguslabs/archipel-chain .
+```
+
 ## Run
 
 ### Single node development chain

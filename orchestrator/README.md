@@ -34,6 +34,14 @@ yarn install
 yarn run start
 ```
 
+## Build with Docker
+```bash
+# Clone the repository
+git clone https://github.com/luguslabs/archipel.git
+cd ./orchestrator
+docker build -t luguslabs/archipel-orchestrator .
+```
+
 ## Note 
 
 Please use **eslint** before every commit.

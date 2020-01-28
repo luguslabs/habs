@@ -1,5 +1,5 @@
 #!/bin/bash
-ARCHIPEL_CHAIN_VERSION="0.0.1"
+ARCHIPEL_CHAIN_VERSION="test"
 # Launch Archipel node in docker container
 function launch_node () {
   echo "Starting $1..."
@@ -15,6 +15,7 @@ function launch_node () {
     --chain /tmp/files/customSpecRaw.json \
     --validator \
     --name "$1" $4 \
+    luguslabs/archipel-chain:$ARCHIPEL_CHAIN_VERSION
 
   echo "Waiting 5 seconds to be sure that node is started..."
   sleep 5

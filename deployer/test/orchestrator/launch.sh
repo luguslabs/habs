@@ -1,5 +1,5 @@
 #!/bin/bash
-ARCHIPEL_ORCHESTRATOR_VERSION="0.0.2"
+ARCHIPEL_ORCHESTRATOR_VERSION="test"
 # Launch Archipel orchestrator in docker container
 function launch_orchestrator () {
   echo "Starting $1..."
