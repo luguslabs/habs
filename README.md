@@ -21,7 +21,7 @@ To solve this problem, we are creating a solution to provide high availability f
 
 ## How it works ?
 The idea behind Archipel is federating some nodes between friends and family.
-We are using [DAppNode](https://dappnode.io/) as the infrastructure layer for our solution. 
+We are using [DAppNode](https://dappnode.io/) as the infrastructure layer for our solution. We want here to thanks DAppNode Teams for their amazing work and also supports for months now.
 With DAppNode, you can launch a blockchain node (Bitcoin, Ethereum ...) or any P2P software.
 To achieve the high availability of services, we are adding a service layer (Archipel) on top of it.
 
@@ -169,10 +169,6 @@ docker run -d -p 8080:80 luguslabs/archipel-ui
 ```
 * The Archipel UI will be avaliable at http://localhost:8080
 * Make sure that the 8080 port is available 
-
-## References
-
-* [Project Website](https://archipel.id)
 
 ## Acknowledgements
 <p align="center">
