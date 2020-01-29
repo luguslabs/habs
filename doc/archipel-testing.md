@@ -43,7 +43,7 @@ If you don’t see any nodes or master elected please wait a little bit!
 
 Example:
 <p align="center">
-  <img src=./images/archipel-testing-ui.png width = 1000>
+  <img src=./images/archipel-testing-ui-1.png width = 1000>
 </p>
 
 2.2 Check containers launched
@@ -70,6 +70,7 @@ https://telemetry.polkadot.io/#/Kusama%20CC3
     - archipel-validator3-{active or passive}
 - Active node = validator node
 - Passive node = sync only node
+
 Example:
 
 <p align="center">
@@ -98,6 +99,10 @@ Stop node script will stop Archipel Node
 docker ps
 ```
 
+<p align="center">
+  <img src=./images/archipel-testing-docker-ps-2.png width = 1000>
+</p>
+
 3.3 Wait for Archipel Orchestration (Generally takes 1-2 mins)
 
 Track orchestration :
@@ -110,12 +115,26 @@ https://telemetry.polkadot.io/#/Kusama%20CC3
 Example:
 Archipel UI:
 
+<p align="center">
+  <img src=./images/archipel-testing-ui-2.png width = 1000>
+</p>
+
 
 ```bash
 docker ps
 ```
 
+<p align="center">
+  <img src=./images/archipel-testing-docker-ps-2.png width = 1000>
+</p>
+
+
 Telemetry:
+
+<p align="center">
+  <img src=./images/archipel-testing-telemetry-2.png width = 1000>
+</p>
+
 
 - Node 1 was stopped in the step 3.1
 - After orchestration the new leader was elected (Node 3)
@@ -143,7 +162,18 @@ Example:
 docker ps:
 ```
 
+<p align="center">
+  <img src=./images/archipel-testing-docker-ps-3.png width = 1000>
+</p>
+
+
+
 Telemetry:
+
+<p align="center">
+  <img src=./images/archipel-testing-telemetry-3.png width = 1000>
+</p>
+
 
 The old active node was restarted in passive mode.
 
