@@ -51,6 +51,10 @@ Example:
 docker ps
 ```
 
+<p align="center">
+  <img src=./images/archipel-testing-docker-ps-1.png width = 800>
+</p>
+
 You must see multiple containers launched:
 - 3 Archipel validator nodes: archipel1, archipel2, archipel3
 - 1 Archipel non validator node: archipel-node
