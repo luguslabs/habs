@@ -43,7 +43,7 @@ If you don’t see any nodes or master elected please wait a little bit!
 
 Example:
 <p align="center">
-  <img src=./images/archipel-testing-ui.png width = 800>
+  <img src=./images/archipel-testing-ui.png width = 1000>
 </p>
 
 2.2 Check containers launched
@@ -71,6 +71,10 @@ https://telemetry.polkadot.io/#/Kusama%20CC3
 - Active node = validator node
 - Passive node = sync only node
 Example:
+
+<p align="center">
+  <img src=./images/archipel-testing-telemetry-1.png width = 1000>
+</p>
 
 - Here node 1 was elected active = launched as validator
 - Nodes 2 and 3 are in passive state = launched as non validator for sync only
