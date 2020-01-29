@@ -27,15 +27,15 @@ There is also a [full steps command line](#archipel-full-steps-keys-creation) to
 subkey -n substrate generate > archipel-node1-sr25519.keys 
 ```
 
-Note : the default keys generation is a sr25519. To be sure, you can also specify -s or --sr25519 option.
+Note : the default keys generation is a `sr25519`. To be sure, you can also specify `-s or --sr25519` option.
 
-You will need the ed25519 keys format from the same seed. To do this you will first extract the phrase seed 12 mnemonic words of node 1 from archipel-node1-sr25519.keys file. then you keep the seed phrase in another file : archipel-node1.seed
+You will need the ed25519 keys format from the same seed. To do this you will first extract the phrase seed 12 mnemonic words of node 1 from `archipel-node1-sr25519.keys` file. then you keep the seed phrase in another file : `archipel-node1.seed`
 
 ```bash
 cat archipel-node1-sr25519.keys | grep phrase | cut -d"\`" -f2 > archipel-node1.seed
 ```
 
-now you can extract ed25519 keys format from phrase of archipel-node1.seed with :
+now you can extract ed25519 keys format from phrase of `archipel-node1.seed` with :
 
 ```bash
 subkey -n substrate --ed25519 inspect "$(<archipel-node1.seed)" > archipel-node1-ed25519.keys 
@@ -66,15 +66,15 @@ archipel-node3-sr25519.keys
 
 ### Matching archipel files keys with Archpel env variables
 
-- ARCHIPEL_KEY_SEED=what you find into your archipel-node1|2|3.seed file.
+- ARCHIPEL_KEY_SEED=what you find into your `archipel-node1|2|3.seed` file.
 
 - ARCHIPEL_AUTHORITIES_SR25519_LIST='SS58 Address of archipel-node1-sr25519.keys','SS58 Address of archipel-node2-sr25519.keys','SS58 Address of archipel-node3-sr25519.keys'
 - ARCHIPEL_AUTHORITIES_ED25519_LIST='SS58 Address of archipel-node1-ed25519.keys','SS58 Address of archipel-node2-ed25519.keys','SS58 Address of archipel-node3-ed25519.keys'
 
 
-ARCHIPEL_AUTHORITIES_SR25519_LIST and ARCHIPEL_AUTHORITIES_ED25519_LIST are the same values for your 3 archipel nodes.
+`ARCHIPEL_AUTHORITIES_SR25519_LIST` and `ARCHIPEL_AUTHORITIES_ED25519_LIST` are the same values for your 3 archipel nodes.
 
-Lazy ? Here a utils commands to generate ARCHIPEL_AUTHORITIES_SR25519_LIST and ARCHIPEL_AUTHORITIES_ED25519_LIST value from files :
+Lazy ? Here a utils commands to generate `ARCHIPEL_AUTHORITIES_SR25519_LIST` and `ARCHIPEL_AUTHORITIES_ED25519_LIST` value from files :
 
 - ARCHIPEL_KEY_SEED
 select line according to node number you whant to valorize
