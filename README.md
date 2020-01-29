@@ -96,11 +96,14 @@ Please refer to the README instructions in sub-repositories for building each so
 - [deployer/README.md](deployer/README.md)
 - [ui/README.md](ui/README.md)
 
-To bootstrap you Archipel chain you will need to initialize keys. Here the documentation :
+To bootstrap you Archipel chain you will need to initialize keys, here the documentation :
  - [doc/archipel-keys-initialisation.md](doc/archipel-keys-initialisation.md)
  
-To help you understand and confirgure Polkadot sessions key, Here the documentation :
+To help you understand and confirgure Polkadot sessions key, here the documentation :
  - [doc/polkadot-keys-initialisation.md](doc/polkadot-keys-initialisation.md)
+ 
+To help you deploy Archipel on DAppNodes, here the documentation :
+ - [doc/deployment-on-dappnodes.md](doc/deployment-on-dappnodes.md)
 
 ## Running with Docker
 ### Archipel (Validator Archipel Chain Node + Orchestrator)
