@@ -6,7 +6,7 @@ Those keys will be use for the node identities in the federation and use for aut
 
 ## Subkey Tool
 
-Archipel and polkadot use substrate framework. This framwork has utility tool to generate keys. We will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check subkey installation and options available :
+Archipel and polkadot use [Substrate](https://substrate.dev/) framework. This framwork has utility tool to generate keys. We will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check subkey installation and options available :
 
 ```bash
 subkey --version
