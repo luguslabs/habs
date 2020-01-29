@@ -1,4 +1,4 @@
-const { connect, listenEvents, addMetrics, chainNodeInfo } = require('./chain');
+const { connect, listenEvents, addMetrics, chainNodeInfo, initNonce } = require('./chain');
 const { Metrics } = require('./metrics');
 const { catchExitSignals } = require('./utils');
 const { orchestrateService, serviceStart, serviceCleanUp } = require('./service');
@@ -34,38 +34,48 @@ async function main () {
     // Checking env variables
     checkEnvVars();
 
-    // Connection to Polkadot API
+    // Connect to Polkadot API
     console.log('Connecting to Archipel Chain node...');
-    const api = await connect(NODE_WS, MNEMONIC);
+    const api = await connect(NODE_WS);
 
-    // Creating Docker instance
+    // Init global nonce
+    await initNonce(api, MNEMONIC);
+
+    // Create Docker instance
     const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
     // Attach service cleaup to exit signals
     catchExitSignals(serviceCleanUp, docker, SERVICE);
 
-    // Creating Metrics instance
+    // Create Metrics instance
     const metrics = new Metrics();
 
-    // Starting service in passive mode
+    // Start service in passive mode
     console.log('Starting service in passive mode...');
     await serviceStart(docker, SERVICE, 'passive');
-    console.log('Service was started in passive mode...');
 
-    // Listening events and filling metrics object
+    // Listen events
     listenEvents(api, metrics);
 
-    // Adding metrics every 10 seconds
-    setInterval(addMetrics, 10000, api, 42, MNEMONIC);
+    // Add metrics every 10 seconds
+    setInterval(() => {
+      try {
+        addMetrics(api, 42, MNEMONIC);
+      } catch (error) {
+        console.error(error);
+      }
+    }, 10000);
 
     // Orchestrate service every 20 seconds
-    setInterval(orchestrateService, 20000, docker, api, metrics, MNEMONIC, ALIVE_TIME, SERVICE);
+    setInterval(() => {
+      orchestrateService(docker, api, metrics, MNEMONIC, ALIVE_TIME, SERVICE);
+    }, 20000);
 
-    // Showing metrics just for debug
+    // Show metrics
     setInterval(() => { metrics.showMetrics(); }, 10000);
 
-    // Showing chain node info
-    setInterval(chainNodeInfo, 10000, api);
+    // Show chain node info
+    setInterval(() => { chainNodeInfo(api); }, 10000);
   } catch (error) {
     debug('main', error);
     console.error(error);
