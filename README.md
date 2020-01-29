@@ -101,6 +101,9 @@ To bootstrap you Archipel chain you will need to initialize keys. Here the docum
  
 To help you understand and confirgure Polkadot sessions key, Here the documentation :
  - [doc/polkadot-keys-initialisation.md](doc/polkadot-keys-initialisation.md)
+ 
+To help you deploy Archipel on DAppNodes, Here the documentation :
+ - [doc/deployment-on-dappnodes.md](doc/deployment-on-dappnodes.md)
 
 ## Running with Docker
 ### Archipel (Validator Archipel Chain Node + Orchestrator)
