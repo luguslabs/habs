@@ -28,8 +28,8 @@ function launch_archipel () {
     --env DEBUG="app,chain,docker,metrics,polkadot,service" \
     luguslabs/archipel:$ARCHIPEL_VERSION
 
-  echo "Waiting 5 seconds to be sure that archipel is started..."
-  sleep 5
+  echo "Waiting 10 seconds to be sure that archipel is started..."
+  sleep 10
 }
 
 # Get local node identity
@@ -92,7 +92,8 @@ sleep 10
 # Removing nodes containers
 docker stop archipel{1,2,3}
 docker rm archipel{1,2,3}
-echo "Sleeping 5 seconds to be shure that nodes are stopped and deleted..."
+
+echo "Sleeping 5 seconds to be sure that nodes are stopped and deleted..."
 sleep 5
 
 launch_archipel "archipel1" \

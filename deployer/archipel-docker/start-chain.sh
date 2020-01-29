@@ -43,7 +43,7 @@ fi
 
 if [ ! -f /usr/local/bin/subkey ]
 then
-      echo "missing utils subkey command. Needed to extracts key parts"
+      echo "Missing 'subkey' utility. It is necessary to extract keys."
       exit 1
 fi
 
