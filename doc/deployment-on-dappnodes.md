@@ -25,7 +25,7 @@ You will have to wait the main ethereum dappnode package to be synch to be able 
 - Click install. http://my.dappnode/#/installer/archipel.public.dappnode.eth
 
 <p align="center">
-  <img src=./images/deployment-on-dappnodes-install.png width = 400>
+  <img src=./images/deployment-on-dappnodes-install.png width = 800>
 </p>
 
 - Configure env variables thanks to [Archipel environment variables description](https://github.com/luguslabs/DAppNodePackage-archipel#configuration-env-parameters-needed) and keys from [Prerequiste generations keys](#Prerequiste) step.
@@ -35,7 +35,7 @@ Note :
 For a first start `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS` variable will be empty. All 3 nodes of the archipel must be start first before being able to valorize bootnodes list in `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS`.
 
 <p align="center">
-  <img src=./images/deployment-on-dappnodes-configure.png width = 400>
+  <img src=./images/deployment-on-dappnodes-configure.png width = 800>
 </p>
 
 - Accept disclamer
