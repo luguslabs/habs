@@ -5,45 +5,18 @@ function launch_node () {
   echo "Starting $1..."
   # Launching docker container of node
   docker run -d --name "$1" $3 \
+    -v $(pwd)/$1:/root/chain/data \
     --network archipel \
     --ip "$2" \
-    -v $(pwd):/tmp/files luguslabs/archipel-chain:$ARCHIPEL_CHAIN_VERSION \
-    --rpc-cors "all" \
-    --unsafe-rpc-external \
-    --unsafe-ws-external \
-    --base-path /tmp/files/$1 \
-    --chain /tmp/files/customSpecRaw.json \
-    --validator \
-    --name "$1" $4 \
+    --env ARCHIPEL_NODE_ALIAS=$1 \
+    --env ARCHIPEL_KEY_SEED="$4" \
+    --env ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="$5" \
+    --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
+    --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
     luguslabs/archipel-chain:$ARCHIPEL_CHAIN_VERSION
 
-  echo "Waiting 5 seconds to be sure that node is started..."
-  sleep 5
-}
-
-# Add key to nodes keystore
-function add_key () {
-  echo "Inserting aura key in $1 keystore..."
-  # Adding wallet by curl request in node keystore
-  docker exec $1 curl http://localhost:9933 -H "Content-Type:application/json;charset=utf-8" -d \
-    '{
-      "jsonrpc":"2.0",
-      "id":1,
-      "method":"author_insertKey",
-      "params": [
-        "'"$2"'",
-        "'"$3"'",
-        "'"$4"'"
-      ]
-  }'
-}
-
-# Add keys to node keystore
-function add_keys_to_node () {
-  # Add aura key to keystore
-  add_key "$1" "aura" "$2" "$3"
-  # Add granpa key to keystore
-  add_key "$1" "gran" "$2" "$4"
+  echo "Waiting 10 seconds to be sure that node was started..."
+  sleep 10
 }
 
 # Get local node identity
@@ -64,31 +37,25 @@ echo "Creating docker network for archipel chain test..."
 docker network create archipel --subnet=172.28.42.0/16
 
 # Starting node1
-launch_node "node1" "$NODE1_IP" "-p 9944:9944 -p 9933:9933 -p 9955:9955" ""
-
-# Adding key to node1
-add_keys_to_node "node1" \
-  "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
-  "0xa412ff27d62c6f40943242e9be88bebb9d3ac95293f3f8be732465f66f79853c" \
-  "0x9c1e71dc004b8bd118f479051b85bf4c7afd256df7883a94c3fbf96fc8b3513b" \
+launch_node "node1" \
+            "$NODE1_IP" \
+            "-p 9944:9944 -p 9933:9933 -p 9955:9955" \
+            "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
+            ""
 
 # Starting node2
-launch_node "node2" "$NODE2_IP" "" ""
-
-# Adding key to node2
-add_keys_to_node "node2" \
-  "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
-  "0xda778eef939033b7137f78e22cfa1c751c3c95a69710bb3bf8756195e3e0b377" \
-  "0xcdc031baee1d418c3979dc7e642989e8e8d81996ca3b46e3eb95a6e2dab27695" \
+launch_node "node2" \
+            "$NODE2_IP" \
+            "" \
+            "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
+            ""
 
 # Starting node3
-launch_node "node3" "$NODE3_IP" "" ""
-
-# Adding key to node3
-add_keys_to_node "node3" \
-  "borrow initial guard hunt corn trust student opera now economy thumb argue" \
-  "0x4e303afc1135b3927beaddf5e1462fd7f3c62ee2922e7beee21ae7d32681d10d" \
-  "0x61a9acd57b43de72b68152ee1b5685cd89af28753d05dd7958da0d1f1c9de7cd" \
+launch_node "node3" \
+            "$NODE3_IP" \
+            "" \
+            "borrow initial guard hunt corn trust student opera now economy thumb argue" \
+            ""
 
 # Getting nodes local node identity
 get_node_identity "node1" NODE1_LOCAL_ID
@@ -102,17 +69,36 @@ echo "Local node3 identity is '$NODE3_LOCAL_ID'"
 BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "Bootnodes list is '$BOOTNODES_LIST'"
 
+echo "Sleeping 10 sec before node remove to be sure that keys are added..."
+sleep 10
+
 # Recreating nodes containers
 # Removing nodes containers
 docker rm -f node1 node2 node3
-echo "Sleeping 5 seconds to be shure that nodes are stopped and deleted..."
+echo "Sleeping 5 seconds to be sure that nodes are stopped and deleted..."
 sleep 5
 
 # Relaunching nodes with bootnodes list
-launch_node "node1" "$NODE1_IP" "-p 9944:9944 -p 9933:9933 -p 9955:9955" "$BOOTNODES_LIST"
-#launch_node "node1" "$NODE1_IP" "" "$BOOTNODES_LIST"
-launch_node "node2" "$NODE2_IP" "" "$BOOTNODES_LIST"
-launch_node "node3" "$NODE3_IP" "" "$BOOTNODES_LIST"
+# Starting node1
+launch_node "node1" \
+            "$NODE1_IP" \
+            "-p 9944:9944 -p 9933:9933 -p 9955:9955" \
+            "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
+            "$BOOTNODES_LIST"
+
+# Starting node2
+launch_node "node2" \
+            "$NODE2_IP" \
+            "" \
+            "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
+            "$BOOTNODES_LIST"
+
+# Starting node3
+launch_node "node3" \
+            "$NODE3_IP" \
+            "" \
+            "borrow initial guard hunt corn trust student opera now economy thumb argue" \
+            "$BOOTNODES_LIST"
 
 echo "Chain is fully initilized!"
 docker ps
