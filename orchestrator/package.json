@@ -10,7 +10,7 @@
     "eslint-fix": "eslint ./ --fix",
     "test": "jest --detectOpenHandles --runInBand --forceExit",
     "test-chain-up": "cd ../deployer/test/chain/ && ./launch.sh",
-    "test-chain-down": "cd ../deployer/test/chain/ && sudo ./remove.sh"
+    "test-chain-down": "cd ../deployer/test/chain/ && ./remove.sh"
   },
   "repository": {
     "type": "git",

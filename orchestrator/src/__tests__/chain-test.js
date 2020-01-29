@@ -9,7 +9,7 @@ const {
   initNonce
 } = require('../chain');
 const { getKeysFromSeed } = require('../utils');
-
+const { exec } = require('child_process');
 const { Metrics } = require('../metrics');
 
 let api;
@@ -18,9 +18,26 @@ const mnemonic1 = 'mushroom ladder bomb tornado clown wife bean creek axis flat 
 const mnemonic2 = 'fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer';
 const mnemonic3 = 'borrow initial guard hunt corn trust student opera now economy thumb argue';
 
+// Promisify exec
+const execAsync = cmd => new Promise((resolve, reject) => {
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+    reject(Error(stdout + stderr));
+    }
+    resolve(stdout + stderr);
+  });
+});
+
+
 beforeAll(async () => {
   // Set jest callback timeout
   jest.setTimeout(jestTimeout);
+
+  // Launching test chain
+  console.log('Launching test chain. Can take some time...');
+  const commandToExec = "cd ../deployer/test/chain/ && ./launch.sh"
+  await execAsync(commandToExec);
+  console.log('Test chain was launched...');
 
   // Connecting to Archipel Chain Node
   api = await connect('ws://127.0.0.1:9944');
@@ -32,7 +49,11 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  api.disconnect();
+  await api.disconnect();
+  // Removing test chain
+  console.log('Removing test chain...')
+  const commandToExec = "cd ../deployer/test/chain && ./remove.sh"
+  await execAsync(commandToExec);
 });
 
 test('Test add metrics and get metrics methods', async () => {

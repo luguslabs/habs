@@ -61,7 +61,6 @@ const importAKey = async (docker, containerName, mnemonic, crypto, type) => {
                           "${publicKey}"
                         ]
       }`];
-      debug('importAKey', `Executing command: [${command.toString()}]`);
 
       // Importing key by executing command in docker container
       const result = await dockerExecute(docker, containerName, command);

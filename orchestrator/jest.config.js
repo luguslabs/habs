@@ -1,5 +1,15 @@
 // For a detailed explanation regarding each configuration property, visit:
 // https://jestjs.io/docs/en/configuration.html
+// Setting ENV VARS
+process.env.POLKADOT_NAME = 'validator-test';
+process.env.POLKADOT_PREFIX = 'validatortest-';
+process.env.POLKADOT_IMAGE = 'parity/polkadot:latest';
+process.env.POLKADOT_KEY_GRAN = 'april shift pupil quit mandate school cost oven gospel castle brain student';
+process.env.POLKADOT_KEY_BABE = 'region run sunset rule light gap cool element angle example laundry stadium';
+process.env.POLKADOT_KEY_IMON = 'screen sustain clog husband assist noble artist sea fringe afford coil hawk';
+process.env.POLKADOT_KEY_PARA = 'produce hover hurdle lobster december slight hat note quit bomb drama notice';
+process.env.POLKADOT_KEY_AUDI = 'oak tail stomach fluid trade aunt fire fringe mercy roast style garlic';
+process.env.DEBUG = 'app,chain,docker,metrics,polkadot,service';
 
 module.exports = {
   // All imported modules in your tests should be mocked automatically

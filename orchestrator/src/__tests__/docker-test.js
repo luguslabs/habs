@@ -1,6 +1,5 @@
 const Docker = require('dockerode');
 const { startServiceContainer, dockerExecute, removeContainer } = require('../docker');
-console.log('Node version:', process.version);
 
 // Config
 const activeName = 'nginx-active';
