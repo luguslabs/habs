@@ -33,10 +33,16 @@ cd archipel/deployer/test
 ## Step 2: Check if federation was launched
 
 2.1 Check Archipel UI
-Archipel UI will show you the state of Archipel Federation. You must see 3 Archipel Nodes with their addresses. In addition you must see the federation leader.
+
+Archipel UI will show you the state of Archipel Federation.
+You must see 3 Archipel Nodes with their addresses. In addition you must see the federation leader.
 http://localhost:8080
 If you don’t see any nodes or master elected please wait a little bit!
+
 Example:
+<p align="center">
+  <img src=./images/deployment-on-dappnodes-configure.png width = 800>
+</p>
 
 2.2 Check containers launched
 ```bash
