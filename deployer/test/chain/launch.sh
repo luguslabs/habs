@@ -5,7 +5,7 @@ function launch_node () {
   echo "Starting $1..."
   # Launching docker container of node
   docker run -d --name "$1" $3 \
-    -v $(pwd)/$1:/root/chain/data \
+    -v $1:/root/chain/data \
     --network archipel \
     --ip "$2" \
     --env ARCHIPEL_NODE_ALIAS=$1 \
@@ -35,6 +35,10 @@ NODE3_IP="172.28.42.4"
 # Creating a docker network for Archipel chain
 echo "Creating docker network for archipel chain test..."
 docker network create archipel --subnet=172.28.42.0/16
+
+docker volume create node1
+docker volume create node2
+docker volume create node3
 
 # Starting node1
 launch_node "node1" \
