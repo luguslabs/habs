@@ -19,8 +19,8 @@ Create a specific folder and generate key on a secure device with all securities
 
 The minimal nodes of an archipel is 3. You need to generate keys for this 3 nodes.
 
-You can generate those keys [step-by-step](#step-by-step-keys-creation) to understand all steps and repeat 3 times for the 3 nodes.
-There is also a [full steps commandLine](#full-steps-keys-creation) to generate quickly keys when you master it like ninja.
+You can generate those keys [step-by-step](#step-by-step-keys-creation) to understand better and repeat 3 times for the 3 nodes.
+There is also a [full steps command line](#full-steps-keys-creation) to generate quickly when you master it like a ninja.
 
 ### Step by step keys creation
 ```bash
