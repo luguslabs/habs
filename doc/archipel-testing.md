@@ -52,7 +52,7 @@ docker ps
 ```
 
 <p align="center">
-  <img src=./images/archipel-testing-docker-ps-1.png width = 800>
+  <img src=./images/archipel-testing-docker-ps-1.png width = 1000>
 </p>
 
 You must see multiple containers launched:
