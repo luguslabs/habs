@@ -44,9 +44,11 @@ You can go now to the logs tab of the package to check logs start and retrieve y
 
 ## Configure Bootnode list and restart.
 
-From Archipe DAppNode Package logs, extact Peer ID with présent in the following line :
+From [Archipe DAppNode Package logs](#check-archipel-dappnode-package-logs), extact Peer ID with présent in the following line :
 
-Then you must create a `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS` with :
+Then you must update a `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS` in
+http://my.dappnode/#/packages/archipel.public.dappnode.eth/config
+ with :
 
 `--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID`
 
@@ -55,7 +57,10 @@ Then Restart all nodes of the archipel with the new `ARCHIPEL_CHAIN_ADDITIONAL_P
 ## Restart a Archipel Package Node
 
 - Connect to you DAppNode inerface : http://my.dappnode/
-- Go to http://my.dappnode/#/packages tab 
+- Go to package tab http://my.dappnode/#/packages
+- click on Archipel Package  
+- click on Controls tab  :http://my.dappnode/#/packages/archipel.public.dappnode.eth/controls
+- click restart.
 
 ## Check Archipel Node Status
 
