@@ -34,6 +34,11 @@ yarn install
 yarn run start
 ```
 
+### Testing
+```bash
+yarn run test
+```
+
 ## Build with Docker
 ```bash
 # Clone the repository
