@@ -1,7 +1,7 @@
 # Keys initialisation 
 
 The bootstrap of an Archipel chain needs a pre-requiste keys generation.
-Those keys will be use for the node identities in the federation and use for authoring blocks and chain consensus, transacions propagation for runtime functions calls. Moreover, in addition to [Archipel keys](#archipel-keys), you need to create keys for your external service. For first external service polkadot supported, you have to generate [Polkadot keys](#polkadot-keys) for the validator service top operate properly.
+Those keys will be use for the node identities in the federation and use for authoring blocks and chain consensus, transactions propagation of runtime functions calls. Moreover, in addition to [Archipel keys](#archipel-keys), you need to create keys for your external service. For the first supported external service polkadot, you have to generate [Polkadot keys](#polkadot-keys) for the validator service top operate properly.
 
 
 ## Subkey key Tool
@@ -12,31 +12,30 @@ Archipel and polkadot use substrate framework. This framwork has utility tool to
 subkey --version
 subkey --help
 ```
-
- Create un folder specific and generate key on a secure device with all normal securities regarding private keys generation in crypto in general (internet cut-off etc ...). 
+Create a specific folder and generate key on a secure device with all securities regarding privates keys generation in crypto in general (internet cut-off etc ...). 
 
 
 ## Archipel keys
 
-The minimal nodes of an archipel is 3 nodes. We need to generate keys for this 3 nodes.
+The minimal nodes of an archipel is 3. You need to generate keys for this 3 nodes.
 
 You can generate those keys [step-by-step](#step-by-step-keys-creation) to understand all steps and repeat 3 times for the 3 nodes.
-There is also a [full steps command](full-steps-keys-creation) to generate quickly keys when you master it like ninja.
+There is also a [full steps commandline](full-steps-keys-creation) to generate quickly keys when you master it like ninja.
 
 ### step by step keys creation
 ```bash
 subkey -n substrate generate > archipel-node1-sr25519.keys 
 ```
 
-Note : the default keys generation is a sr25519. To be sure, you can also specify -s or --sr25519
+Note : the default keys generation is a sr25519. To be sure, you can also specify -s or --sr25519 option.
 
-We will need the ed25519 keys format from the same seed. To do this we will first extract the phrase seed 12 mnemonic words of node 1 from node1-sr25519.keys file the keep the seed in another file : node1.seed
+You will need the ed25519 keys format from the same seed. To do this we will first extract the phrase seed 12 mnemonic words of node 1 from archipel-node1-sr25519.keys file. then you keep the seed phrase in another file : archipel-node1.seed
 
 ```bash
 cat archipel-node1-sr25519.keys | grep phrase | cut -d"\`" -f2 > archipel-node1.seed
 ```
 
-now we extract ed25519 keys format from phrase in node1.seed with :
+now you can extract ed25519 keys format from phrase of archipel-node1.seed with :
 
 ```bash
 subkey -n substrate --ed25519 inspect "$(<archipel-node1.seed)" > archipel-node1-ed25519.keys 
