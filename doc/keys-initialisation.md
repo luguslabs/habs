@@ -19,10 +19,10 @@ Create a specific folder and generate key on a secure device with all securities
 
 The minimal nodes of an archipel is 3. You need to generate keys for this 3 nodes.
 
-You can generate those keys [step-by-step](#step-by-step-keys-creation) to understand better and repeat 3 times for the 3 nodes.
-There is also a [full steps command line](#full-steps-keys-creation) to generate quickly when you master it like a ninja.
+You can generate those keys [step-by-step](#archipel-step-by-step-keys-creation) to understand better and repeat 3 times for the 3 nodes.
+There is also a [full steps command line](#archipel-full-steps-keys-creation) to generate quickly when you master it like a ninja.
 
-### Step by step keys creation
+### Archipel Step by step keys creation
 ```bash
 subkey -n substrate generate > archipel-node1-sr25519.keys 
 ```
@@ -43,7 +43,7 @@ subkey -n substrate --ed25519 inspect "$(<archipel-node1.seed)" > archipel-node1
 
 repeat the same commands above for node 2 and node 3. Or use this shortcut loop :
 
-### Full steps keys creation
+### Archipel Full steps keys creation
 
 ```bash
 for i in `seq 1 3`; do echo "create keys archipel-node$i" && subkey -n substrate generate > archipel-node$i-sr25519.keys && cat archipel-node$i-sr25519.keys | grep phrase | cut -d"\`" -f2 > archipel-node$i.seed && subkey -n substrate --ed25519 inspect "$(<archipel-node$i.seed)" > archipel-node$i-ed25519.keys ; done
@@ -152,9 +152,9 @@ RotateKeys function call return an aggregate key of all 5 public Keys. Here the 
 then, this full aggregate key must submit on chain before beeing able to validate on the network as explained [here](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama#submitting-the-setkeys-transaction)
 
 
-### Create 5 sessions keys
+### Create 5 Polkadot sessions keys
 
-#### Step by step keys creation
+#### Polkadot Step by step session keys creation
 
 - Gran session key 
 ```bash
@@ -186,7 +186,7 @@ subkey -n kusama --sr25519 generate > kusama-session-audi-sr25519.keys
 cat kusama-session-audi-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-audi.seed
 ```
 
-#### Full steps keys creation
+#### Polkadot Full steps session keys creation
 
 ```bash
 subkey -n kusama --ed25519 generate > kusama-session-gran-ed25519.keys 
