@@ -105,6 +105,9 @@ To help you understand and confirgure Polkadot sessions key, here the documentat
 To help you deploy Archipel on DAppNodes, here the documentation :
  - [doc/deployment-on-dappnodes.md](doc/deployment-on-dappnodes.md)
 
+To launch all unitary tests and archipel HA test, here the documentation :
+ - [doc/archipel-testing.md](doc/archipel-testing.md)
+
 ## Running with Docker
 ### Archipel (Validator Archipel Chain Node + Orchestrator)
 ```
