@@ -41,7 +41,7 @@ If you don’t see any nodes or master elected please wait a little bit!
 
 Example:
 <p align="center">
-  <img src=./images/deployment-on-dappnodes-configure.png width = 800>
+  <img src=./images/archipel-testing-ui.png width = 800>
 </p>
 
 2.2 Check containers launched
