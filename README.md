@@ -88,13 +88,16 @@ DAppNode package wrapping Archipel stack.
 
 It allows installing Archipel from the DAppNode interface in one click.
 
-## Building
-Please refer to the README instructions in sub-repositories:
+## Doc
+Please refer to the README instructions in sub-repositories for building each software parts:
 
 - [chain/README.md](chain/README.md)
 - [orchestrator/README.md](orchestrator/README.md)
 - [deployer/README.md](deployer/README.md)
 - [ui/README.md](ui/README.md)
+
+To bootstrap you Archipel chain you will need to initialize keys. Here the documentation :
+ - [doc/keys-initialisation.md](doc/keys-initialisation.md)
 
 ## Running with Docker
 ### Archipel (Validator Archipel Chain Node + Orchestrator)
