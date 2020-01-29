@@ -16,7 +16,7 @@ const mnemonic3 = 'borrow initial guard hunt corn trust student opera now econom
 const execAsync = cmd => new Promise((resolve, reject) => {
   exec(cmd, (error, stdout, stderr) => {
     if (error) {
-    reject(Error(stdout + stderr));
+      reject(Error(stdout + stderr));
     }
     resolve(stdout + stderr);
   });
@@ -28,7 +28,7 @@ beforeAll(async () => {
 
   // Launching test chain
   console.log('Launching test chain. Can take some time...');
-  const commandToExec = "cd ../deployer/test/chain/ && ./launch.sh"
+  const commandToExec = 'cd ../deployer/test/chain/ && ./launch.sh';
   await execAsync(commandToExec);
   console.log('Test chain was launched...');
 
@@ -46,11 +46,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await serviceCleanUp(docker, 'polkadot');
-  
+
   await api.disconnect();
   // Removing test chain
-  console.log('Removing test chain...')
-  const commandToExec = "cd ../deployer/test/chain && ./remove.sh"
+  console.log('Removing test chain...');
+  const commandToExec = 'cd ../deployer/test/chain && ./remove.sh';
   await execAsync(commandToExec);
 });
 
@@ -243,7 +243,7 @@ test('Test orchestrate service. Other node is leader and no one other is online.
   expect(leader.toString()).toBe(keys1.address);
 
   const nowTime = new Date().getTime();
-  metrics.addMetrics(keys1.address.toString(), '42', nowTime-80000);
+  metrics.addMetrics(keys1.address.toString(), '42', nowTime - 80000);
   metrics.addMetrics(keys2.address.toString(), '42', nowTime);
   await orchestrateService(docker, api, metrics, mnemonic2, 60000, 'polkadot');
   leader = await getLeader(api);
@@ -267,8 +267,8 @@ test('Test orchestrate service. Other node is leader and someone is online. Get 
   let leader = await getLeader(api);
   expect(leader.toString()).toBe(keys2.address);
 
-  const nowTime = new Date().getTime(); 
-  metrics.addMetrics(keys1.address.toString(), '42', nowTime-80000);
+  const nowTime = new Date().getTime();
+  metrics.addMetrics(keys1.address.toString(), '42', nowTime - 80000);
   metrics.addMetrics(keys3.address.toString(), '42', nowTime);
   await orchestrateService(docker, api, metrics, mnemonic2, 60000, 'polkadot');
   leader = await getLeader(api);

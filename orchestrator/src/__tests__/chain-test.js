@@ -22,12 +22,11 @@ const mnemonic3 = 'borrow initial guard hunt corn trust student opera now econom
 const execAsync = cmd => new Promise((resolve, reject) => {
   exec(cmd, (error, stdout, stderr) => {
     if (error) {
-    reject(Error(stdout + stderr));
+      reject(Error(stdout + stderr));
     }
     resolve(stdout + stderr);
   });
 });
-
 
 beforeAll(async () => {
   // Set jest callback timeout
@@ -35,7 +34,7 @@ beforeAll(async () => {
 
   // Launching test chain
   console.log('Launching test chain. Can take some time...');
-  const commandToExec = "cd ../deployer/test/chain/ && ./launch.sh"
+  const commandToExec = 'cd ../deployer/test/chain/ && ./launch.sh';
   await execAsync(commandToExec);
   console.log('Test chain was launched...');
 
@@ -51,8 +50,8 @@ beforeAll(async () => {
 afterAll(async () => {
   await api.disconnect();
   // Removing test chain
-  console.log('Removing test chain...')
-  const commandToExec = "cd ../deployer/test/chain && ./remove.sh"
+  console.log('Removing test chain...');
+  const commandToExec = 'cd ../deployer/test/chain && ./remove.sh';
   await execAsync(commandToExec);
 });
 
@@ -107,7 +106,7 @@ test('Test event listener that updates metrics', async () => {
   const result3 = await addMetrics(api, '44', mnemonic3);
   expect(result3).toBe(true);
 
-  await new Promise((r) => setTimeout(r, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   const keys1 = await getKeysFromSeed(mnemonic1);
   const keys2 = await getKeysFromSeed(mnemonic2);
