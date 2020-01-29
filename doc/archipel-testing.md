@@ -36,6 +36,7 @@ cd archipel/deployer/test
 
 Archipel UI will show you the state of Archipel Federation.
 You must see 3 Archipel Nodes with their addresses. In addition you must see the federation leader.
+
 http://localhost:8080
 If you don’t see any nodes or master elected please wait a little bit!
 
