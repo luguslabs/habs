@@ -8,7 +8,9 @@
     "start:dev": "nodemon src/app.js",
     "eslint": "eslint ./",
     "eslint-fix": "eslint ./ --fix",
-    "test": "jest"
+    "test": "jest --detectOpenHandles --runInBand --forceExit",
+    "test-chain-up": "cd ../deployer/test/chain/ && ./launch.sh",
+    "test-chain-down": "cd ../deployer/test/chain/ && sudo ./remove.sh"
   },
   "repository": {
     "type": "git",

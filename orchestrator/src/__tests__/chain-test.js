@@ -74,7 +74,7 @@ test('Get and set leader - leader is already set', async () => {
   expect(newLeader.toString()).toBe(keysNew.address);
 });
 
-test.only('Test event listener that updates metrics', async () => {
+test('Test event listener that updates metrics', async () => {
   const metrics = new Metrics();
 
   listenEvents(api, metrics);

@@ -15,8 +15,8 @@ function launch_node () {
     --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
     luguslabs/archipel-chain:$ARCHIPEL_CHAIN_VERSION
 
-  echo "Waiting 10 seconds to be sure that node was started..."
-  sleep 10
+  echo "Waiting 5 seconds to be sure that node was started..."
+  sleep 5
 }
 
 # Get local node identity
@@ -69,7 +69,7 @@ echo "Local node3 identity is '$NODE3_LOCAL_ID'"
 BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "Bootnodes list is '$BOOTNODES_LIST'"
 
-echo "Sleeping 10 sec before node remove to be sure that keys are added..."
+echo "Sleeping 10 sec before node remove to be sure that keys were added..."
 sleep 10
 
 # Recreating nodes containers
