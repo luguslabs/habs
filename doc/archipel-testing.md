@@ -1,5 +1,8 @@
 # Archipel Testing
 
+## Step 0: unitary tests :
+- [Chain substrate runtime](https://github.com/luguslabs/archipel/tree/master/chain#test)
+
 ## Requirements
 
 - Linux machine or MacOS
