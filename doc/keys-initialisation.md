@@ -68,8 +68,8 @@ archipel-node3-sr25519.keys
 
 - ARCHIPEL_KEY_SEED=what you find into your archipel-node1|2|3.seed file.
 
-- ARCHIPEL_AUTHORITIES_SR25519_LIST=<SS58 Address of archipel-node1-sr25519.keys>,<SS58 Address of archipel-node2-sr25519.keys>,<SS58 Address of archipel-node3-sr25519.keys>
-- ARCHIPEL_AUTHORITIES_ED25519_LIST=<SS58 Address of archipel-node1-ed25519.keys>,<SS58 Address of archipel-node2-ed25519.keys>,<SS58 Address of archipel-node3-ed25519.keys>
+- ARCHIPEL_AUTHORITIES_SR25519_LIST='SS58 Address of archipel-node1-sr25519.keys','SS58 Address of archipel-node2-sr25519.keys','SS58 Address of archipel-node3-sr25519.keys'
+- ARCHIPEL_AUTHORITIES_ED25519_LIST='SS58 Address of archipel-node1-ed25519.keys','SS58 Address of archipel-node2-ed25519.keys','SS58 Address of archipel-node3-ed25519.keys'
 
 
 ARCHIPEL_AUTHORITIES_SR25519_LIST and ARCHIPEL_AUTHORITIES_ED25519_LIST are the same values for your 3 archipel nodes.
