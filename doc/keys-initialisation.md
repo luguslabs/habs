@@ -20,9 +20,9 @@ Create a specific folder and generate key on a secure device with all securities
 The minimal nodes of an archipel is 3. You need to generate keys for this 3 nodes.
 
 You can generate those keys [step-by-step](#step-by-step-keys-creation) to understand all steps and repeat 3 times for the 3 nodes.
-There is also a [full steps commandline](full-steps-keys-creation) to generate quickly keys when you master it like ninja.
+There is also a [full steps commandLine](#full-steps-keys-creation) to generate quickly keys when you master it like ninja.
 
-### step by step keys creation
+### Step by step keys creation
 ```bash
 subkey -n substrate generate > archipel-node1-sr25519.keys 
 ```
@@ -64,26 +64,46 @@ archipel-node3.seed
 archipel-node3-sr25519.keys
 ```
 
+### Matching archipel files keys with Archpel env variables
+
+- ARCHIPEL_KEY_SEED=what you find into your archipel-node1|2|3.seed file.
+
+- ARCHIPEL_AUTHORITIES_SR25519_LIST=<SS58 Address of archipel-node1-sr25519.keys>,<SS58 Address of archipel-node2-sr25519.keys>,<SS58 Address of archipel-node3-sr25519.keys>
+- ARCHIPEL_AUTHORITIES_ED25519_LIST=<SS58 Address of archipel-node1-ed25519.keys>,<SS58 Address of archipel-node2-ed25519.keys>,<SS58 Address of archipel-node3-ed25519.keys>
+
+
+ARCHIPEL_AUTHORITIES_SR25519_LIST and ARCHIPEL_AUTHORITIES_ED25519_LIST are the same values for your 3 archipel nodes.
+
+Lazy ? Here a utils commands to generate ARCHIPEL_AUTHORITIES_SR25519_LIST and ARCHIPEL_AUTHORITIES_ED25519_LIST value from files :
+
+- ARCHIPEL_KEY_SEED
+select line according to node number you whant to valorize
+```bash
+export ARCHIPEL_KEY_SEED=$(cat archipel-node1.seed)
+export ARCHIPEL_KEY_SEED=$(cat archipel-node2.seed)
+export ARCHIPEL_KEY_SEED=$(cat archipel-node3.seed)
+```
+
+- ARCHIPEL_AUTHORITIES_SR25519_LIST
+```bash
+export ARCHIPEL_AUTHORITIES_SR25519_LIST=$(cat archipel-node1-sr25519.keys | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//'),$(cat archipel-node2-sr25519.keys | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//'),$(cat archipel-node3-sr25519.keys | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+```
+
+- ARCHIPEL_AUTHORITIES_ED25519_LIST
+```bash
+export ARCHIPEL_AUTHORITIES_ED25519_LIST=$(cat archipel-node1-ed25519.keys | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//'),$(cat archipel-node2-ed25519.keys | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//'),$(cat archipel-node3-ed25519.keys | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+```
 
 ## Polkadot keys
 
-We need to create : 
-- 1 stash key
-- 1 controler key
-- 1 optional payout key
-- 5 sessions keys 
+Start by understanding the key concept of polkadot keys by reading the [official documentation here](https://wiki.polkadot.network/docs/en/learn-keys).
+
+In this doc, we will  only concentrate one the creation of the 5 sessions keys. Because this is what is necessary to operate the validator node that running on the DAppNode. Thoses sessions keys must be set in the [ Archipel environement variables](https://github.com/luguslabs/archipel#environment-variables). All others keys requirement explained in the offical Polkadot doc must be respected and done for those who want to [run a validator on kusama](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama)
+
 
 ## Polkadot Sessions Keys format explained
 
 In orchestrator env you must valorize 5 sessions keys to be able to launch Polkadot validator node and validate the network.
-
-```bash
-POLKADOT_KEY_GRAN='april shift pupil quit ...'
-POLKADOT_KEY_BABE='region run sunset rule ...'
-POLKADOT_KEY_IMON='screen sustain clog husband ...'
-POLKADOT_KEY_PARA='produce hover hurdle lobster ...'
-POLKADOT_KEY_AUDI='oak tail stomach fluid ...'
-```
 
 This orchestrator programm will insert at start thoses 5 sessions keys into the polkadot node keystore.
 
@@ -124,5 +144,18 @@ RotateKeys function call return an aggregate key of all 5 public Keys. Here the 
 
 then, this full aggregate key must submit on chain before beeing able to validate on the network as explained [here](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama#submitting-the-setkeys-transaction)
 
+
+### Create 5 sessions keys
+
+### Matching Polkadot sessions files keys with Archipel env variables
+
+
+```bash
+POLKADOT_KEY_GRAN='april shift pupil quit ...'
+POLKADOT_KEY_BABE='region run sunset rule ...'
+POLKADOT_KEY_IMON='screen sustain clog husband ...'
+POLKADOT_KEY_PARA='produce hover hurdle lobster ...'
+POLKADOT_KEY_AUDI='oak tail stomach fluid ...'
+```
 
 
