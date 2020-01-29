@@ -4,7 +4,7 @@ The bootstrap of an Archipel chain needs a pre-requiste keys generation.
 Those keys will be use for the node identities in the federation and use for authoring blocks and chain consensus, transactions propagation of runtime functions calls. Moreover, in addition to [Archipel keys](#archipel-keys), you need to create keys for your external service. For the first supported external service polkadot, you have to generate [Polkadot keys](#polkadot-keys) for the validator service to operate properly.
 
 
-## Subkey key Tool
+## Subkey Tool
 
 Archipel and polkadot use substrate framework. This framwork has utility tool to generate keys. We will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check subkey installation and options available :
 
