@@ -25,7 +25,7 @@ const connect = async (wsProvider, mnemonic) => {
     const api = await ApiPromise.create({ provider });
 
     // Setting global nonce
-    const keys = getKeysFromSeed(mnemonic);
+    const keys = await getKeysFromSeed(mnemonic);
     const nonce = await api.query.system.accountNonce(keys.address);
     globalNonce = nonce;
     debug('connect', `Global nonce: ${globalNonce}`);
@@ -67,7 +67,7 @@ const addMetrics = async (api, metrics, mnemonic) => {
     if (peersNumber !== 0) {
       console.log('Archipel node has some peers so adding metrics...');
       // Get keys from mnemonic
-      const keys = getKeysFromSeed(mnemonic);
+      const keys = await getKeysFromSeed(mnemonic);
 
       // Get account nonce
       // const nonce = await api.query.system.accountNonce(keys.address);
@@ -122,6 +122,17 @@ const getLeader = async api => {
   }
 };
 
+// Get metrics from Runtime
+const getMetrics = async (api, key) => {
+  try {
+    return await api.query.archipelModule.metrics(key);
+  } catch (error) {
+    debug('getMetrics', error);
+    console.log(error);
+    return false;
+  }
+}
+
 // Get peer number connected to Archipel node
 const getPeerNumber = async api => {
   try {
@@ -137,7 +148,7 @@ const getPeerNumber = async api => {
 const setLeader = async (api, oldLeader, mnemonic) => {
   try {
     // Get keys from mnemonic
-    const keys = getKeysFromSeed(mnemonic);
+    const keys = await getKeysFromSeed(mnemonic);
 
     // Get account nonce
     // const nonce = await api.query.system.accountNonce(keys.address);
@@ -205,5 +216,6 @@ module.exports = {
   getLeader,
   setLeader,
   getPeerNumber,
-  chainNodeInfo
+  chainNodeInfo,
+  getMetrics
 };

@@ -43,7 +43,8 @@ const checkEnvVars = () => {
 const importAKey = async (docker, containerName, mnemonic, crypto, type) => {
   try {
     // Get public key hex from mnemonic
-    const publicKey = u8aToHex(getKeysFromSeed(mnemonic, crypto).publicKey);
+    const keys = await getKeysFromSeed(mnemonic, crypto);
+    const publicKey = u8aToHex(keys.publicKey);
     // Check if the key was already imported
     if (!importedKeys.includes(publicKey)) {
       debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);

@@ -19,7 +19,8 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
     if (peersNumber !== 0) {
       console.log('Archipel node has some peers so orchestrating...');
       // Get node address from seed
-      const nodeKey = getKeysFromSeed(mnemonic).address;
+      const key = await getKeysFromSeed(mnemonic);
+      const nodeKey = key.address;
       debug('orchestrateService', `Current Node Key: ${nodeKey}`);
 
       // Get current leader from chain

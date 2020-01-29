@@ -201,5 +201,6 @@ const removeContainer = async (docker, name) => {
 module.exports = {
   startServiceContainer,
   removeContainer,
-  dockerExecute
+  dockerExecute,
+  startContainer
 };
