@@ -8,7 +8,7 @@ function launch_archipel () {
   # Launching docker container of node
   docker run -d --name "$1" $5 \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    -v $(pwd)/$1:/root/chain/data \
+    -v $1:/root/chain/data \
     --network archipel \
     --ip "$6" \
     --env ARCHIPEL_NODE_ALIAS=$1 \
@@ -48,6 +48,10 @@ NODE3_IP="172.28.42.4"
 # Creating a docker network for Archipel chain
 echo "Creating docker network for archipel test..."
 docker network create archipel --subnet=172.28.42.0/16
+
+docker volume create archipel1
+docker volume create archipel2
+docker volume create archipel3
 
 launch_archipel "archipel1" \
                 "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
@@ -120,11 +124,12 @@ launch_archipel "archipel3" \
                 "$NODE3_IP" \
                 "$BOOTNODES_LIST" \
 
+docker volume create archipel-node
 
 echo "Launching an Archipel node..."
 docker run -d \
       -p 9944:9944 \
-      -v $(pwd)/archipel-node:/root/chain/data \
+      -v archipel-node:/root/chain/data \
       --name "archipel-node" \
       --network archipel \
       --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
