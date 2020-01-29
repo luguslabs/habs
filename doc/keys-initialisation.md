@@ -6,7 +6,7 @@ Those keys will be use for the node identities in the federation and use for aut
 
 ## Subkey Tool
 
-Archipel and polkadot use [Substrate](https://substrate.dev/) framework. This framwork has utility tool to generate keys. We will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check subkey installation and options available :
+Archipel and polkadot use [Substrate](https://substrate.dev/) framework. This framwork has utility tool to generate keys. You will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check subkey installation and options available :
 
 ```bash
 subkey --version
@@ -29,7 +29,7 @@ subkey -n substrate generate > archipel-node1-sr25519.keys
 
 Note : the default keys generation is a sr25519. To be sure, you can also specify -s or --sr25519 option.
 
-You will need the ed25519 keys format from the same seed. To do this we will first extract the phrase seed 12 mnemonic words of node 1 from archipel-node1-sr25519.keys file. then you keep the seed phrase in another file : archipel-node1.seed
+You will need the ed25519 keys format from the same seed. To do this you will first extract the phrase seed 12 mnemonic words of node 1 from archipel-node1-sr25519.keys file. then you keep the seed phrase in another file : archipel-node1.seed
 
 ```bash
 cat archipel-node1-sr25519.keys | grep phrase | cut -d"\`" -f2 > archipel-node1.seed
@@ -104,7 +104,7 @@ export ARCHIPEL_AUTHORITIES_ED25519_LIST=$(cat archipel-node1-ed25519.keys | gre
 
 Start by understanding the key concept of polkadot keys by reading the [official documentation here](https://wiki.polkadot.network/docs/en/learn-keys).
 
-In this doc, we will  only concentrate one the creation of the 5 sessions keys. Because this is what is necessary to operate the validator node that running on the DAppNode. Thoses sessions keys must be set in the [ Archipel environement variables](https://github.com/luguslabs/archipel#environment-variables). All others keys requirement explained in the offical Polkadot doc must be respected and done for those who want to [run a validator on kusama](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama).
+In this doc, we will only concentrate one the creation of the 5 sessions keys. Because this is what is necessary to operate the validator node that running on the DAppNode. Thoses sessions keys must be set in the [ Archipel environement variables](https://github.com/luguslabs/archipel#environment-variables). All others keys requirement explained in the offical Polkadot doc must be respected and done for those who want to [run a validator on kusama](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama).
 
 All 3 DappNodes form the archipel will share the same 5 sessions keys.
 
