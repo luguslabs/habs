@@ -1,56 +1,68 @@
-# Archipel
+# Keys initialisation 
 
 The bootstrap of an Archipel chain need a pre-requiste keys generation.
-Those keys that will be use for the node identities in the federation and use for authoring blocks and chain consensus. Moreover, in addition to [Archipel keys](#archipel-keys), you need to create keys for your external service. Here we have to generate [Polkadot keys](#polkadot-keys) for the validator service.
+Those keys will be use for the node identities in the federation and use for authoring blocks and chain consensus, transacions propagation for runtime functions calls. Moreover, in addition to [Archipel keys](#archipel-keys), you need to create keys for your external service. For first external service polkadot supported, you have to generate [Polkadot keys](#polkadot-keys) for the validator service top operate properly.
 
 
-# Subkey key Tool
-Archipel and polkadot use substrate framework. This framwork has utility tool to generate keys. We will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check instal and watch options available :
+## Subkey key Tool
+
+Archipel and polkadot use substrate framework. This framwork has utility tool to generate keys. We will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check subkey installation and options available :
 
 ```bash
+subkey --version
 subkey --help
 ```
 
  Create un folder specific and generate key on a secure device with all normal securities regarding private keys generation in crypto in general (internet cut-off etc ...). 
 
-## Archipel keys
-The minimal nodes of an archipel is 3. We will repeat 3 times the following commands for the 3 nodes keys generation.
 
+## Archipel keys
+
+The minimal nodes of an archipel is 3 nodes. We need to generate keys for this 3 nodes.
+
+You can generate those keys [step-by-step](#step-by-step-keys-creation) to understand all steps and repeat 3 times for the 3 nodes.
+There is also a [full steps command](full-steps-keys-creation) to generate quickly keys when you master it like ninja.
+
+### step by step keys creation
 ```bash
-subkey -n substrate generate > node1-sr25519.keys 
+subkey -n substrate generate > archipel-node1-sr25519.keys 
 ```
 
- Note : the default keys generation is a sr25519. To be sure, you can also specify -s or --sr25519
+Note : the default keys generation is a sr25519. To be sure, you can also specify -s or --sr25519
 
 We will need the ed25519 keys format from the same seed. To do this we will first extract the phrase seed 12 mnemonic words of node 1 from node1-sr25519.keys file the keep the seed in another file : node1.seed
 
 ```bash
-cat node1-sr25519.keys | grep phrase | cut -d"\`" -f2 > node1.seed
+cat archipel-node1-sr25519.keys | grep phrase | cut -d"\`" -f2 > archipel-node1.seed
 ```
 
 now we extract ed25519 keys format from phrase in node1.seed with :
 
 ```bash
-subkey -n substrate --ed25519 inspect "$(<node1.seed)" > node1-ed25519.keys 
+subkey -n substrate --ed25519 inspect "$(<archipel-node1.seed)" > archipel-node1-ed25519.keys 
 ```
 
 repeat the same commands above for node 2 and node 3. Or use this shortcut loop :
 
+### Full steps keys creation
+
 ```bash
-for i in `seq 1 3`; do echo "create keys node$i" && subkey -n substrate generate > node$i-sr25519.keys && cat node$i-sr25519.keys | grep phrase | cut -d"\`" -f2 > node$i.seed && subkey -n substrate --ed25519 inspect "$(<node$i.seed)" > node$i-ed25519.keys ; done
+for i in `seq 1 3`; do echo "create keys archipel-node$i" && subkey -n substrate generate > archipel-node$i-sr25519.keys && cat archipel-node$i-sr25519.keys | grep phrase | cut -d"\`" -f2 > archipel-node$i.seed && subkey -n substrate --ed25519 inspect "$(<archipel-node$i.seed)" > archipel-node$i-ed25519.keys ; done
 ```
+
+### Archipel keys creation expected result
 
 In your foder you must have now 9 files :
 ```bash
-node1-ed25519.keys
-node1.seed
-node1-sr25519.keys
-node2-ed25519.keys
-node2.seed
-node2-sr25519.keys
-node3-ed25519.keys
-node3.seed
-node3-sr25519.keys
+archipel-node1-ed25519.keys
+archipel-node1.seed
+archipel-node1-sr25519.keys
+archipel-node2-ed25519.keys
+archipel-node2.seed
+archipel-node2-sr25519.keys
+archipel-node3-ed25519.keys
+archipel-node3.seed
+archipel-node3-sr25519.keys
 ```
 
 
