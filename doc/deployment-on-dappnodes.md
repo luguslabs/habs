@@ -22,7 +22,7 @@ You will have to wait the main ethereum dappnode package to be synch to be able 
 - Go to install tab : http://my.dappnode/#/installer 
 - Search with DNP `archipel.public.dappnode.eth` or with latest IPFS hash that can be find on [DAppNodePackage archipel releases](https://github.com/luguslabs/DAppNodePackage-archipel/releases)
 
-- Click install
+- Click install. http://my.dappnode/#/installer/archipel.public.dappnode.eth
 - Configure env variables thanks to [Archipel environment variables description](https://github.com/luguslabs/DAppNodePackage-archipel#configuration-env-parameters-needed) and keys from [Prerequiste generations keys](#Prerequiste) step.
 
 Note :
@@ -30,7 +30,6 @@ Note :
 For a first start `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS` variable will be empty. All 3 nodes of the archipel must be start first before being able to valorize bootnodes list in `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS`.
 
 - Accept disclamer
-- click Submit
 
 You can go now to the logs tab of the package to check logs start and retrieve your peer id.
 
@@ -44,13 +43,21 @@ You can go now to the logs tab of the package to check logs start and retrieve y
 
 ## Configure Bootnode list and restart.
 
-From [Archipe DAppNode Package logs](#check-archipel-dappnode-package-logs), extact Peer ID with présent in the following line :
+From [Archipe DAppNode Package logs](#check-archipel-dappnode-package-logs), extact Peer ID from logs here :
+
+```bash
+--------------- Chain node network state and health ----------------
+Peer ID: Qmevr1WeqWtWeWXvvo5daTqbHFpED3d9EpxrL4ftzZQUBy
+Peer number: 0
+Is syncing?: false
+--------------------------------------------------------------------
+```
 
 Then you must update a `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS` in
 http://my.dappnode/#/packages/archipel.public.dappnode.eth/config
  with :
 
-`--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID`
+`--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_PEER_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_PEER_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_PEER_ID`
 
 Then Restart all nodes of the archipel with the new `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS` env varibale updated.
 
