@@ -39,7 +39,7 @@ You can go now to the logs tab of the package to check logs start and retrieve y
 - Connect to you DAppNode inerface : http://my.dappnode/
 - Go to http://my.dappnode/#/packages tab 
 - Click on Archipel Package
-- Go to Logs Tabs
+- Go to Logs Tabs : http://my.dappnode/#/packages/archipel.public.dappnode.eth/logs
 - In logs you must see logs from the archipel chain and the orchestrator.
 
 ## Configure Bootnode list and restart.
