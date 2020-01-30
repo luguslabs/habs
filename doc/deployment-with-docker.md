@@ -57,8 +57,8 @@ POLKADOT_KEY_AUDI=shoe absorb...
 - Set environment variables to good values on each machine. 
     - Set every variable except `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS` that must be empty for now.
     - You can choose any value for `ARCHIPEL_NODE_ALIAS` and `POLKADOT_NAME`. (Please avoid spaces and special characters)
-    - `ARCHIPEL_KEY_SEED`, `ARCHIPEL_AUTHORITIES_SR25519_LIST`, `ARCHIPEL_AUTHORITIES_ED25519_LIST` variables were created during [Archipel Keys Initialisation](https://github.com/luguslabs/archipel/blob/master/doc/archipel-keys-initialisation.md).
-    - `POLKADOT_KEY_GRAN`, `POLKADOT_KEY_BABE`, `POLKADOT_KEY_PARA`, `POLKADOT_KEY_IMON`, `POLKADOT_KEY_AUDI` mnemonics were created during [Polkadot Keys Initialisation](https://github.com/luguslabs/archipel/blob/master/doc/polkadot-keys-initialisation.md).
+    - `ARCHIPEL_KEY_SEED`, `ARCHIPEL_AUTHORITIES_SR25519_LIST`, `ARCHIPEL_AUTHORITIES_ED25519_LIST` variables were created during [Archipel Keys Initialization](https://github.com/luguslabs/archipel/blob/master/doc/archipel-keys-initialization.md).
+    - `POLKADOT_KEY_GRAN`, `POLKADOT_KEY_BABE`, `POLKADOT_KEY_PARA`, `POLKADOT_KEY_IMON`, `POLKADOT_KEY_AUDI` mnemonics were created during [Polkadot Keys Initialization](https://github.com/luguslabs/archipel/blob/master/doc/polkadot-keys-initialization.md).
     - All variables except `ARCHIPEL_NODE_ALIAS`, `ARCHIPEL_KEY_SEED`, `POLKADOT_NAME` must be the same on each machine.
 - [Detailed Environment Variables Explanation](https://github.com/luguslabs/archipel#environment-variables)
 

@@ -11,9 +11,9 @@ You will have to wait the main ethereum dappnode package to be synch to be able 
 
 ## Prerequiste
 
-- Generate/ask for keys for the Archipel federation you want to create/join. See [Archipel keys generation doc](./archipel-keys-initialisation.md).
+- Generate/ask for keys for the Archipel federation you want to create/join. See [Archipel keys generation doc](./archipel-keys-initialization.md).
 
-- Generate/ask for keys for the Polkadot validator node setup you want to create/join. See [Polkadot keys generation doc](./polkadot-keys-initialisation.md).
+- Generate/ask for keys for the Polkadot validator node setup you want to create/join. See [Polkadot keys generation doc](./polkadot-keys-initialization.md).
 
 
 ## Install Archipel DAppNode Package
