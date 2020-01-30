@@ -1,4 +1,4 @@
-# Archipel Keys initialisation 
+# Archipel Keys initialization 
 
 The bootstrap of an Archipel chain needs a pre-requiste keys generation.
 Those keys will be use for the node identities in the federation and use for authoring blocks and chain consensus, transactions propagation of runtime functions calls. Moreover, in addition to [Archipel keys](#archipel-keys), you need to create keys for your external service. For the first supported external service polkadot, you have to generate [Polkadot keys](https://github.com/luguslabs/archipel/blob/master/doc/polkadot-keys-initialisation.md#polkadot-keys) for the validator service to operate properly.

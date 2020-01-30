@@ -3,8 +3,8 @@
 ## Resources
 
 ### Keys Initialisation
-* [Archipel Keys Initialisation](https://github.com/luguslabs/archipel/blob/master/doc/archipel-keys-initialisation.md)
-* [Polkadot Keys initialisation](https://github.com/luguslabs/archipel/blob/master/doc/polkadot-keys-initialisation.md)
+* [Archipel Keys Initialization](https://github.com/luguslabs/archipel/blob/master/doc/archipel-keys-initialization.md)
+* [Polkadot Keys Initialization](https://github.com/luguslabs/archipel/blob/master/doc/polkadot-keys-initialization.md)
 
 ### Testing
 * [Archipel Feredation Testing](https://github.com/luguslabs/archipel/blob/master/doc/archipel-federation-testing.md)

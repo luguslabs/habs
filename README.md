@@ -97,10 +97,10 @@ Please refer to the README instructions in sub-repositories for building each so
 - [ui/README.md](ui/README.md)
 
 To bootstrap you Archipel chain you will need to initialize keys, here the documentation :
- - [doc/archipel-keys-initialisation.md](doc/archipel-keys-initialisation.md)
+ - [doc/archipel-keys-initialization.md](doc/archipel-keys-initialization.md)
  
 To help you understand and confirgure Polkadot sessions key, here the documentation :
- - [doc/polkadot-keys-initialisation.md](doc/polkadot-keys-initialisation.md)
+ - [doc/polkadot-keys-initialization.md](doc/polkadot-keys-initialization.md)
  
 To help you deploy Archipel on DAppNodes, here the documentation :
  - [doc/deployment-on-dappnodes.md](doc/deployment-on-dappnodes.md)
