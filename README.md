@@ -89,7 +89,7 @@ DAppNode package wrapping Archipel stack.
 It allows installing Archipel from the DAppNode interface in one click.
 
 ## Documentation
-Please refer to the README instructions in sub-repositories for building and using each software component:
+Please refer to the README instructions in the sub-repositories for more information on building, using, and testing each software component.
 
 - [chain/README.md](chain/README.md)
 - [orchestrator/README.md](orchestrator/README.md)
