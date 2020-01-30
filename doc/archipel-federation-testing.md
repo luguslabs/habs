@@ -186,7 +186,7 @@ The old active node was restarted in passive mode.
 - removes all containers launched by test scripts and all directories created by containers
 
 ## Play: Feel free to play with Archipel!
-**Warning!** Archipel must have minimum **2 nodes** alive! 
+**Warning!** Archipel must have minimum **2 nodes** alive to have an active service (validator) running! 
 - If you stop 2 nodes the third node will remain in passive mode! 
 - If you stop 2 passive nodes, the active node will also go in passive mode!
 
