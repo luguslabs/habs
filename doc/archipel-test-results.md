@@ -1,6 +1,6 @@
-# Archipel Unitay Tests
+# Archipel Test Results
 
-## [Substrate runtime unitary tests](https://github.com/luguslabs/archipel/tree/master/chain#test)
+## [Substrate runtime tests](https://github.com/luguslabs/archipel/tree/master/chain#test)
 
 - https://github.com/luguslabs/archipel/tree/master/chain#test
 
@@ -27,9 +27,9 @@ running 0 tests
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
-## [Orchestrator JS unitary tests](https://github.com/luguslabs/archipel/tree/master/chain#test)
+## [Orchestrator tests](https://github.com/luguslabs/archipel/tree/master/chain#test)
 
-- https://github.com/luguslabs/archipel/tree/master/chain#test
+- https://github.com/luguslabs/archipel/tree/master/orchestrator#testing
 
 - Expected result
 
