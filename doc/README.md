@@ -2,7 +2,7 @@
 
 ## Resources
 
-### Keys Initialisation
+### Keys Initialization
 * [Archipel Keys Initialization](https://github.com/luguslabs/archipel/blob/master/doc/archipel-keys-initialization.md)
 * [Polkadot Keys Initialization](https://github.com/luguslabs/archipel/blob/master/doc/polkadot-keys-initialization.md)
 

@@ -26,7 +26,7 @@ With DAppNode, you can launch a blockchain node (Bitcoin, Ethereum ...) or any P
 To achieve the high availability of services, we are adding a service layer (Archipel) on top of it.
 
 ## Archipel Components
-| Compotent | Description |
+| Component | Description |
 | --- | --- |
 | [Chain](chain/) | Chain component is responsible for Archipel state synchronization between participants |
 | [Orchestator](orchestrator/) | Orchestrator is the decision-making component in Archipel federation |
@@ -88,28 +88,16 @@ DAppNode package wrapping Archipel stack.
 
 It allows installing Archipel from the DAppNode interface in one click.
 
-## Doc
-Please refer to the README instructions in sub-repositories for building each software parts:
+## Documentation
+Please refer to the README instructions in sub-repositories for building and using each software component:
 
 - [chain/README.md](chain/README.md)
 - [orchestrator/README.md](orchestrator/README.md)
 - [deployer/README.md](deployer/README.md)
 - [ui/README.md](ui/README.md)
 
-To bootstrap you Archipel chain you will need to initialize keys, here the documentation :
- - [doc/archipel-keys-initialization.md](doc/archipel-keys-initialization.md)
- 
-To help you understand and confirgure Polkadot sessions key, here the documentation :
- - [doc/polkadot-keys-initialization.md](doc/polkadot-keys-initialization.md)
- 
-To help you deploy Archipel on DAppNodes, here the documentation :
- - [doc/deployment-on-dappnodes.md](doc/deployment-on-dappnodes.md)
-
-To launch all unitary tests , here the documentation and results:
- - [doc/archipel-unitary-tests.md](doc/archipel-unitary-tests.md)
-
-To test HA Archipel scenario, here the documentation :
- - [doc/archipel-testing.md](doc/archipel-testing.md)
+Additional documentation
+ - [Documentation](doc/README.md)
 
 ## Running with Docker
 ### Archipel (Validator Archipel Chain Node + Orchestrator)
