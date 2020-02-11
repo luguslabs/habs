@@ -44,7 +44,7 @@ async function main () {
     // Create Docker instance
     const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
-    // Attach service cleaup to exit signals
+    // Attach service cleanup to exit signals
     catchExitSignals(serviceCleanUp, docker, SERVICE);
 
     // Create Metrics instance
