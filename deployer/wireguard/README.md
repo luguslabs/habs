@@ -52,18 +52,18 @@ volumes:
 
 ```bash
 [Interface]
-Address = 10.0.1.1/24
+Address = 10.0.1.1/32
 PrivateKey = SNLJW...
 ListenPort = 51820
 
 [Peer]
 PublicKey = xg3wSES...
-AllowedIPs = 10.0.2.0/24
+AllowedIPs = 10.0.1.2/32
 Endpoint = <public_ip>:51820
 
 [Peer]
 PublicKey = gMjvfQ...
-AllowedIPs = 10.0.3.0/24
+AllowedIPs = 10.0.1.3/32
 Endpoint = <public_ip>:51820
 ```
 
