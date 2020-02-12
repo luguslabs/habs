@@ -19,6 +19,7 @@ sudo apt install -y linux-headers-cloud-amd64 linux-headers-amd64 wireguard-dkms
 ### Launching Archipel with WireGuard
 
 #### Example
+##### docker-compose.yml
 ```bash
 version: '3.4'
 services:
@@ -35,8 +36,8 @@ services:
   wireguard:
     image: luguslabs/wireguard
     privileged: true
-    volumes:
-      - '/etc/wireguard:/etc/wireguard'
+    env_file:
+      - .env
     ports:
       - '51820:51820/udp'
     restart: always
@@ -45,25 +46,16 @@ volumes:
   data: {} 
 ```
 
-* All traffic from Archipel service will be routed to WireGuard service. So Archipel will be able to access to WireGuard private network.
-  * ``` network_mode: "service:wireguard" ```
-
-#### Example of WireGuard configuration
-
+##### Add WireGuard configuration to .env file
 ```bash
-[Interface]
-Address = 10.0.1.1/32
-PrivateKey = SNLJW...
-ListenPort = 51820
-
-[Peer]
-PublicKey = xg3wSES...
-AllowedIPs = 10.0.1.2/32
-Endpoint = <public_ip>:51820
-
-[Peer]
-PublicKey = gMjvfQ...
-AllowedIPs = 10.0.1.3/32
-Endpoint = <public_ip>:51820
+# WireGuard Configuration
+WIREGUARD_PRIVATE_KEY=SNLJW
+WIREGUARD_ADDRESS=10.0.1.1/32
+WIREGUARD_LISTEN_PORT=51820
+WIREGUARD_PEERS_PUB_ADDR=xmF,xg3wSES,gMjvfQ
+WIREGUARD_PEERS_ALLOWED_IP=10.0.1.1/32,10.0.1.2/32,10.0.1.3/32
+WIREGUARD_PEERS_EXTERNAL_ADDR=<public_ip_peer1>:51820,<public_ip_peer2>:51820,<public_ip_peer3>:51820
 ```
 
+* All traffic from Archipel service will be routed to WireGuard service. So Archipel will be able to access to WireGuard private network.
+  * ``` network_mode: "service:wireguard" ```
