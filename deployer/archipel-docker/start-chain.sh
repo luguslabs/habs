@@ -154,6 +154,26 @@ sed -i "s/\"REPLACE_BALANCES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archip
 # generate raw spec file 
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json
 
+# adding keys to keystore
+echo "Creating keystore directory..."
+mkdir -p /root/chain/data/chains/archipel/keystore
+
+echo "Removing 0x from public keys..."
+ED25519_WITHOUT_0X=$(sed -E "s/0x(.*)/\1/g" <<< "$ARCHIPEL_PUBLIC_KEY_ED25519")
+SR25519_WITHOUT_0X=$(sed -E "s/0x(.*)/\1/g" <<< "$ARCHIPEL_PUBLIC_KEY_SR25519")
+echo "ED25519_WITHOUT_0X: $ED25519_WITHOUT_0X"
+echo "SR25519_WITHOUT_0X: $SR25519_WITHOUT_0X"
+
+echo "Appending prefixes to create filename..."
+ED25519_FILE_PATH=$(echo "6772616e$ED25519_WITHOUT_0X")
+SR25519_FILE_PATH=$(echo "61757261$SR25519_WITHOUT_0X")
+echo "ED25519_FILE_PATH: $ED25519_FILE_PATH"
+echo "SR25519_FILE_PATH: $SR25519_FILE_PATH"
+
+echo "Writing key seed into files..."
+echo "\"$ARCHIPEL_KEY_SEED\"" > "/root/chain/data/chains/archipel/keystore/$ED25519_FILE_PATH"
+echo "\"$ARCHIPEL_KEY_SEED\"" > "/root/chain/data/chains/archipel/keystore/$SR25519_FILE_PATH"
+
 # if archipel chain has additionals params
 # is used for --bootnodes
 if [ ! -z "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" ]
@@ -163,54 +183,11 @@ then
             --base-path /root/chain/data \
             --validator \
             --name "$ARCHIPEL_NODE_ALIAS" \
-            $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS &
+            $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS
 else
       /root/chain/archipel \
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
             --validator \
-            --name "$ARCHIPEL_NODE_ALIAS" &
+            --name "$ARCHIPEL_NODE_ALIAS"
 fi
-
-# saving the process id of archipel chain
-PID1=$!
-
-# adding wallets into keystore
-while [ "$GRANDPA" != '{"jsonrpc":"2.0","result":null,"id":1}' ] || [ "$AURA" != '{"jsonrpc":"2.0","result":null,"id":1}' ];
-do
-      echo "---------author_insertKey GRANDPA-----------"
-
-      GRANDPA=$(curl http://localhost:9933 -s -H "Content-Type:application/json;charset=utf-8" -d \
-                  '{
-                        "jsonrpc":"2.0",
-                        "id":1,
-                        "method":"author_insertKey",
-                        "params": [
-                              "gran",
-                              "'"$ARCHIPEL_KEY_SEED"'",
-                              "'"$ARCHIPEL_PUBLIC_KEY_ED25519"'"
-                        ]
-      }')
-      echo $GRANDPA
-      echo "---------------------------"
-
-      echo "---------author_insertKey AURA-----------"
-
-      AURA=$(curl http://localhost:9933 -s -H "Content-Type:application/json;charset=utf-8" -d \
-            '{
-                  "jsonrpc":"2.0",
-                  "id":1,
-                  "method":"author_insertKey",
-                  "params": [
-                        "aura",
-                        "'"$ARCHIPEL_KEY_SEED"'",
-                  "'"$ARCHIPEL_PUBLIC_KEY_SR25519"'"
-                  ]
-      }')
-      echo $AURA
-      echo "---------------------------"
-      sleep 1
-done
-
-# waiting for archipel chain process
-wait $PID1
