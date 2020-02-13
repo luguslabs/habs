@@ -1,6 +1,6 @@
 const { startServiceContainer, dockerExecute, removeContainer } = require('./docker');
 const debug = require('debug')('polkadot');
-const { getKeysFromSeed } = require('./utils');
+const { getKeysFromSeed, isEmptyString } = require('./utils');
 const { u8aToHex } = require('@polkadot/util');
 
 // Cleaning up variable
@@ -20,7 +20,8 @@ const {
   POLKADOT_KEY_BABE,
   POLKADOT_KEY_IMON,
   POLKADOT_KEY_PARA,
-  POLKADOT_KEY_AUDI
+  POLKADOT_KEY_AUDI,
+  POLKADOT_RESERVED_NODES
 } = process.env;
 
 // Checking if necessary env vars were set
@@ -37,6 +38,15 @@ const checkEnvVars = () => {
     debug('checkEnvVars', error);
     throw error;
   }
+};
+
+const formatReservedNodes = (inputList) => {
+  const result = [];
+  inputList.split(',').map(item => {
+    result.push('--reserved-nodes');
+    result.push(item);
+  });
+  return result;
 };
 
 // Importing a key in keystore
@@ -110,13 +120,21 @@ const polkadotStart = async (docker, mode) => {
     // Launch service in specific mode
     // TODO: Don't sleep before key add
     if (mode === 'active') {
-      await startServiceContainer(docker, 'active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-active`, '--validator', '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      if (isEmptyString(POLKADOT_RESERVED_NODES)) {
+        await startServiceContainer(docker, 'active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-active`, '--validator', '--reserved-only', '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      } else {
+        await startServiceContainer(docker, 'active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-active`, '--validator', '--reserved-only', ...formatReservedNodes(POLKADOT_RESERVED_NODES), '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      }
       // Waiting to be sure that container is started
       await new Promise(resolve => setTimeout(resolve, 5000));
       // Adding validator keys
       await polkadotKeysImport(docker, POLKADOT_PREFIX + 'polkadot-validator');
     } else if (mode === 'passive') {
-      await startServiceContainer(docker, 'passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-passive`, '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      if (isEmptyString(POLKADOT_RESERVED_NODES)) {
+        await startServiceContainer(docker, 'passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-passive`, '--sentry', '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      } else {
+        await startServiceContainer(docker, 'passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-passive`, '--sentry', ...formatReservedNodes(POLKADOT_RESERVED_NODES), '--pruning=archive', '--wasm-execution', 'Compiled'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume');
+      }
       // Waiting to be sure that container is started
       await new Promise(resolve => setTimeout(resolve, 5000));
       // Adding validator keys
