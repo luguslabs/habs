@@ -97,7 +97,7 @@ const addMetrics = async (api, metrics, mnemonic) => {
 
     // If node has any peers and is not in synchronizing chain
     if (sendTransaction) {
-      console.log('Archipel node has some peers and is not in sync so adding metrics...');
+      console.log('Archipel node has some peers and is synchronized so adding metrics...');
 
       // Get keys from mnemonic
       const keys = await getKeysFromSeed(mnemonic);
@@ -138,7 +138,7 @@ const addMetrics = async (api, metrics, mnemonic) => {
           }).catch(err => reject(err));
       });
     } else {
-      console.log('Archipel node can\'t receive transactions. Waiting for peers before adding metrics...');
+      console.log('Archipel node can\'t receive transactions...');
       return false;
     }
   } catch (error) {
