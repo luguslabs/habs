@@ -19,7 +19,4 @@ ENV PATH="/root:${PATH}"
 COPY entrypoint.sh /root
 RUN chmod +x entrypoint.sh
 
-# Wirguard interface configs go in /etc/wireguard
-VOLUME /etc/wireguard
-
 CMD ["./entrypoint.sh"]
