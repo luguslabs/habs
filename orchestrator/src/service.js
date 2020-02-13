@@ -16,7 +16,7 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
     const sendTransaction = await canSendTransactions(api);
 
     if (sendTransaction) {
-      console.log('Archipel node has some peers and is not in sync so orchestrating...');
+      console.log('Archipel node has some peers and is synchronized so orchestrating...');
       // Get node address from seed
       const key = await getKeysFromSeed(mnemonic);
       const nodeKey = key.address;
@@ -43,7 +43,7 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
         await becomeLeader(docker, nodeKey, nodeKey, api, mnemonic, service, metrics, aliveTime);
       }
     } else {
-      console.log('Archipel node can\'t receive transactions. Waiting for peers before orchestrating...');
+      console.log('Archipel node can\'t receive transactions...');
     }
   } catch (error) {
     debug('orchestrateService', error);
