@@ -263,5 +263,6 @@ module.exports = {
   chainNodeInfo,
   getMetrics,
   initNonce,
-  canSendTransactions
+  canSendTransactions,
+  getPeerNumber
 };
