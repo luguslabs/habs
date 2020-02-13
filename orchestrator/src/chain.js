@@ -12,11 +12,11 @@ const transactionShowStatus = (status, where) => {
   if (status.isUsurped) debug(where, 'Transaction is usurped.');
   if (status.isReady) debug(where, 'Transaction is ready.');
   if (status.isFuture) debug(where, 'Transaction is future.');
-  if (status.isFinalized) debug(where, 'Transaction is finilized.');
+  if (status.isFinalized) debug(where, 'Transaction is finalized.');
   if (status.isBroadcast) debug(where, 'Transaction is broadcast.');
 };
 
-// Conecting to provider
+// Connecting to provider
 const connect = async (wsProvider) => {
   try {
     // Creating Websocket Provider
@@ -56,9 +56,9 @@ const listenEvents = async (api, metrics) => {
     await api.query.system.events((events) => {
       // Loop through events
       events.forEach(({ event = [] }) => {
-        // Add metrics if Metrics updated event was recieved
+        // Add metrics if Metrics updated event was received
         if (event.section.toString() === 'archipelModule' && event.method.toString() === 'MetricsUpdated') {
-          debug('listenEvents', `Recieved metrics updated event from ${event.data[0]}`);
+          debug('listenEvents', `Received metrics updated event from ${event.data[0]}`);
           metrics.addMetrics(event.data[0].toString(), event.data[1].toString(), event.data[2].toString());
         }
       });
@@ -69,15 +69,36 @@ const listenEvents = async (api, metrics) => {
   }
 };
 
+// If node state permits to send transactions
+const canSendTransactions = async (api) => {
+    try {
+      // Get peers number
+      const peersNumber = await getPeerNumber(api);
+      debug('addMetrics', `Node has ${peersNumber} peers.`);
+
+      // Get sync state
+      const syncState = await getSyncState(api);
+      debug('addMetrics', `Node is sync: ${syncState}`);
+
+      // If node has any peers and is not in synchronizing chain
+      return peersNumber !== 0 && syncState !== 'true';
+
+    } catch (error) {
+      debug('canSendTransactions', error);
+      throw error;
+    }
+};
+
 // Send metrics
 const addMetrics = async (api, metrics, mnemonic) => {
   try {
-    // Get peers number
-    const peersNumber = await getPeerNumber(api);
-    debug('addMetrics', `This node has ${peersNumber} peers.`);
+    // If node state permits to send transactions
+    const sendTransaction = await canSendTransactions(api);
 
-    if (peersNumber !== 0) {
-      console.log('Archipel node has some peers so adding metrics...');
+    // If node has any peers and is not in synchronizing chain
+    if (sendTransaction) {
+      console.log('Archipel node has some peers and is not in sync so adding metrics...');
+
       // Get keys from mnemonic
       const keys = await getKeysFromSeed(mnemonic);
 
@@ -95,9 +116,9 @@ const addMetrics = async (api, metrics, mnemonic) => {
       // create, sign and send transaction
       return new Promise((resolve, reject) => {
         api.tx.archipelModule
-        // create transaction
+        // Create transaction
           .addMetrics(metrics)
-        // Sign transcation
+        // Sign transaction
           .sign(keys, { nonce })
         // Send transaction
           .send(({ events = [], status }) => {
@@ -117,7 +138,7 @@ const addMetrics = async (api, metrics, mnemonic) => {
           }).catch(err => reject(err));
       });
     } else {
-      console.log('Archipel node has no peers. Waiting for peers before adding metrics...');
+      console.log('Archipel node can\'t receive transactions. Waiting for peers before adding metrics...');
       return false;
     }
   } catch (error) {
@@ -158,6 +179,17 @@ const getPeerNumber = async api => {
   }
 };
 
+// Get node sync state. Gives true if node is synching
+const getSyncState = async api => {
+  try {
+    const health = await api.rpc.system.health();
+    return health.isSyncing;
+  } catch (error) {
+    debug('getSyncState', error);
+    return 0;
+  }
+};
+
 // Set leader
 const setLeader = async (api, oldLeader, mnemonic) => {
   try {
@@ -179,7 +211,7 @@ const setLeader = async (api, oldLeader, mnemonic) => {
       api.tx.archipelModule
         // create transaction
         .setLeader(oldLeader)
-        // Sign and transcation
+        // Sign and transaction
         .sign(keys, { nonce })
         // Send transaction
         .send(({ events = [], status }) => {
@@ -228,8 +260,8 @@ module.exports = {
   addMetrics,
   getLeader,
   setLeader,
-  getPeerNumber,
   chainNodeInfo,
   getMetrics,
-  initNonce
+  initNonce,
+  canSendTransactions
 };

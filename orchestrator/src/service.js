@@ -1,4 +1,4 @@
-const { getLeader, setLeader, getPeerNumber } = require('./chain.js');
+const { getLeader, setLeader, canSendTransactions } = require('./chain.js');
 const { getKeysFromSeed } = require('./utils');
 const { polkadotStart, polkadotCleanUp } = require('./polkadot');
 const debug = require('debug')('service');
@@ -12,12 +12,11 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
   try {
     console.log('Orchestrating service.....');
 
-    // Get peers number
-    const peersNumber = await getPeerNumber(api);
-    debug('orchestrateService', `This node has ${peersNumber} peers.`);
+    // If node state permits to send transactions
+    const sendTransaction = await canSendTransactions(api);
 
-    if (peersNumber !== 0) {
-      console.log('Archipel node has some peers so orchestrating...');
+    if (sendTransaction) {
+      console.log('Archipel node has some peers and is not in sync so orchestrating...');
       // Get node address from seed
       const key = await getKeysFromSeed(mnemonic);
       const nodeKey = key.address;
@@ -44,7 +43,7 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
         await becomeLeader(docker, nodeKey, nodeKey, api, mnemonic, service, metrics, aliveTime);
       }
     } else {
-      console.log('Archipel node has no peers. Waiting for peers before orchestrating...');
+      console.log('Archipel node can\'t receive transactions. Waiting for peers before orchestrating...');
     }
   } catch (error) {
     debug('orchestrateService', error);
