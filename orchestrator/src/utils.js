@@ -39,8 +39,13 @@ const catchExitSignals = (cleanUpCallback, docker, service) => {
   });
 };
 
+const isEmptyString = (str) => {
+  return (!str || str.length === 0);
+};
+
 module.exports = {
   getKeysFromSeed,
   streamToString,
-  catchExitSignals
+  catchExitSignals,
+  isEmptyString
 };
