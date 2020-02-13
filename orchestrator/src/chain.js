@@ -71,22 +71,22 @@ const listenEvents = async (api, metrics) => {
 
 // If node state permits to send transactions
 const canSendTransactions = async (api) => {
-    try {
-      // Get peers number
-      const peersNumber = await getPeerNumber(api);
-      debug('addMetrics', `Node has ${peersNumber} peers.`);
+  try {
+    // Get peers number
+    const peersNumber = await getPeerNumber(api);
+    debug('addMetrics', `Node has ${peersNumber} peers.`);
 
-      // Get sync state
-      const syncState = await getSyncState(api);
-      debug('addMetrics', `Node is sync: ${syncState}`);
+    // Get sync state
+    const syncState = await getSyncState(api);
+    debug('addMetrics', `Node is sync: ${syncState}`);
 
-      // If node has any peers and is not in synchronizing chain
-      return peersNumber !== 0 && syncState !== 'true';
-
-    } catch (error) {
-      debug('canSendTransactions', error);
-      throw error;
-    }
+    // If node has any peers and is not in synchronizing chain
+    return peersNumber !== 0 && syncState !== 'true';
+    
+  } catch (error) {
+    debug('canSendTransactions', error);
+    throw error;
+  }
 };
 
 // Send metrics

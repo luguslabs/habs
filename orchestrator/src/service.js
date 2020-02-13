@@ -67,6 +67,8 @@ const otherLeaderAction = async (docker, metrics, currentLeader, aliveTime, api,
         await becomeLeader(docker, currentLeader, nodeKey, api, mnemonic, service, metrics, aliveTime);
       } else {
         console.log(`Leader ${currentLeader} is alive no action required...`);
+        console.log(`Enforcing passive mode...`)
+        await serviceStart(docker, service, 'passive');
       }
 
     // If there is no metrics recieved from leader node
@@ -80,7 +82,7 @@ const otherLeaderAction = async (docker, metrics, currentLeader, aliveTime, api,
         // Incrementing noLivenessFromLeader counter
         noLivenessFromLeader++;
 
-      // No metrics recieved for noLivenessThreshold times. Leader is offline.
+      // No metrics received for noLivenessThreshold times. Leader is offline.
       } else {
         console.log(`Can't check leader liveness for ${noLivenessThreshold} times.`);
         await becomeLeader(docker, currentLeader, nodeKey, api, mnemonic, service, metrics, aliveTime);
