@@ -4,6 +4,7 @@ const { catchExitSignals } = require('./utils');
 const { orchestrateService, serviceStart, serviceCleanUp } = require('./service');
 const Docker = require('dockerode');
 const debug = require('debug')('app');
+const { setIntervalAsync } = require('set-interval-async/fixed');
 
 // Import env variables from .env file
 const dotenv = require('dotenv');
@@ -44,9 +45,6 @@ async function main () {
     // Create Docker instance
     const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
-    // Attach service cleanup to exit signals
-    catchExitSignals(serviceCleanUp, docker, SERVICE);
-
     // Create Metrics instance
     const metrics = new Metrics();
 
@@ -58,24 +56,38 @@ async function main () {
     listenEvents(api, metrics);
 
     // Add metrics every 10 seconds
-    setInterval(() => {
+    setIntervalAsync(async () => {
       try {
-        addMetrics(api, 42, MNEMONIC);
+        const result = await addMetrics(api, 42, MNEMONIC);
+        debug('main', `Result add metrics: ${result}`);
       } catch (error) {
         console.error(error);
       }
     }, 10000);
 
-    // Orchestrate service every 20 seconds
-    setInterval(() => {
-      orchestrateService(docker, api, metrics, MNEMONIC, ALIVE_TIME, SERVICE);
-    }, 20000);
+    // Orchestrate service every 10 second
+    setIntervalAsync(async () => {
+      try {
+        await orchestrateService(docker, api, metrics, MNEMONIC, ALIVE_TIME, SERVICE);
+      } catch (error) {
+        console.error(error);
+      }
+    }, 10000);
 
     // Show metrics
     setInterval(() => { metrics.showMetrics(); }, 10000);
 
     // Show chain node info
-    setInterval(() => { chainNodeInfo(api); }, 10000);
+    setIntervalAsync(async () => { 
+      try {
+        await chainNodeInfo(api); 
+      } catch (error) {
+        console.error(error);
+      }
+    }, 10000);
+
+    // Attach service cleanup to exit signals
+    catchExitSignals(serviceCleanUp, docker, SERVICE);
   } catch (error) {
     debug('main', error);
     console.error(error);
