@@ -1,6 +1,6 @@
 const { Docker } = require('../docker');
 
-// Config
+// Test configuration
 const activeName = 'nginx-active';
 const passiveName = 'nginx-passive';
 const image = 'nginx';

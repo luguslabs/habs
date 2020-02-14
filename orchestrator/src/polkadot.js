@@ -1,15 +1,10 @@
 const debug = require('debug')('polkadot');
-const { getKeysFromSeed, isEmptyString } = require('./utils');
 const { u8aToHex } = require('@polkadot/util');
+const dotenv = require('dotenv');
 
-// Cleaning up variable
-let cleaningUp = false;
-
-// Imported key list
-const importedKeys = [];
+const { getKeysFromSeed, isEmptyString } = require('./utils');
 
 // Import env variables from .env file
-const dotenv = require('dotenv');
 dotenv.config();
 const {
   POLKADOT_NAME,
@@ -26,6 +21,12 @@ const {
 
 class Polkadot {
   constructor (docker) {
+    // If service is already cleaning up
+    this.cleaningUp = false;
+
+    // Already imported keys list
+    this.importedKeys = [];
+
     this.docker = docker;
     // Checking if necessary env vars were set
     try {
@@ -58,7 +59,7 @@ class Polkadot {
       const keys = await getKeysFromSeed(mnemonic, crypto);
       const publicKey = u8aToHex(keys.publicKey);
       // Check if the key was already imported
-      if (!importedKeys.includes(publicKey)) {
+      if (!this.importedKeys.includes(publicKey)) {
         debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);
 
         // Constructing command to import key
@@ -80,7 +81,7 @@ class Polkadot {
 
         // Checking result
         if (result.includes('"result":null')) {
-          importedKeys.push(publicKey);
+          this.importedKeys.push(publicKey);
         } else {
           throw Error(`Can't add key. ${result}`);
         }
@@ -155,8 +156,8 @@ class Polkadot {
   async cleanUp () {
     try {
       // Checking if cleaning up process was already started
-      if (!cleaningUp) {
-        cleaningUp = true;
+      if (!this.cleaningUp) {
+        this.cleaningUp = true;
         console.log('Cleaning containers before exit...');
         await this.docker.removeContainer(POLKADOT_PREFIX + 'polkadot-sync');
         await this.docker.removeContainer(POLKADOT_PREFIX + 'polkadot-validator');

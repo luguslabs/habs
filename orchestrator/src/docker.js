@@ -1,8 +1,7 @@
 const Dockerode = require('dockerode');
+const debug = require('debug')('docker');
 
 const { streamToString } = require('./utils');
-
-const debug = require('debug')('docker');
 
 class Docker {
   constructor () {

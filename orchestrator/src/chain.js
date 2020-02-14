@@ -1,6 +1,7 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
-const { getKeysFromSeed } = require('./utils');
 const debug = require('debug')('chain');
+
+const { getKeysFromSeed } = require('./utils');
 
 class Chain {
   constructor (wsProvider) {
@@ -11,7 +12,6 @@ class Chain {
     try {
       // Creating Websocket Provider
       const provider = new WsProvider(this.wsProvider);
-
       // Creating API
       this.api = await ApiPromise.create({ provider });
       this.provider = provider;
@@ -44,7 +44,7 @@ class Chain {
           if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewLeader') {
             debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
             if (event.data[0].toString() !== keys.address.toString()) {
-              console.log('Checking if service is in passive state...');
+              console.log('Forcing service in passive mode...');
             }
           }
 

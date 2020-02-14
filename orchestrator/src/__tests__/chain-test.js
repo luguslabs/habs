@@ -1,8 +1,10 @@
+const { exec } = require('child_process');
+
 const { Chain } = require('../chain');
 const { getKeysFromSeed } = require('../utils');
-const { exec } = require('child_process');
 const { Metrics } = require('../metrics');
 
+// Test configuration
 let chain;
 const jestTimeout = 60000;
 const mnemonic1 = 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud';

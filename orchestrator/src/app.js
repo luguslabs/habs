@@ -1,16 +1,13 @@
 const { setIntervalAsync } = require('set-interval-async/fixed');
+const debug = require('debug')('app');
+const dotenv = require('dotenv');
 
 const { Chain } = require('./chain');
 const { Metrics } = require('./metrics');
 const { catchExitSignals } = require('./utils');
-const { Polkadot } = require('./polkadot');
-const { Docker } = require('./docker');
-const { orchestrateService, serviceStart, serviceCleanUp } = require('./service');
-
-const debug = require('debug')('app');
+const { Orchestrator } = require('./orchestrator');
 
 // Import env variables from .env file
-const dotenv = require('dotenv');
 dotenv.config();
 const {
   NODE_WS,
@@ -43,22 +40,15 @@ async function main () {
     const chain = new Chain(NODE_WS);
     await chain.connect();
 
-    // Create Docker instance
-    const docker = new Docker();
     // Create Metrics instance
     const metrics = new Metrics();
 
-    // Create service instance
-    let service;
-    if (SERVICE === 'polkadot') {
-      service = new Polkadot(docker);
-    } else {
-      throw Error(`Service ${service} is not supported yet.`);
-    }
+    // Creating orchestrator instance
+    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME);
 
     // Start service in passive mode
     console.log('Starting service in passive mode...');
-    await serviceStart(service, 'passive');
+    await orchestrator.serviceStart('passive');
 
     // Listen events
     chain.listenEvents(metrics, MNEMONIC);
@@ -67,7 +57,7 @@ async function main () {
     setIntervalAsync(async () => {
       try {
         await chain.addMetrics(42, MNEMONIC);
-        await orchestrateService(chain, metrics, MNEMONIC, ALIVE_TIME, service);
+        await orchestrator.orchestrateService();
       } catch (error) {
         console.error(error);
       }
@@ -86,7 +76,7 @@ async function main () {
     }, 10000);
 
     // Attach service cleanup to exit signals
-    catchExitSignals(serviceCleanUp, service);
+    catchExitSignals(orchestrator.serviceCleanUp.bind(orchestrator));
   } catch (error) {
     debug('main', error);
     console.error(error);
