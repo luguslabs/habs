@@ -2,9 +2,6 @@ const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { getKeysFromSeed } = require('./utils');
 const debug = require('debug')('chain');
 
-// Here we will store wallet nonce
-const globalNonce = new Map();
-
 // Show transaction status in debug
 const transactionShowStatus = (status, where) => {
   if (status.isInvalid) debug(where, 'Transaction is invalid.');
@@ -23,7 +20,6 @@ const connect = async (wsProvider) => {
     const provider = new WsProvider(wsProvider);
     // Creating API
     const api = await ApiPromise.create({ provider });
-
     return api;
   } catch (error) {
     debug('connect', error);
@@ -31,34 +27,25 @@ const connect = async (wsProvider) => {
   }
 };
 
-// Init global nonce
-const initNonce = async (api, mnemonic) => {
-  try {
-    // Setting global nonce
-    const keys = await getKeysFromSeed(mnemonic);
-    const nonce = await api.query.system.accountNonce(keys.address);
-
-    globalNonce.set(keys.address.toString(), parseInt(nonce));
-
-    debug('initNonce', `Global nonce: ${globalNonce.get(keys.address.toString())}`);
-
-    return nonce;
-  } catch (error) {
-    debug('initNonce', error);
-    throw error;
-  }
-};
-
 // Listen events
-const listenEvents = async (api, metrics) => {
+const listenEvents = async (api, metrics, mnemonic) => {
   try {
+    const keys = await getKeysFromSeed(mnemonic);
     // Subscribe to events
     await api.query.system.events((events) => {
       // Loop through events
       events.forEach(({ event = [] }) => {
+        // If change leader event received
+        if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewLeader') {
+          debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
+          if (event.data[0].toString() !== keys.address.toString()) {
+            console.log('Checking if service is in passive state...');
+          }
+        }
+        
         // Add metrics if Metrics updated event was received
         if (event.section.toString() === 'archipelModule' && event.method.toString() === 'MetricsUpdated') {
-          debug('listenEvents', `Received metrics updated event from ${event.data[0]}`);
+          debug('listenEvents', `Received metrics updated event from ${event.data[0].toString()}`);
           metrics.addMetrics(event.data[0].toString(), event.data[1].toString(), event.data[2].toString());
         }
       });
@@ -70,7 +57,7 @@ const listenEvents = async (api, metrics) => {
 };
 
 // If node state permits to send transactions
-const canSendTransactions = async (api) => {
+const canSendTransactions = async api => {
   try {
     // Get peers number
     const peersNumber = await getPeerNumber(api);
@@ -82,7 +69,6 @@ const canSendTransactions = async (api) => {
 
     // If node has any peers and is not in synchronizing chain
     return peersNumber !== 0 && syncState !== true;
-    
   } catch (error) {
     debug('canSendTransactions', error);
     throw error;
@@ -103,15 +89,10 @@ const addMetrics = async (api, metrics, mnemonic) => {
       const keys = await getKeysFromSeed(mnemonic);
 
       // Get account nonce
-      // const nonce = await api.query.system.accountNonce(keys.address);
-      const nonce = globalNonce.get(keys.address.toString());
+      const nonce = await api.query.system.accountNonce(keys.address);
+
       // Nonce show
       debug('addMetrics', `Nonce: ${nonce}`);
-
-      // Incrementing global nonce
-      globalNonce.set(keys.address.toString(), nonce + 1);
-
-      debug('addMetrics', `Global Nonce: ${globalNonce.get(keys.address.toString())}`);
 
       // create, sign and send transaction
       return new Promise((resolve, reject) => {
@@ -138,8 +119,7 @@ const addMetrics = async (api, metrics, mnemonic) => {
           }).catch(err => reject(err));
       });
     } else {
-      console.log('Archipel node can\'t receive transactions. Only updating global nonce...');
-      await initNonce(api, mnemonic);
+      console.log('Archipel node can\'t receive transactions...');
       return false;
     }
   } catch (error) {
@@ -198,14 +178,10 @@ const setLeader = async (api, oldLeader, mnemonic) => {
     const keys = await getKeysFromSeed(mnemonic);
 
     // Get account nonce
-    const nonce = globalNonce.get(keys.address.toString());
+    const nonce = await api.query.system.accountNonce(keys.address);
+
     // Nonce show
     debug('setLeader', `Nonce: ${nonce}`);
-
-    // Incrementing global nonce
-    globalNonce.set(keys.address.toString(), nonce + 1);
-
-    debug('setLeader', `Global Nonce: ${globalNonce.get(keys.address.toString())}`);
 
     return new Promise((resolve, reject) => {
       // create, sign and send transaction
@@ -263,7 +239,6 @@ module.exports = {
   setLeader,
   chainNodeInfo,
   getMetrics,
-  initNonce,
   canSendTransactions,
   getPeerNumber
 };

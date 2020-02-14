@@ -1,7 +1,7 @@
 const { orchestrateService, serviceStart, serviceCleanUp } = require('../service');
 const Docker = require('dockerode');
 const { Metrics } = require('../metrics');
-const { connect, getLeader, initNonce } = require('../chain');
+const { connect, getLeader } = require('../chain');
 const { getKeysFromSeed } = require('../utils');
 const { exec } = require('child_process');
 
@@ -38,10 +38,6 @@ beforeAll(async () => {
   // Connecting to Archipel Chain Node
   api = await connect('ws://127.0.0.1:9944');
 
-  // Init all wallets nonces
-  initNonce(api, mnemonic1);
-  initNonce(api, mnemonic2);
-  initNonce(api, mnemonic3);
 });
 
 afterAll(async () => {
