@@ -1,13 +1,13 @@
-const { connect, listenEvents, addMetrics, chainNodeInfo } = require('./chain');
+const { setIntervalAsync } = require('set-interval-async/fixed');
+const debug = require('debug')('app');
+const dotenv = require('dotenv');
+
+const { Chain } = require('./chain');
 const { Metrics } = require('./metrics');
 const { catchExitSignals } = require('./utils');
-const { orchestrateService, serviceStart, serviceCleanUp } = require('./service');
-const Docker = require('dockerode');
-const debug = require('debug')('app');
-const { setIntervalAsync } = require('set-interval-async/fixed');
+const { Orchestrator } = require('./orchestrator');
 
 // Import env variables from .env file
-const dotenv = require('dotenv');
 dotenv.config();
 const {
   NODE_WS,
@@ -37,26 +37,27 @@ async function main () {
 
     // Connect to Polkadot API
     console.log('Connecting to Archipel Chain node...');
-    const api = await connect(NODE_WS);
-
-    // Create Docker instance
-    const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+    const chain = new Chain(NODE_WS);
+    await chain.connect();
 
     // Create Metrics instance
     const metrics = new Metrics();
 
+    // Create orchestrator instance
+    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME);
+
     // Start service in passive mode
     console.log('Starting service in passive mode...');
-    await serviceStart(docker, SERVICE, 'passive');
+    await orchestrator.serviceStart('passive');
 
     // Listen events
-    listenEvents(api, metrics, MNEMONIC);
+    chain.listenEvents(metrics, MNEMONIC);
 
     // Add metrics and orchestrate every 10 seconds
     setIntervalAsync(async () => {
       try {
-        await addMetrics(api, 42, MNEMONIC);
-        await orchestrateService(docker, api, metrics, MNEMONIC, ALIVE_TIME, SERVICE);
+        await chain.addMetrics(42, MNEMONIC);
+        await orchestrator.orchestrateService();
       } catch (error) {
         console.error(error);
       }
@@ -68,15 +69,14 @@ async function main () {
     // Show chain node info
     setIntervalAsync(async () => {
       try {
-        await chainNodeInfo(api);
+        await chain.chainNodeInfo();
       } catch (error) {
         console.error(error);
       }
     }, 10000);
 
     // Attach service cleanup to exit signals
-    catchExitSignals(serviceCleanUp, docker, SERVICE);
-
+    catchExitSignals(orchestrator.serviceCleanUp.bind(orchestrator));
   } catch (error) {
     debug('main', error);
     console.error(error);

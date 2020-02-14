@@ -1,7 +1,6 @@
-const Docker = require('dockerode');
-const { startServiceContainer, dockerExecute, removeContainer } = require('../docker');
+const { Docker } = require('../docker');
 
-// Config
+// Test configuration
 const activeName = 'nginx-active';
 const passiveName = 'nginx-passive';
 const image = 'nginx';
@@ -16,16 +15,16 @@ beforeAll(async () => {
   jest.setTimeout(jestTimeout);
 
   // Creating Docker instance
-  docker = new Docker({ socketPath: '/var/run/docker.sock' });
+  docker = new Docker();
 });
 
 afterAll(async () => {
-  await removeContainer(docker, activeName);
-  await removeContainer(docker, passiveName);
+  await docker.removeContainer(activeName);
+  await docker.removeContainer(passiveName);
 });
 
 test('Start active docker container', async () => {
-  await startServiceContainer(docker, 'active', activeName, passiveName, image, command, mountDir, volume);
+  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
 
   const container = await docker.getContainer(activeName);
   const containerInspect = await container.inspect();
@@ -37,11 +36,11 @@ test('Start active docker container', async () => {
   expect(containerInspect.Config.Image).toBe(image);
   expect(containerInspect.Config.Cmd).toStrictEqual(command);
 
-  await removeContainer(docker, activeName);
+  await docker.removeContainer(activeName);
 });
 
 test('Start passive docker container', async () => {
-  await startServiceContainer(docker, 'passive', activeName, passiveName, image, command, mountDir, volume);
+  await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
 
   const container = await docker.getContainer(passiveName);
   const containerInspect = await container.inspect();
@@ -53,18 +52,18 @@ test('Start passive docker container', async () => {
   expect(containerInspect.Config.Image).toBe(image);
   expect(containerInspect.Config.Cmd).toStrictEqual(command);
 
-  await removeContainer(docker, passiveName);
+  await docker.removeContainer(passiveName);
 });
 
 test('Docker container remove', async () => {
-  await startServiceContainer(docker, 'active', activeName, passiveName, image, command, mountDir, volume);
+  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
 
   let container = await docker.getContainer(activeName);
   const containerInspect = await container.inspect();
 
   expect(containerInspect.State.Running).toBe(true);
 
-  await removeContainer(docker, passiveName);
+  await docker.removeContainer(passiveName);
 
   try {
     container = await docker.getContainer(activeName);
@@ -75,8 +74,8 @@ test('Docker container remove', async () => {
 });
 
 test('Check if active container will be down after the passive container launch', async () => {
-  await startServiceContainer(docker, 'active', activeName, passiveName, image, command, mountDir, volume);
-  await startServiceContainer(docker, 'passive', activeName, passiveName, image, command, mountDir, volume);
+  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
+  await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
 
   try {
     const containerActive = await docker.getContainer(activeName);
@@ -90,12 +89,12 @@ test('Check if active container will be down after the passive container launch'
 
   expect(passiveInspect.State.Running).toBe(true);
 
-  await removeContainer(docker, passiveName);
+  await docker.removeContainer(passiveName);
 });
 
 test('Check if passive container will be down after the active container launch', async () => {
-  await startServiceContainer(docker, 'passive', activeName, passiveName, image, command, mountDir, volume);
-  await startServiceContainer(docker, 'active', activeName, passiveName, image, command, mountDir, volume);
+  await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
+  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
 
   try {
     const containerPassive = await docker.getContainer(passiveName);
@@ -109,15 +108,15 @@ test('Check if passive container will be down after the active container launch'
 
   expect(activeInspect.State.Running).toBe(true);
 
-  await removeContainer(docker, activeName);
+  await docker.removeContainer(activeName);
 });
 
 test('Execute a command in docker container', async () => {
-  await startServiceContainer(docker, 'active', activeName, passiveName, image, command, mountDir, volume);
+  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
 
   const commandToExecute = ['echo', 'Hello world'];
 
-  const result = await dockerExecute(docker, activeName, commandToExecute);
+  const result = await docker.dockerExecute(activeName, commandToExecute);
 
   expect(result).toBe('Hello world');
 });

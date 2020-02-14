@@ -1,13 +1,17 @@
-const { orchestrateService, serviceStart, serviceCleanUp } = require('../service');
-const Docker = require('dockerode');
-const { Metrics } = require('../metrics');
-const { connect, getLeader } = require('../chain');
-const { getKeysFromSeed } = require('../utils');
 const { exec } = require('child_process');
 
+const { Orchestrator } = require('../orchestrator');
+const { Docker } = require('../docker');
+const { Metrics } = require('../metrics');
+const { Chain } = require('../chain');
+const { getKeysFromSeed } = require('../utils');
+
+// Test configuration
 const jestTimeout = 320000;
 let docker;
-let api;
+let chain;
+let orchestrator;
+let metrics;
 const mnemonic1 = 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud';
 const mnemonic2 = 'fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer';
 const mnemonic3 = 'borrow initial guard hunt corn trust student opera now economy thumb argue';
@@ -32,18 +36,25 @@ beforeAll(async () => {
   await execAsync(commandToExec);
   console.log('Test chain was launched...');
 
-  // Creating Docker instance
-  docker = new Docker({ socketPath: '/var/run/docker.sock' });
+  // Create Docker instance
+  docker = new Docker();
 
   // Connecting to Archipel Chain Node
-  api = await connect('ws://127.0.0.1:9944');
+  chain = new Chain('ws://127.0.0.1:9944');
+  await chain.connect();
 
+  // Create metrics instance
+  metrics = new Metrics();
+
+  // Create Orchestrator instance
+  orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 60000);
 });
 
 afterAll(async () => {
-  await serviceCleanUp(docker, 'polkadot');
+  await orchestrator.serviceCleanUp();
 
-  await api.disconnect();
+  await chain.disconnect();
+
   // Removing test chain
   console.log('Removing test chain...');
   const commandToExec = 'cd ../deployer/test/chain && ./remove.sh';
@@ -51,14 +62,14 @@ afterAll(async () => {
 });
 
 test('Test service in passive mode start and cleanup.', async () => {
-  await serviceStart(docker, 'polkadot', 'passive');
+  await orchestrator.serviceStart('passive');
 
   const containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
   let container = await docker.getContainer(containerName);
   const containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
 
-  await serviceCleanUp(docker, 'polkadot');
+  await orchestrator.serviceCleanUp();
 
   try {
     container = await docker.getContainer(containerName);
@@ -69,14 +80,14 @@ test('Test service in passive mode start and cleanup.', async () => {
 });
 
 test('Test service in active mode start and cleanup.', async () => {
-  await serviceStart(docker, 'polkadot', 'active');
+  await orchestrator.serviceStart('active');
 
   const containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
   let container = await docker.getContainer(containerName);
   const containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
 
-  await serviceCleanUp(docker, 'polkadot');
+  await orchestrator.serviceCleanUp();
 
   try {
     container = await docker.getContainer(containerName);
@@ -90,7 +101,7 @@ test('Test service switch active -> passive mode.', async () => {
   const containerNameActive = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
   const containerNamePassive = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
 
-  await serviceStart(docker, 'polkadot', 'active');
+  await orchestrator.serviceStart('active');
   let container = await docker.getContainer(containerNameActive);
   let containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
@@ -102,7 +113,7 @@ test('Test service switch active -> passive mode.', async () => {
     expect(error).toStrictEqual(new Error(`(HTTP code 404) no such container - No such container: ${containerNamePassive} `));
   }
 
-  await serviceStart(docker, 'polkadot', 'passive');
+  await orchestrator.serviceStart('passive');
   container = await docker.getContainer(containerNamePassive);
   containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
@@ -119,7 +130,7 @@ test('Test service switch passive -> active mode.', async () => {
   const containerNameActive = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
   const containerNamePassive = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
 
-  await serviceStart(docker, 'polkadot', 'passive');
+  await orchestrator.serviceStart('passive');
   let container = await docker.getContainer(containerNamePassive);
   let containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
@@ -131,7 +142,7 @@ test('Test service switch passive -> active mode.', async () => {
     expect(error).toStrictEqual(new Error(`(HTTP code 404) no such container - No such container: ${containerNameActive} `));
   }
 
-  await serviceStart(docker, 'polkadot', 'active');
+  await orchestrator.serviceStart('active');
   container = await docker.getContainer(containerNameActive);
   containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
@@ -144,16 +155,19 @@ test('Test service switch passive -> active mode.', async () => {
   }
 });
 
-test('Test orchestrate service. Become leader and service remains in passive mode.', async () => {
-  await serviceStart(docker, 'polkadot', 'passive');
+test('Become leader and service remains in passive mode.', async () => {
+  await orchestrator.serviceStart('passive');
   const metrics = new Metrics();
 
-  let leader = await getLeader(api);
+  let leader = await chain.getLeader();
   expect(leader.toString()).toBe('');
 
-  await orchestrateService(docker, api, metrics, mnemonic1, 60000, 'polkadot');
+  orchestrator.metrics = metrics;
+  orchestrator.mnemonic = mnemonic1;
+
+  await orchestrator.orchestrateService();
   const keys = await getKeysFromSeed(mnemonic1);
-  leader = await getLeader(api);
+  leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys.address);
 
   const containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
@@ -161,19 +175,23 @@ test('Test orchestrate service. Become leader and service remains in passive mod
   const containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
 
-  await serviceCleanUp(docker, 'polkadot');
+  await orchestrator.serviceCleanUp();
 });
 
-test('Test orchestrate service. I am leader but no one is online. So service remains passive mode.', async () => {
-  await serviceStart(docker, 'polkadot', 'passive');
+test('I am leader but no one is online. So service remains passive mode.', async () => {
+  await orchestrator.serviceStart('passive');
   const metrics = new Metrics();
 
   const keys = await getKeysFromSeed(mnemonic1);
-  let leader = await getLeader(api);
+  let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys.address);
 
-  await orchestrateService(docker, api, metrics, mnemonic1, 60000, 'polkadot');
-  leader = await getLeader(api);
+  orchestrator.metrics = metrics;
+  orchestrator.mnemonic = mnemonic1;
+
+  await orchestrator.orchestrateService();
+
+  leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys.address);
 
   const containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
@@ -181,22 +199,25 @@ test('Test orchestrate service. I am leader but no one is online. So service rem
   const containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
 
-  await serviceCleanUp(docker, 'polkadot');
+  await orchestrator.serviceCleanUp();
 });
 
-test('Test orchestrate service. I am leader and someone is online. Launch service in active mode.', async () => {
-  await serviceStart(docker, 'polkadot', 'passive');
+test('I am leader and someone is online. Launch service in active mode.', async () => {
+  await orchestrator.serviceStart('passive');
   const metrics = new Metrics();
 
   const keys1 = await getKeysFromSeed(mnemonic1);
   const keys2 = await getKeysFromSeed(mnemonic2);
-  let leader = await getLeader(api);
+  let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys1.address);
 
   const nowTime = new Date().getTime();
   metrics.addMetrics(keys2.address.toString(), '42', nowTime);
-  await orchestrateService(docker, api, metrics, mnemonic1, 60000, 'polkadot');
-  leader = await getLeader(api);
+  orchestrator.metrics = metrics;
+  orchestrator.mnemonic = mnemonic1;
+
+  await orchestrator.orchestrateService();
+  leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys1.address);
 
   const containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
@@ -204,21 +225,24 @@ test('Test orchestrate service. I am leader and someone is online. Launch servic
   const containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
 
-  await serviceCleanUp(docker, 'polkadot');
+  await orchestrator.serviceCleanUp();
 });
 
-test('Test orchestrate service. Other node is leader and is online. Service remains in passive mode.', async () => {
-  await serviceStart(docker, 'polkadot', 'passive');
+test('Other node is leader and is online. Service remains in passive mode.', async () => {
+  await orchestrator.serviceStart('passive');
   const metrics = new Metrics();
 
   const keys1 = await getKeysFromSeed(mnemonic1);
-  let leader = await getLeader(api);
+  let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys1.address);
 
   const nowTime = new Date().getTime();
   metrics.addMetrics(keys1.address.toString(), '42', nowTime);
-  await orchestrateService(docker, api, metrics, mnemonic2, 60000, 'polkadot');
-  leader = await getLeader(api);
+  orchestrator.metrics = metrics;
+  orchestrator.mnemonic = mnemonic2;
+
+  await orchestrator.orchestrateService();
+  leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys1.address);
 
   const containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
@@ -226,23 +250,26 @@ test('Test orchestrate service. Other node is leader and is online. Service rema
   const containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
 
-  await serviceCleanUp(docker, 'polkadot');
+  await orchestrator.serviceCleanUp();
 });
 
-test('Test orchestrate service. Other node is leader and no one other is online. Get leadership but service remains in passive mode.', async () => {
-  await serviceStart(docker, 'polkadot', 'passive');
+test('Other node is leader and no one other is online. Get leadership but service remains in passive mode.', async () => {
+  await orchestrator.serviceStart('passive');
   const metrics = new Metrics();
 
   const keys1 = await getKeysFromSeed(mnemonic1);
   const keys2 = await getKeysFromSeed(mnemonic2);
-  let leader = await getLeader(api);
+  let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys1.address);
 
   const nowTime = new Date().getTime();
   metrics.addMetrics(keys1.address.toString(), '42', nowTime - 80000);
   metrics.addMetrics(keys2.address.toString(), '42', nowTime);
-  await orchestrateService(docker, api, metrics, mnemonic2, 60000, 'polkadot');
-  leader = await getLeader(api);
+  orchestrator.metrics = metrics;
+  orchestrator.mnemonic = mnemonic2;
+
+  await orchestrator.orchestrateService();
+  leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys2.address);
 
   const containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
@@ -250,24 +277,27 @@ test('Test orchestrate service. Other node is leader and no one other is online.
   const containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
 
-  await serviceCleanUp(docker, 'polkadot');
+  await orchestrator.serviceCleanUp();
 });
 
-test('Test orchestrate service. Other node is leader and someone is online. Get leadership and launch service in active mode.', async () => {
-  await serviceStart(docker, 'polkadot', 'passive');
+test('Other node is leader and someone is online. Get leadership and launch service in active mode.', async () => {
+  await orchestrator.serviceStart('passive');
   const metrics = new Metrics();
 
   const keys1 = await getKeysFromSeed(mnemonic1);
   const keys2 = await getKeysFromSeed(mnemonic2);
   const keys3 = await getKeysFromSeed(mnemonic3);
-  let leader = await getLeader(api);
+  let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys2.address);
 
   const nowTime = new Date().getTime();
   metrics.addMetrics(keys1.address.toString(), '42', nowTime - 80000);
   metrics.addMetrics(keys3.address.toString(), '42', nowTime);
-  await orchestrateService(docker, api, metrics, mnemonic2, 60000, 'polkadot');
-  leader = await getLeader(api);
+  orchestrator.metrics = metrics;
+  orchestrator.mnemonic = mnemonic2;
+
+  await orchestrator.orchestrateService();
+  leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys2.address);
 
   const containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
@@ -275,5 +305,5 @@ test('Test orchestrate service. Other node is leader and someone is online. Get 
   const containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
 
-  await serviceCleanUp(docker, 'polkadot');
+  await orchestrator.serviceCleanUp();
 });
