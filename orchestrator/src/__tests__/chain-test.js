@@ -5,8 +5,7 @@ const {
   getLeader,
   setLeader,
   getPeerNumber,
-  getMetrics,
-  initNonce
+  getMetrics
 } = require('../chain');
 const { getKeysFromSeed } = require('../utils');
 const { exec } = require('child_process');
@@ -41,10 +40,6 @@ beforeAll(async () => {
   // Connecting to Archipel Chain Node
   api = await connect('ws://127.0.0.1:9944');
 
-  // Init all wallets nonces
-  initNonce(api, mnemonic1);
-  initNonce(api, mnemonic2);
-  initNonce(api, mnemonic3);
 });
 
 afterAll(async () => {
@@ -97,7 +92,7 @@ test('Get and set leader - leader is already set', async () => {
 test('Test event listener that updates metrics', async () => {
   const metrics = new Metrics();
 
-  listenEvents(api, metrics);
+  listenEvents(api, metrics, mnemonic1);
 
   const result1 = await addMetrics(api, '42', mnemonic1);
   expect(result1).toBe(true);

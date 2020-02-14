@@ -1,4 +1,4 @@
-const { connect, listenEvents, addMetrics, chainNodeInfo, initNonce } = require('./chain');
+const { connect, listenEvents, addMetrics, chainNodeInfo } = require('./chain');
 const { Metrics } = require('./metrics');
 const { catchExitSignals } = require('./utils');
 const { orchestrateService, serviceStart, serviceCleanUp } = require('./service');
@@ -39,9 +39,6 @@ async function main () {
     console.log('Connecting to Archipel Chain node...');
     const api = await connect(NODE_WS);
 
-    // Init global nonce
-    await initNonce(api, MNEMONIC);
-
     // Create Docker instance
     const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
@@ -53,31 +50,12 @@ async function main () {
     await serviceStart(docker, SERVICE, 'passive');
 
     // Listen events
-    listenEvents(api, metrics);
+    listenEvents(api, metrics, MNEMONIC);
 
-    // Update global nonce every 20 seconds
+    // Add metrics and orchestrate every 10 seconds
     setIntervalAsync(async () => {
       try {
-        // Init global nonce
-        await initNonce(api, MNEMONIC);
-      } catch (error) {
-        console.error(error);
-      }
-    }, 20000);
-
-    // Add metrics every 10 seconds
-    setIntervalAsync(async () => {
-      try {
-        const result = await addMetrics(api, 42, MNEMONIC);
-        debug('main', `Add metrics result: ${result}`);
-      } catch (error) {
-        console.error(error);
-      }
-    }, 10000);
-
-    // Orchestrate service every 10 seconds
-    setIntervalAsync(async () => {
-      try {
+        await addMetrics(api, 42, MNEMONIC);
         await orchestrateService(docker, api, metrics, MNEMONIC, ALIVE_TIME, SERVICE);
       } catch (error) {
         console.error(error);
@@ -88,9 +66,9 @@ async function main () {
     setInterval(() => { metrics.showMetrics(); }, 10000);
 
     // Show chain node info
-    setIntervalAsync(async () => { 
+    setIntervalAsync(async () => {
       try {
-        await chainNodeInfo(api); 
+        await chainNodeInfo(api);
       } catch (error) {
         console.error(error);
       }
@@ -98,6 +76,7 @@ async function main () {
 
     // Attach service cleanup to exit signals
     catchExitSignals(serviceCleanUp, docker, SERVICE);
+
   } catch (error) {
     debug('main', error);
     console.error(error);

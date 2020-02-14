@@ -1,4 +1,4 @@
-const { getLeader, setLeader, canSendTransactions, initNonce } = require('./chain.js');
+const { getLeader, setLeader, canSendTransactions } = require('./chain.js');
 const { getKeysFromSeed } = require('./utils');
 const { polkadotStart, polkadotCleanUp } = require('./polkadot');
 const debug = require('debug')('service');
@@ -43,8 +43,7 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
         await becomeLeader(docker, nodeKey, nodeKey, api, mnemonic, service, metrics, aliveTime);
       }
     } else {
-      console.log('Archipel node can\'t receive transactions. Only updating global nonce...');
-      await initNonce(api, mnemonic);
+      console.log('Archipel node can\'t receive transactions...');
     }
   } catch (error) {
     debug('orchestrateService', error);
@@ -68,7 +67,7 @@ const otherLeaderAction = async (docker, metrics, currentLeader, aliveTime, api,
         await becomeLeader(docker, currentLeader, nodeKey, api, mnemonic, service, metrics, aliveTime);
       } else {
         console.log(`Leader ${currentLeader} is alive no action required...`);
-        console.log(`Enforcing passive mode...`)
+        console.log('Enforcing passive mode...');
         await serviceStart(docker, service, 'passive');
       }
 
@@ -102,7 +101,9 @@ const becomeLeader = async (docker, oldLeaderKey, nodeKey, api, mnemonic, servic
     const leaderSet = await setLeader(api, oldLeaderKey, mnemonic);
 
     if (leaderSet === true) {
-      console.log('Leader was successfully set.');
+      console.log('The leader set transaction was completed...');
+      console.log('Sleeping 10 seconds to be sure that transaction was propagated to every node...');
+      await new Promise(resolve => setTimeout(resolve, 10000));
       await serviceStartIfAnyoneActive(docker, nodeKey, aliveTime, metrics, service);
     } else {
       console.log('Can\'t set leader.');
