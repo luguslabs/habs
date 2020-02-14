@@ -24,6 +24,7 @@ function launch_archipel () {
     --env POLKADOT_KEY_PARA="produce hover hurdle lobster december slight hat note quit bomb drama notice" \
     --env POLKADOT_KEY_AUDI="oak tail stomach fluid trade aunt fire fringe mercy roast style garlic" \
     --env POLKADOT_RESERVED_NODES="$8" \
+    --env POLKADOT_TELEMETRY_URL="$9" \
     --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
     --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
     --env DEBUG="app,chain,docker,metrics,polkadot,service" \
@@ -53,6 +54,8 @@ docker network create archipel --subnet=172.28.42.0/16
 docker volume create archipel1
 docker volume create archipel2
 docker volume create archipel3
+
+
 
 launch_archipel "archipel1" \
                 "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
@@ -120,6 +123,9 @@ docker rm archipel{1,2,3}
 echo "Sleeping 5 seconds to be sure that nodes are stopped and deleted..."
 sleep 5
 
+# You can add a custom Telemery URL like POLKADOT_TELEMETRY_URL="ws://IP_HERE:8000/submit"
+POLKADOT_TELEMETRY_URL=
+
 launch_archipel "archipel1" \
                 "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
                 "archipel-validator1" \
@@ -128,7 +134,8 @@ launch_archipel "archipel1" \
                 "$NODE1_IP" \
                 "$BOOTNODES_LIST" \
                 "$POLKADOT_RESERVED_NODES" \
-
+                "$POLKADOT_TELEMETRY_URL" \
+                
 launch_archipel "archipel2" \
                 "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
                 "archipel-validator2" \
@@ -137,6 +144,7 @@ launch_archipel "archipel2" \
                 "$NODE2_IP" \
                 "$BOOTNODES_LIST" \
                 "$POLKADOT_RESERVED_NODES" \
+                "$POLKADOT_TELEMETRY_URL" \
 
 launch_archipel "archipel3" \
                 "borrow initial guard hunt corn trust student opera now economy thumb argue" \
@@ -146,6 +154,7 @@ launch_archipel "archipel3" \
                 "$NODE3_IP" \
                 "$BOOTNODES_LIST" \
                 "$POLKADOT_RESERVED_NODES" \
+                "$POLKADOT_TELEMETRY_URL" \
 
 docker volume create archipel-node
 
