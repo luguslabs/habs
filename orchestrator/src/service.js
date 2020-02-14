@@ -1,4 +1,4 @@
-const { getLeader, setLeader, canSendTransactions } = require('./chain.js');
+const { getLeader, setLeader, canSendTransactions, initNonce } = require('./chain.js');
 const { getKeysFromSeed } = require('./utils');
 const { polkadotStart, polkadotCleanUp } = require('./polkadot');
 const debug = require('debug')('service');
@@ -43,7 +43,8 @@ const orchestrateService = async (docker, api, metrics, mnemonic, aliveTime, ser
         await becomeLeader(docker, nodeKey, nodeKey, api, mnemonic, service, metrics, aliveTime);
       }
     } else {
-      console.log('Archipel node can\'t receive transactions...');
+      console.log('Archipel node can\'t receive transactions. Only updating global nonce...');
+      await initNonce(api, mnemonic);
     }
   } catch (error) {
     debug('orchestrateService', error);
@@ -71,13 +72,13 @@ const otherLeaderAction = async (docker, metrics, currentLeader, aliveTime, api,
         await serviceStart(docker, service, 'passive');
       }
 
-    // If there is no metrics recieved from leader node
+    // If there is no metrics received from leader node
     } else {
       // How much checks remains
       const checksNumber = noLivenessThreshold - noLivenessFromLeader;
 
       if (checksNumber > 0) {
-        console.log('No liveness data from recieved from leader node...');
+        console.log('No liveness data from received from leader node...');
         console.log(`Will try to get leader place in ${checksNumber} checks...`);
         // Incrementing noLivenessFromLeader counter
         noLivenessFromLeader++;
@@ -94,7 +95,7 @@ const otherLeaderAction = async (docker, metrics, currentLeader, aliveTime, api,
   }
 };
 
-// Set leader onchain and launch service
+// Set leader on chain and launch service
 const becomeLeader = async (docker, oldLeaderKey, nodeKey, api, mnemonic, service, metrics, aliveTime) => {
   try {
     console.log('Trying to become leader...');

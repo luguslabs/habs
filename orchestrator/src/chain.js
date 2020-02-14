@@ -81,7 +81,7 @@ const canSendTransactions = async (api) => {
     debug('addMetrics', `Node is sync: ${syncState}`);
 
     // If node has any peers and is not in synchronizing chain
-    return peersNumber !== 0 && syncState !== 'true';
+    return peersNumber !== 0 && syncState !== true;
     
   } catch (error) {
     debug('canSendTransactions', error);
@@ -138,7 +138,8 @@ const addMetrics = async (api, metrics, mnemonic) => {
           }).catch(err => reject(err));
       });
     } else {
-      console.log('Archipel node can\'t receive transactions...');
+      console.log('Archipel node can\'t receive transactions. Only updating global nonce...');
+      await initNonce(api, mnemonic);
       return false;
     }
   } catch (error) {
@@ -183,7 +184,7 @@ const getPeerNumber = async api => {
 const getSyncState = async api => {
   try {
     const health = await api.rpc.system.health();
-    return health.isSyncing;
+    return health.isSyncing.toString() === 'true';
   } catch (error) {
     debug('getSyncState', error);
     return 0;
