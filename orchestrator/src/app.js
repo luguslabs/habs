@@ -43,7 +43,7 @@ async function main () {
     // Create Metrics instance
     const metrics = new Metrics();
 
-    // Creating orchestrator instance
+    // Create orchestrator instance
     const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME);
 
     // Start service in passive mode

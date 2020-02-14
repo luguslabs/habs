@@ -5,15 +5,16 @@ const { Polkadot } = require('./polkadot');
 const { Docker } = require('./docker');
 
 class Orchestrator {
-
   // Check if service is supported and create service instance
-  static createServiceInstance(serviceName, docker) {
+  static createServiceInstance (serviceName) {
     try {
       if (serviceName === 'polkadot') {
+        // Create docker instance
+        const docker = new Docker();
         // Create and return Polkadot instance
         return new Polkadot(docker);
       } else {
-        throw Error(`Service ${service} is not supported yet.`);
+        throw Error(`Service ${serviceName} is not supported yet.`);
       }
     } catch (error) {
       debug('createServiceInstance', error);
@@ -26,10 +27,8 @@ class Orchestrator {
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
     this.chain = chain;
-    // Create docker instance
-    this.docker = new Docker();
     // Create service instance
-    this.service = Orchestrator.createServiceInstance(service, docker);
+    this.service = Orchestrator.createServiceInstance(service);
     this.metrics = metrics;
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;

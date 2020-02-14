@@ -2,7 +2,6 @@ const { exec } = require('child_process');
 
 const { Orchestrator } = require('../orchestrator');
 const { Docker } = require('../docker');
-const { Polkadot } = require('../polkadot');
 const { Metrics } = require('../metrics');
 const { Chain } = require('../chain');
 const { getKeysFromSeed } = require('../utils');
@@ -11,7 +10,6 @@ const { getKeysFromSeed } = require('../utils');
 const jestTimeout = 320000;
 let docker;
 let chain;
-let service;
 let orchestrator;
 let metrics;
 const mnemonic1 = 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud';
@@ -53,7 +51,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-
   await orchestrator.serviceCleanUp();
 
   await chain.disconnect();
@@ -62,7 +59,6 @@ afterAll(async () => {
   console.log('Removing test chain...');
   const commandToExec = 'cd ../deployer/test/chain && ./remove.sh';
   await execAsync(commandToExec);
-  
 });
 
 test('Test service in passive mode start and cleanup.', async () => {
