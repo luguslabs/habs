@@ -40,7 +40,7 @@ const initNonce = async (api, mnemonic) => {
 
     globalNonce.set(keys.address.toString(), parseInt(nonce));
 
-    debug('connect', `Global nonce: ${globalNonce.get(keys.address.toString())}`);
+    debug('initNonce', `Global nonce: ${globalNonce.get(keys.address.toString())}`);
 
     return nonce;
   } catch (error) {

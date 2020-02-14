@@ -55,17 +55,27 @@ async function main () {
     // Listen events
     listenEvents(api, metrics);
 
+    // Update global nonce every 20 seconds
+    setIntervalAsync(async () => {
+      try {
+        // Init global nonce
+        await initNonce(api, MNEMONIC);
+      } catch (error) {
+        console.error(error);
+      }
+    }, 20000);
+
     // Add metrics every 10 seconds
     setIntervalAsync(async () => {
       try {
         const result = await addMetrics(api, 42, MNEMONIC);
-        debug('main', `Result add metrics: ${result}`);
+        debug('main', `Add metrics result: ${result}`);
       } catch (error) {
         console.error(error);
       }
     }, 10000);
 
-    // Orchestrate service every 10 second
+    // Orchestrate service every 10 seconds
     setIntervalAsync(async () => {
       try {
         await orchestrateService(docker, api, metrics, MNEMONIC, ALIVE_TIME, SERVICE);
