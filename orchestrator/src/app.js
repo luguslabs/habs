@@ -51,7 +51,7 @@ async function main () {
     await orchestrator.serviceStart('passive');
 
     // Listen events
-    chain.listenEvents(metrics, MNEMONIC);
+    chain.listenEvents(metrics, orchestrator, MNEMONIC);
 
     // Add metrics and orchestrate every 10 seconds
     setIntervalAsync(async () => {

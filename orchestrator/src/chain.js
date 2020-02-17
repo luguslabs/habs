@@ -33,7 +33,7 @@ class Chain {
   }
 
   // Listen events
-  async listenEvents (metrics, mnemonic) {
+  async listenEvents (metrics, orchestrator, mnemonic) {
     try {
       const keys = await getKeysFromSeed(mnemonic);
       // Subscribe to events
@@ -43,11 +43,12 @@ class Chain {
           // If change leader event received
           if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewLeader') {
             debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
+            // If anyone other god leadership
             if (event.data[0].toString() !== keys.address.toString()) {
               console.log('Forcing service in passive mode...');
+              orchestrator.serviceStart('passive');
             }
           }
-
           // Add metrics if Metrics updated event was received
           if (event.section.toString() === 'archipelModule' && event.method.toString() === 'MetricsUpdated') {
             debug('listenEvents', `Received metrics updated event from ${event.data[0].toString()}`);
@@ -236,6 +237,7 @@ class Chain {
     }
   }
 
+  // Disconnect from chain
   async disconnect () {
     if (this.api) {
       this.api.disconnect();
