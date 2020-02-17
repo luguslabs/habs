@@ -236,8 +236,9 @@ class Chain {
       console.error(error);
     }
   }
+
   // Check if connected to node
-  isConnected() {
+  isConnected () {
     try {
       return this.provider.isConnected().toString() !== 'false';
     } catch (error) {

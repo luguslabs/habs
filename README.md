@@ -147,6 +147,44 @@ docker run -d --name "archipel-node" \
   luguslabs/archipel-node:latest
 ```
 
+
+### Archipel with WireGuard VPN
+```
+# Create an .env file
+cat <<EOF >.env
+ARCHIPEL_NODE_ALIAS=archipel1
+ARCHIPEL_KEY_SEED=mushroom ladder ...
+ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=
+POLKADOT_NAME=test-name
+POLKADOT_PREFIX=node-
+SERVICE=polkadot
+POLKADOT_IMAGE=parity/polkadot:latest
+POLKADOT_KEY_GRAN=april shift ...
+POLKADOT_KEY_BABE=region run ...
+POLKADOT_KEY_IMON=screen sustain ...
+POLKADOT_KEY_PARA=produce hover ...
+POLKADOT_KEY_AUDI=oak tail ...
+ARCHIPEL_AUTHORITIES_SR25519_LIST=5FmqMTG...
+ARCHIPEL_AUTHORITIES_ED25519_LIST=5FbQNUq...
+# WireGuard config
+WIREGUARD_PRIVATE_KEY=SJWzBT8....
+WIREGUARD_ADDRESS=10.0.1.1/32
+WIREGUARD_LISTEN_PORT=51820
+WIREGUARD_PEERS_PUB_ADDR=9dcIYKj...,xg3wSS+...,gMjvfQGXWYJ...
+WIREGUARD_PEERS_ALLOWED_IP=10.0.1.1/32,10.0.1.2/32,10.0.1.3/32
+WIREGUARD_PEERS_EXTERNAL_ADDR=<public_ip>:51820,<public_ip>:51820,<public_ip>:51820
+EOF
+
+# Launch docker container
+docker run -d --name "archipel-with-wireguard" \
+  --cap-add net_admin --cap-add sys_module \
+  -p 51820:51820 \
+  -v /root/chain/data \
+  --env-file .env \
+  luguslabs/archipel-with-wireguard:latest
+
+```
+
 ### Environment Variables
 
 | Variable | Description | Values |
