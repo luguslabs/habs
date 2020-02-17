@@ -25,7 +25,6 @@ POLKADOT_KEY_BABE='region run sunset rule ...'
 POLKADOT_KEY_IMON='screen sustain clog husband ...'
 POLKADOT_KEY_PARA='produce hover hurdle lobster ...'
 POLKADOT_KEY_AUDI='oak tail stomach fluid ...'
-
 ```
 
 ### Run
