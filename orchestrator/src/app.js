@@ -75,6 +75,19 @@ async function main () {
       }
     }, 10000);
 
+    // Checking if the orchestrator is connected to chain every 5 secs
+    setIntervalAsync(async () => {
+      try {
+        if (!chain.isConnected()) {
+          console.log('Warning! Connection with chain was lost...');
+          console.log('Enforcing passive mode for service...');
+          await orchestrator.serviceStart('passive');
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }, 5000);
+
     // Attach service cleanup to exit signals
     catchExitSignals(orchestrator.serviceCleanUp.bind(orchestrator));
   } catch (error) {

@@ -236,6 +236,15 @@ class Chain {
       console.error(error);
     }
   }
+  // Check if connected to node
+  isConnected() {
+    try {
+      return this.provider.isConnected().toString() !== 'false';
+    } catch (error) {
+      debug('isConnected', error);
+      throw error;
+    }
+  }
 
   // Disconnect from chain
   async disconnect () {
