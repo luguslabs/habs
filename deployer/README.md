@@ -16,7 +16,7 @@ git clone https://github.com/luguslabs/archipel.git
 docker build -t luguslabs/archipel-node . -f deployer/archipel-node-docker/Dockerfile
 ```
 
-### Archipel wire WireGuard VPN
+### Archipel with WireGuard VPN
 ```bash
 # Clone the repository
 git clone https://github.com/luguslabs/archipel.git
