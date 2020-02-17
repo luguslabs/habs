@@ -129,8 +129,8 @@ class Orchestrator {
 
       if (leaderSet === true) {
         console.log('The leader set transaction was completed...');
-        console.log('Sleeping 10 seconds to be sure that transaction was propagated to every node...');
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        console.log('Sleeping 5 seconds to be sure that transaction was propagated to every node...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
         await this.serviceStartIfAnyoneActive(nodeKey);
       } else {
         console.log('Can\'t set leader.');
