@@ -154,7 +154,7 @@ class Docker {
   };
 
   // Start passive or active service container
-  async startServiceContainer (type, activeName, passiveName, image, cmd, mountTarget, mountSource) {
+  async startServiceContainer (type, activeName, passiveName, image, cmd, mountTarget, mountSource, networkMode) {
     try {
       // Creating volume
       await this.createVolume(mountSource);
@@ -175,6 +175,10 @@ class Docker {
           ]
         }
       };
+
+      if (networkMode !== '') {
+        containerData.HostConfig.NetworkMode = networkMode;
+      }
 
       // Get passive and active containers
       const containerPassive = await this.getContainerByName(passiveName);
