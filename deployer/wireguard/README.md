@@ -6,6 +6,8 @@ To enhance the security of Archipel solution, firstly we need to create a secure
 
 Here you will find a dockerized version of WireGuard inspired from [wireguard-docker](https://github.com/cmulk/wireguard-docker).
 
+**Warning!** For Intel Nuc, you must desactivate Secure Boot in BIOS (F2) to use WireGuard. Unckeck Secure Boot into Secure Boot config Panel.
+
 **Warning!** You can launch this container only at a Debian system with WireGuard kernel module installed.
 
 To install WireGuard kernel module:
