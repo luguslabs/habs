@@ -48,7 +48,7 @@ class Docker {
       // Convert stream to a string to return it
       return await streamToString(stream);
     } catch (error) {
-      debug('getContainerByName', error);
+      debug('dockerExecute', error);
       console.error(error);
       return false;
     }
@@ -224,6 +224,35 @@ class Docker {
       throw error;
     }
   }
+
+  async getContainerById (id) {
+    try {
+      const containers = await this.docker.listContainers({ all: true });
+      //return containers;
+      return containers.find(element => {
+        return element.Id.startsWith(id) ? element : false;
+      });
+    } catch (error) {
+      debug('getContainerById', error);
+      throw error;
+    }
+  }
+
+  async getMountThatContains (id, str) {
+    try {
+        const container = await this.getContainerById(id);
+        if (container) {
+          return container.Mounts.find(element => {
+            return element.Source.includes(str) ? element : false;
+          });
+        }
+        return false;
+      } catch (error) {
+        debug('getContainerById', error);
+        throw error;
+    }
+  }
+
 };
 
 module.exports = {
