@@ -33,10 +33,10 @@ class Polkadot {
     // Checking if necessary env vars were set
     try {
       // Checking if all necessary variables where set
-      if (POLKADOT_NAME === undefined || POLKADOT_IMAGE === undefined ||
-          POLKADOT_PREFIX === undefined || POLKADOT_KEY_GRAN === undefined ||
-          POLKADOT_KEY_BABE === undefined || POLKADOT_KEY_PARA === undefined ||
-          POLKADOT_KEY_IMON === undefined || POLKADOT_KEY_AUDI === undefined) {
+      if (isEmptyString(POLKADOT_NAME) || isEmptyString(POLKADOT_IMAGE)||
+        isEmptyString(POLKADOT_PREFIX) || isEmptyString(POLKADOT_KEY_GRAN) ||
+        isEmptyString(POLKADOT_KEY_BABE) || isEmptyString(POLKADOT_KEY_PARA) ||
+        isEmptyString(POLKADOT_KEY_IMON) || isEmptyString(POLKADOT_KEY_AUDI)) {
         throw Error('Polkadot Service needs POLKADOT_[NAME, KEY, IMAGE, PREFIX], POLKADOT_KEY_[GRAN, BABE, IMON, PARA, AUDI] env variables set.');
       }
     } catch (error) {

@@ -13,6 +13,12 @@ then
       exit 1
 fi
 
+if [ -z "$ARCHIPEL_NODE_KEY_FILE" ]
+then
+      echo "\$ARCHIPEL_NODE_KEY_FILE is empty"
+      exit 1
+fi
+
 if [ -z "$ARCHIPEL_AUTHORITIES_SR25519_LIST" ]
 then
       echo "\$ARCHIPEL_AUTHORITIES_SR25519_LIST is empty"
@@ -183,11 +189,13 @@ then
             --base-path /root/chain/data \
             --validator \
             --name "$ARCHIPEL_NODE_ALIAS" \
+            --node-key-file /keys/$ARCHIPEL_NODE_KEY_FILE \
             $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS
 else
       /root/chain/archipel \
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
             --validator \
+            --node-key-file /keys/$ARCHIPEL_NODE_KEY_FILE \
             --name "$ARCHIPEL_NODE_ALIAS"
 fi
