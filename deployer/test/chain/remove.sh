@@ -7,8 +7,6 @@ echo "Removing archipel network..."
 docker network rm archipel
 
 echo "Removing nodes volumes..."
-docker volume rm node1
-docker volume rm node2
-docker volume rm node3
+docker volume rm node{1,2,3}
 
 echo "Node removal finished..."

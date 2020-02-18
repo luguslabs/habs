@@ -134,21 +134,31 @@ class Polkadot {
       
       // Setting network mode variable if polkadot must be launched in VPN network
       let networkMode = '';
-      if (POLKADOT_KEY_AUDI !== undefined && POLKADOT_LAUNCH_IN_VPN === 'true') {
+      if (POLKADOT_LAUNCH_IN_VPN !== undefined && POLKADOT_LAUNCH_IN_VPN === 'true') {
         networkMode = `container:${os.hostname()}`;
         console.log(`Launching container with network mode: ${networkMode}...`);
       }
 
+      // Get service volume from orchestrator and give this volume to polkadot container
+      const orchestratorServiceVolume = await this.docker.getMountThatContains(os.hostname(), 'service');
+      let polkadotVolume;
+      if (orchestratorServiceVolume) {
+        polkadotVolume = orchestratorServiceVolume.Name;
+      } else {
+        polkadotVolume = POLKADOT_PREFIX + 'polkadot-volume';
+      }
+      console.log(`Polkadot will use volume '${polkadotVolume}'...`);
+
       // Launch service in specific mode
       // TODO: Don't sleep before key add
       if (mode === 'active') {
-        await this.docker.startServiceContainer('active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-active`, ...commonPolkadotOptions, '--validator', '--reserved-only'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume', networkMode);
+        await this.docker.startServiceContainer('active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-active`, ...commonPolkadotOptions, '--validator', '--reserved-only'], '/polkadot', polkadotVolume, networkMode);
         // Waiting to be sure that container is started
         await new Promise(resolve => setTimeout(resolve, 5000));
         // Adding validator keys
         await this.polkadotKeysImport(POLKADOT_PREFIX + 'polkadot-validator');
       } else if (mode === 'passive') {
-        await this.docker.startServiceContainer('passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-passive`, ...commonPolkadotOptions, '--sentry'], '/polkadot', POLKADOT_PREFIX + 'polkadot-volume', networkMode);
+        await this.docker.startServiceContainer('passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-passive`, ...commonPolkadotOptions, '--sentry'], '/polkadot', polkadotVolume, networkMode);
         // Waiting to be sure that container is started
         await new Promise(resolve => setTimeout(resolve, 5000));
         // Adding validator keys

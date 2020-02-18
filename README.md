@@ -120,11 +120,16 @@ ARCHIPEL_AUTHORITIES_SR25519_LIST=5FmqMTG...
 ARCHIPEL_AUTHORITIES_ED25519_LIST=5FbQNUq...
 EOF
 
+# Creating docker volumes
+docker volume create archipel
+docker volume create archipel_service
+
 # Launch docker container
 docker run -d --name "archipel1" \
   -p 30333:30333 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /root/chain/data \
+  -v archipel:/root/chain/data \
+  -v archipel_service:/service \
   --env-file .env \
   luguslabs/archipel:latest
 ```
@@ -176,11 +181,16 @@ WIREGUARD_PEERS_ALLOWED_IP=10.0.1.1/32,10.0.1.2/32,10.0.1.3/32
 WIREGUARD_PEERS_EXTERNAL_ADDR=<public_ip>:51820,<public_ip>:51820,<public_ip>:51820
 EOF
 
+# Creating docker volumes
+docker volume create archipel
+docker volume create archipel_service
+
 # Launch docker container
 docker run -d --name "archipel-with-wireguard" \
   --cap-add net_admin --cap-add sys_module \
   -p 51820:51820 \
-  -v /root/chain/data \
+  -v archipel:/root/chain/data \
+  -v archipel_service:/service \
   --env-file .env \
   luguslabs/archipel-with-wireguard:latest
 

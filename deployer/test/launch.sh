@@ -13,6 +13,7 @@ function launch_archipel () {
   docker run -d --name "$1" $5 \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $1:/root/chain/data \
+    -v $1_service:/service \
     -v $SCRIPTPATH/chain/keys:/keys \
     --network archipel \
     --ip "$6" \
@@ -50,7 +51,6 @@ function get_node_identity () {
   eval $__resultvar="'$node_local_id'"
 }
 
-
 NODE1_IP="172.28.42.2"
 NODE2_IP="172.28.42.3"
 NODE3_IP="172.28.42.4"
@@ -60,9 +60,11 @@ echo "Creating docker network for archipel test..."
 docker network create archipel --subnet=172.28.42.0/16
 
 docker volume create archipel1
+docker volume create archipel1_service
 docker volume create archipel2
+docker volume create archipel2_service
 docker volume create archipel3
-
+docker volume create archipel3_service
 
 NODE1_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key1-peer-id.txt)
 echo "Local archipel1 node identity is '$NODE1_LOCAL_ID'"
@@ -74,7 +76,6 @@ echo "Local archipel3 node identity is '$NODE3_LOCAL_ID'"
 # Constructing bootnodes list
 BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "Bootnodes list is '$BOOTNODES_LIST'"
-
 
 launch_archipel "archipel1" \
                 "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \

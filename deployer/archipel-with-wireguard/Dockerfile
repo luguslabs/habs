@@ -67,6 +67,6 @@ RUN chmod +x /usr/local/bin/start-chain.sh
 RUN chmod +x /usr/local/bin/start-orchestrator.sh
 RUN chmod +x /usr/local/bin/start-wireguard.sh
 
-EXPOSE 51820
+EXPOSE 51820/udp
 
 ENTRYPOINT ["supervisord","-c","/etc/supervisord/supervisord.conf"]

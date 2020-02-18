@@ -8,10 +8,8 @@ cd orchestrator && bash remove.sh
 sleep 5
 
 echo "Removing archipel volumes..."
-docker volume rm archipel1
-docker volume rm archipel2
-docker volume rm archipel3
-docker volume rm archipel-node
+docker volume rm archipel{1,2,3,-node}
+docker volume rm archipel{1,2,3}_service
 
 docker network rm archipel
 

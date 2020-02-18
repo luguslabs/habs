@@ -6,6 +6,7 @@ function launch_orchestrator () {
   # Launching docker container of node
   docker run -d --name "$1" \
     --network archipel \
+    -v $1_service:/service \
     -v /var/run/docker.sock:/var/run/docker.sock \
     --env NODE_WS="$2" \
     --env MNEMONIC="$3" \
@@ -25,6 +26,10 @@ function launch_orchestrator () {
   echo "Waiting 5 seconds to be sure that orchestrator is started..."
   sleep 5
 }
+
+docker volume create orchestrator1_service
+docker volume create orchestrator2_service
+docker volume create orchestrator3_service
 
 launch_orchestrator "orchestrator1" "ws://172.28.42.2:9944" "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" "validator1" "node1-"
 
