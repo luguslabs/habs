@@ -76,7 +76,7 @@ BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootn
 echo "Bootnodes list is '$BOOTNODES_LIST'"
 
 
-aunch_archipel "archipel1" \
+launch_archipel "archipel1" \
                 "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
                 "archipel-validator1" \
                 "node1-" \
