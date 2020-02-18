@@ -11,7 +11,7 @@ Here you will find a dockerized version of WireGuard inspired from [wireguard-do
 To install WireGuard kernel module:
 ```bash
 echo "deb http://deb.debian.org/debian/ unstable main" | sudo tee /etc/apt/sources.list.d/unstable.list
-echo -e "Package: *\nPin: release a=unstable\nPin-Priority: 150\n" | tee /etc/apt/preferences.d/limit-unstable
+echo -e "Package: *\nPin: release a=unstable\nPin-Priority: 150\n" | sudo tee /etc/apt/preferences.d/limit-unstable
 sudo apt update
 sudo apt install -y linux-headers-cloud-amd64 linux-headers-amd64 wireguard-dkms
 ```
