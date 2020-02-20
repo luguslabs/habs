@@ -17,10 +17,11 @@ echo -e "Package: *\nPin: release a=unstable\nPin-Priority: 150\n" | sudo tee /e
 sudo apt update
 sudo apt install -y linux-headers-cloud-amd64 linux-headers-amd64 wireguard-dkms
 ```
-sudo apt install -y linux-headers-$(uname -r) dkms wireguard-dkms
 
 
 ### Launching Archipel with WireGuard
+
+Dockerfile Archipel with wireguard [here]( https://github.com/luguslabs/archipel/tree/master/deployer/archipel-with-wireguard)
 
 #### Example
 ##### docker-compose.yml
