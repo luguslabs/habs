@@ -42,15 +42,6 @@ function launch_archipel () {
   sleep 10
 }
 
-# Get local node identity
-function get_node_identity () {
-  echo "Getting local $1 identity..."
-  # Make this trick to be able to return a result from a function in bash
-  local  __resultvar=$2
-  local node_local_id=$(docker logs $1 2>&1 | grep "Local node identity is" | tail -1 | grep -oE '[^ ]+$' --color=never)
-  eval $__resultvar="'$node_local_id'"
-}
-
 NODE1_IP="172.28.42.2"
 NODE2_IP="172.28.42.3"
 NODE3_IP="172.28.42.4"
@@ -77,68 +68,21 @@ echo "Local archipel3 node identity is '$NODE3_LOCAL_ID'"
 BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "Bootnodes list is '$BOOTNODES_LIST'"
 
-launch_archipel "archipel1" \
-                "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
-                "archipel-validator1" \
-                "node1-" \
-                "" \
-                "$NODE1_IP" \
-                "$BOOTNODES_LIST" \
-                "" \
-                "" \
-                "key1-node-key-file" \
-                "" \
-
-launch_archipel "archipel2" \
-                "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
-                "archipel-validator2" \
-                "node2-" \
-                "" \
-                "$NODE2_IP" \
-                "$BOOTNODES_LIST" \
-                "" \
-                "" \
-                "key2-node-key-file" \
-                "" \
-
-launch_archipel "archipel3" \
-                "borrow initial guard hunt corn trust student opera now economy thumb argue" \
-                "archipel-validator3" \
-                "node3-" \
-                "" \
-                "$NODE3_IP" \
-                "$BOOTNODES_LIST" \
-                "" \
-                "" \
-                "key3-node-key-file" \
-                "" \
-
 POLKADOT_NODE1_IP="172.17.0.2"
 POLKADOT_NODE2_IP="172.17.0.3"
 POLKADOT_NODE3_IP="172.17.0.4"
 
 # Getting polkadot nodes local node identity
-get_node_identity "node1-polkadot-sync" NODE1_POLKADOT_LOCAL_ID
+NODE1_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key1-polkadot-peer-id.txt)
 echo "Local node1-polkadot-sync node identity is '$NODE1_POLKADOT_LOCAL_ID'"
-get_node_identity "node2-polkadot-sync" NODE2_POLKADOT_LOCAL_ID
+NODE2_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key2-polkadot-peer-id.txt)
 echo "Local node2-polkadot-sync node identity is '$NODE2_POLKADOT_LOCAL_ID'"
-get_node_identity "node3-polkadot-sync" NODE3_POLKADOT_LOCAL_ID
+NODE3_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-polkadot-peer-id.txt)
 echo "Local node3-polkadot-sync node identity is '$NODE3_POLKADOT_LOCAL_ID'"
 
 # Constructing reserved peers polkadot list
 POLKADOT_RESERVED_NODES="/ip4/$POLKADOT_NODE1_IP/tcp/30333/p2p/$NODE1_POLKADOT_LOCAL_ID,/ip4/$POLKADOT_NODE2_IP/tcp/30333/p2p/$NODE2_POLKADOT_LOCAL_ID,/ip4/$POLKADOT_NODE3_IP/tcp/30333/p2p/$NODE3_POLKADOT_LOCAL_ID"
 echo "POLKADOT_RESERVED_NODES list is '$POLKADOT_RESERVED_NODES'"
-
-echo "Sleeping 10 sec before node remove to be sure that keys are added..."
-sleep 10
-
-# Recreating nodes containers
-# Removing nodes containers
-docker stop archipel{1,2,3}
-docker rm archipel{1,2,3}
-
-echo "Sleeping 5 seconds to be sure that nodes are stopped and deleted..."
-sleep 5
 
 # You can add a custom Telemery URL like POLKADOT_TELEMETRY_URL="ws://IP_HERE:8000/submit"
 POLKADOT_TELEMETRY_URL=

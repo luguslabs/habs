@@ -2,6 +2,7 @@ const debug = require('debug')('polkadot');
 const { u8aToHex } = require('@polkadot/util');
 const dotenv = require('dotenv');
 const os = require('os');
+const fs = require('fs-extra');
 
 const { getKeysFromSeed, isEmptyString } = require('./utils');
 
@@ -18,8 +19,12 @@ const {
   POLKADOT_KEY_AUDI,
   POLKADOT_RESERVED_NODES,
   POLKADOT_TELEMETRY_URL,
-  POLKADOT_LAUNCH_IN_VPN
+  POLKADOT_LAUNCH_IN_VPN,
+  POLKADOT_NODE_KEY_FILE
 } = process.env;
+
+const POLKADOT_UNIX_USER_ID = 1000;
+const POLKADOT_UNIX_GROUP_ID = 1000;
 
 class Polkadot {
   constructor (docker) {
@@ -33,11 +38,14 @@ class Polkadot {
     // Checking if necessary env vars were set
     try {
       // Checking if all necessary variables where set
-      if (isEmptyString(POLKADOT_NAME) || isEmptyString(POLKADOT_IMAGE)||
+      if (isEmptyString(POLKADOT_NAME) || isEmptyString(POLKADOT_IMAGE) ||
         isEmptyString(POLKADOT_PREFIX) || isEmptyString(POLKADOT_KEY_GRAN) ||
         isEmptyString(POLKADOT_KEY_BABE) || isEmptyString(POLKADOT_KEY_PARA) ||
         isEmptyString(POLKADOT_KEY_IMON) || isEmptyString(POLKADOT_KEY_AUDI)) {
         throw Error('Polkadot Service needs POLKADOT_[NAME, KEY, IMAGE, PREFIX], POLKADOT_KEY_[GRAN, BABE, IMON, PARA, AUDI] env variables set.');
+      }
+      if (fs.pathExists('/service') && isEmptyString(POLKADOT_NODE_KEY_FILE)) {
+        throw Error('Polkadot Service needs POLKADOT_NODE_KEY_FILE env variables set.');
       }
     } catch (error) {
       debug('checkEnvVars', error);
@@ -116,11 +124,27 @@ class Polkadot {
     }
   }
 
+  // Copy keys files to volume
+  async copyFilesToPolkadotContainer () {
+    try {
+      // Set polkadot user rights
+      await fs.chown('/service', POLKADOT_UNIX_USER_ID, POLKADOT_UNIX_GROUP_ID);
+      await fs.ensureDir('/service/keys');
+      await fs.copy('/keys/' + POLKADOT_NODE_KEY_FILE, '/service/keys/' + POLKADOT_NODE_KEY_FILE);
+      console.log('copy ' + POLKADOT_NODE_KEY_FILE + ' file in polkadot container folder /polkadot/keys/');
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   // Polkadot start function
   async start (mode) {
     try {
       const commonPolkadotOptions = ['--pruning=archive', '--wasm-execution', 'Compiled'];
-
+      if (fs.existsSync('/service')) {
+        await this.copyFilesToPolkadotContainer();
+        commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + POLKADOT_NODE_KEY_FILE);
+      }
       if (!isEmptyString(POLKADOT_RESERVED_NODES)) {
         commonPolkadotOptions.push(...this.formatReservedNodes(POLKADOT_RESERVED_NODES));
       }
@@ -131,7 +155,6 @@ class Polkadot {
           commonPolkadotOptions.push(...['--telemetry-url', POLKADOT_TELEMETRY_URL]);
         }
       }
-      
       // Setting network mode variable if polkadot must be launched in VPN network
       let networkMode = '';
       if (POLKADOT_LAUNCH_IN_VPN !== undefined && POLKADOT_LAUNCH_IN_VPN === 'true') {
