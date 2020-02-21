@@ -1,16 +1,15 @@
 const path = require('path');
-
-const { 
-    readFileAsync,
-    rootDir
+const fs = require('fs');
+const {
+  rootDir
 } = require('./utils');
 
 // Service file path
-const serviceFile = path.join(rootDir, "..", "services.json"); 
+const serviceFile = path.join(rootDir, '..', 'services.json');
 
 module.exports = class Service {
-    static async getServices() {
-        const fileContent = await readFileAsync(serviceFile);
-        return JSON.parse(fileContent);
-    }
-}
+  static getServices () {
+    const fileContent = fs.readFileSync(serviceFile);
+    return JSON.parse(fileContent);
+  }
+};

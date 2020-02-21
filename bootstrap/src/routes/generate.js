@@ -1,8 +1,9 @@
 const express = require('express');
 
-const { getConfig,
-        deleteConfig,
-        generateConfig
+const {
+  getConfig,
+  deleteConfig,
+  generateConfig
 } = require('../generate');
 
 const router = express.Router();
