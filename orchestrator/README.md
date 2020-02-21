@@ -25,6 +25,9 @@ POLKADOT_KEY_BABE='region run sunset rule ...'
 POLKADOT_KEY_IMON='screen sustain clog husband ...'
 POLKADOT_KEY_PARA='produce hover hurdle lobster ...'
 POLKADOT_KEY_AUDI='oak tail stomach fluid ...'
+POLKADOT_RESERVED_NODES="/ip4/$POLKADOT_NODE1_IP/tcp/30333/p2p/$NODE1_POLKADOT_LOCAL_ID,/ip4/$POLKADOT_NODE2_IP/tcp/30333/p2p/$NODE2_POLKADOT_LOCAL_ID,/ip4/$POLKADOT_NODE3_IP/tcp/30333/p2p/$NODE3_POLKADOT_LOCAL_ID"
+POLKADOT_TELEMETRY_URL=""
+POLKADOT_NODE_KEY_FILE="key1-polkadot-node-key-file"
 ```
 
 ### Run

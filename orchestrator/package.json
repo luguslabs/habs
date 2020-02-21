@@ -25,6 +25,7 @@
     "debug": "^4.1.1",
     "dockerode": "^3.0.2",
     "dotenv": "^8.2.0",
+    "fs-extra": "^8.1.0",
     "set-interval-async": "^1.0.30"
   },
   "devDependencies": {
