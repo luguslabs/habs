@@ -1,1 +1,48 @@
-Index page
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archipel Bootstrap</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="icon" href="/favicon.png">
+    <script src="/js/main.js"></script>
+</head>
+<body>
+    <main>
+        <h1>Init Archipel</h1>
+        <form action="/generate" method="POST">
+            <div class="form-inputs">
+                <label for="name">Archipel Name</label>
+                <input type="text" name="name" id="name">
+                <br>
+                <label for="service">Service</label>
+                <select name="service">
+                    <option value="polkadot">Polkadot</option>
+                    <option value="polkadot2">Polkadot2</option>
+                </select>
+                <h3>Polkadot Service Configuration</h3>
+                <div id="service-inputs">
+                    <label for="gran-key">Gran Key</label>
+                    <input type="text" name="gran-key" id="gran-key">
+                    <label for="babe-key">Babe Key</label>
+                    <input type="text" name="babe-key" id="babe-key">
+                    <label for="imon-key">Imon Key</label>
+                    <input type="text" name="imon-key" id="imon-key">
+                    <label for="para-key">Para Key</label>
+                    <input type="text" name="para-key" id="para-key">
+                    <label for="audi-key">Audi Key</label>
+                    <input type="text" name="audi-key" id="audi-key">
+                </div>
+            </div>
+            <button type="submit">Generate Configuration</button>
+        </form>
+        <hr>
+        <h1>Join an Archipel</h1>
+        <form action="/join" method="POST">
+        
+        </form>
+    </main>
+    
+</body>
+</html>

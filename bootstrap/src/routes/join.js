@@ -1,9 +1,9 @@
 const express = require('express');
 
-const { getIndexPage } = require('../main');
+const { joinFederation } = require('../join');
 
 const router = express.Router();
 
-router.get('/', getIndexPage);
+router.post('/', joinFederation);
 
 exports.routes = router;

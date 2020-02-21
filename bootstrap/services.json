@@ -1,0 +1,31 @@
+[{
+    "uid": "0",
+    "name": "polkadot",
+    "fields": [
+      {
+        "type": "text",
+        "name": "gran-key",
+        "label": "Gran Key"
+      },
+      {
+        "type": "text",
+        "name": "babe-key",
+        "label": "Babe Key"
+      },
+      {
+        "type": "text",
+        "name": "imon-key",
+        "label": "Imon Key"
+      },
+      {
+        "type": "text",
+        "name": "para-key",
+        "label": "Para Key"
+      },
+      {
+        "type": "text",
+        "name": "audi-key",
+        "label": "Audi Key"
+      }
+    ]
+}]
