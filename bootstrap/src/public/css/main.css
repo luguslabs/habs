@@ -1,0 +1,30 @@
+body {
+    background-color: #313131;
+    color: #dbedf3;
+}
+
+main {
+    width: 50%;
+    margin: 0;
+    position: absolute;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, 0)
+}
+
+.form-inputs {
+    margin-bottom: 0.8em;
+}
+
+#service-inputs input{
+    display: block;
+    margin-bottom: 0.4em;
+}
+
+#name {
+    margin-bottom: 0.8em;
+}
+
+button {
+    margin-bottom: 0.8em;
+}
