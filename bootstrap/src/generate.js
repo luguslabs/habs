@@ -5,7 +5,8 @@ const {
     asyncMiddleware,
     rootDir,
     unlinkAsync,
-    writeFileAsync
+    writeFileAsync,
+    execAsync
 } = require('./utils');
 
 const Service = require('./service');
@@ -15,6 +16,11 @@ const configFilePath = path.join(rootDir, "public", configFile);
 
 exports.getConfig = asyncMiddleware(async (req, res, next) => {
     const fileExists = await existsAsync(configFilePath);
+    const wireguardKeys = await generateWireguardKeys(5);
+    console.log(`wireguardKeys: ${wireguardKeys}`);
+    const substrateKeys = await generateSubstrateKeys(5);
+    console.log(`substrateKeys ${substrateKeys}`)
+
     if (!fileExists) {
         throw new Error('Configuration file was not found');
     } else {
@@ -67,3 +73,37 @@ exports.generateConfig = asyncMiddleware(async (req, res, next) => {
         throw new Error('Config file already exists');
     }
 });
+
+const generateWireguardKeys = async keysNumber => {
+    const keys = [];
+    for(let i = 0; i < keysNumber; i++){
+        const key = {};
+        key.privateKey = (await execAsync("wg genkey")).match(/[A-Za-z0-9\+\=\/]*/).toString();
+        key.publicKey = (await execAsync(`echo ${key.privateKey} | wg pubkey`)).match(/[A-Za-z0-9\+\=\/]*/).toString();
+        if (key.privateKey.length === 44 && key.publicKey.length === 44) {
+            keys.push(key);
+        }
+    }
+    return keys;
+}
+
+const generateSubstrateKeys = async keysNumber => {
+    const keys = [];
+    for(let i = 0; i < keysNumber; i++) {
+        const key = {};
+        const subKeyResult = await execAsync("subkey -n substrate generate");
+        key.seed = subKeyResult.match(/`.*`/).toString().replace(/`/gi, '').toString();
+        key.sr25519Address = subKeyResult.match(/SS58 Address:.*/).toString().replace(/SS58 Address:     /,'').toString();
+        const subKeyResultEd = await execAsync(`subkey -n substrate --ed25519 inspect "${key.seed}"`);
+        key.ed25519Address = subKeyResultEd.match(/SS58 Address:.*/).toString().replace(/SS58 Address:     /,'').toString();
+        keys.push(key);
+    }
+    return keys;
+}
+
+const generateNodeIds = async nodesNumber => {
+    
+}
+
+// Node ids 3 
+// config.json

@@ -1,6 +1,7 @@
 const path = require('path');
 const { promisify } = require('util');
 const fs = require('fs');
+const { exec } = require('child_process');
 
 const rootDir = path.dirname(process.mainModule.filename);
 
@@ -18,11 +19,21 @@ const asyncMiddleware = fn =>
       .catch(next);
 };
 
+const execAsync = cmd => new Promise((resolve, reject) => {
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+      reject(Error(stdout + stderr));
+    }
+    resolve(stdout + stderr);
+  });
+});
+
 module.exports = {
   rootDir,
   readFileAsync,
   asyncMiddleware,
   existsAsync,
   unlinkAsync,
-  writeFileAsync
+  writeFileAsync,
+  execAsync
 };
