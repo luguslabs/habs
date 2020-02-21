@@ -5,27 +5,32 @@
       {
         "type": "text",
         "name": "gran-key",
-        "label": "Gran Key"
+        "label": "Gran Key",
+        "env": "POLKADOT_KEY_GRAN"
       },
       {
         "type": "text",
         "name": "babe-key",
-        "label": "Babe Key"
+        "label": "Babe Key",
+        "env": "POLKADOT_KEY_BABE"
       },
       {
         "type": "text",
         "name": "imon-key",
-        "label": "Imon Key"
+        "label": "Imon Key",
+        "env": "POLKADOT_KEY_IMON"
       },
       {
         "type": "text",
         "name": "para-key",
-        "label": "Para Key"
+        "label": "Para Key",
+        "env": "POLKADOT_KEY_PARA"
       },
       {
         "type": "text",
         "name": "audi-key",
-        "label": "Audi Key"
+        "label": "Audi Key",
+        "env": "POLKADOT_KEY_AUDI"
       }
     ]
 }]

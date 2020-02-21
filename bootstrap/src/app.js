@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const fileUpload = require('express-fileupload');
 
 const mainRoutes = require('./routes/main');
 const servicesRoutes = require('./routes/services');
@@ -12,6 +13,11 @@ const { rootDir } = require('./utils');
 // Main function
 function main () {
   const app = express();
+
+  // Enable file upload support
+  app.use(fileUpload({
+    createParentPath: true
+  }));
 
   // Add body parser to express
   app.use(bodyParser.urlencoded({ extended: false }));

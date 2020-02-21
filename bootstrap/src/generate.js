@@ -48,6 +48,13 @@ exports.generateConfig = (req, res, next) => {
 
     const config = {};
 
+    // Check if federation name was set
+    if (req.body.name === undefined || req.body.name === '') {
+      throw new Error('Please set federation name');
+    }
+    // Set federation name in config
+    config.name = req.body.name;
+
     // Add service info to configuration
     const services = Service.getServices();
     const service = services.find(srv => srv.name === req.body.service);
@@ -57,7 +64,7 @@ exports.generateConfig = (req, res, next) => {
       config.service = { name: service.name };
       service.fields.forEach(field => {
         if (req.body[field.name] !== undefined && req.body[field.name] !== '') {
-          config.service[field.name] = req.body[field.name];
+          config.service[field.name] = { body: req.body[field.name], env: field.env };
         } else {
           throw Error(`'${field.label}' field was not set.`);
         }
@@ -66,18 +73,27 @@ exports.generateConfig = (req, res, next) => {
       throw new Error(`Service ${req.body.service} was not found`);
     }
 
-    // Get external ips list
+    if (req.body.name === undefined || req.body.name === '') {
+      throw new Error('Please set federation name');
+    }
+
+    // Check if ip list was set
+    if (req.body.ips === undefined || req.body.ips === '') {
+      throw new Error('Please set ip list');
+    }
+
+    // Set external IPs list
     const externalIPAddresses = req.body.ips;
-    const externalIPAddressesList = externalIPAddresses.split(',');
+    config.externalIPAddresses = externalIPAddresses.split(',');
 
     // Generate Wireguard keys
-    config.wireGuardKeys = generateWireguardKeys(externalIPAddressesList.length);
+    config.wireGuardKeys = generateWireguardKeys(config.externalIPAddresses.length);
 
     // Generate Archipel Substrate keys
-    config.archipelSubstrateKeys = generateSubstrateKeys(externalIPAddressesList.length);
+    config.archipelSubstrateKeys = generateSubstrateKeys(config.externalIPAddresses.length);
 
-    // Generate Archipel Node Ids
-    config.archipelNodeIds = generateNodeIds(externalIPAddressesList.length);
+    // Generate Service Node Ids
+    config.serviceNodeIds = generateNodeIds(config.externalIPAddresses.length);
 
     // Writing JSON to file
     fs.writeFileSync('/tmp/archipel-bootstrap/config.json', JSON.stringify(config), 'utf8');
