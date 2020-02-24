@@ -44,7 +44,7 @@ class Polkadot {
         isEmptyString(POLKADOT_KEY_IMON) || isEmptyString(POLKADOT_KEY_AUDI)) {
         throw Error('Polkadot Service needs POLKADOT_[NAME, KEY, IMAGE, PREFIX], POLKADOT_KEY_[GRAN, BABE, IMON, PARA, AUDI] env variables set.');
       }
-      if (fs.pathExists('/service') && isEmptyString(POLKADOT_NODE_KEY_FILE)) {
+      if (fs.existsSync('/service') && isEmptyString(POLKADOT_NODE_KEY_FILE)) {
         throw Error('Polkadot Service needs POLKADOT_NODE_KEY_FILE env variables set.');
       }
     } catch (error) {

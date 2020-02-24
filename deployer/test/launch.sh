@@ -18,6 +18,7 @@ function launch_archipel () {
     --network archipel \
     --ip "$6" \
     --env ARCHIPEL_NODE_ALIAS=$1 \
+    --env ARCHIPEL_LISTEN_PORT=30333 \
     --env ARCHIPEL_KEY_SEED="$2" \
     --env ARCHIPEL_NODE_KEY_FILE="${10}" \
     --env ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="$7" \
