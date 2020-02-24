@@ -7,6 +7,12 @@ then
       exit 1
 fi
 
+if [ -z "$ARCHIPEL_LISTEN_PORT" ]
+then
+      echo "\$ARCHIPEL_LISTEN_PORT not set. Set default to 30333"
+      ARCHIPEL_LISTEN_PORT=30333
+fi
+
 if [ -z "$ARCHIPEL_KEY_SEED" ]
 then
       echo "\$ARCHIPEL_KEY_SEED is empty"
@@ -16,6 +22,12 @@ fi
 if [ -z "$ARCHIPEL_NODE_KEY_FILE" ]
 then
       echo "\$ARCHIPEL_NODE_KEY_FILE is empty"
+      exit 1
+fi
+
+if [ ! -f /keys/$ARCHIPEL_NODE_KEY_FILE ]
+then
+      echo "\$/keys/$ARCHIPEL_NODE_KEY_FILE file not found"
       exit 1
 fi
 
@@ -188,6 +200,7 @@ then
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
             --validator \
+            --port $ARCHIPEL_LISTEN_PORT \
             --name "$ARCHIPEL_NODE_ALIAS" \
             --node-key-file /keys/$ARCHIPEL_NODE_KEY_FILE \
             $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS
@@ -196,6 +209,7 @@ else
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
             --validator \
+            --port $ARCHIPEL_LISTEN_PORT \
             --node-key-file /keys/$ARCHIPEL_NODE_KEY_FILE \
             --name "$ARCHIPEL_NODE_ALIAS"
 fi

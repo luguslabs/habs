@@ -15,10 +15,7 @@ RUN ./target/release/archipel build-spec --chain template --raw > archipelTempla
 ###########################
 # Build subkey tool step
 ###########################
-RUN rustup install nightly-2020-02-17
-RUN rustup target add wasm32-unknown-unknown --toolchain nightly-2020-02-17
-RUN cargo +nightly-2020-02-17 install --force --git https://github.com/paritytech/substrate subkey
-#RUN cargo install --force --git https://github.com/paritytech/substrate subkey
+RUN cargo install --force --git https://github.com/paritytech/substrate subkey
 
 ####################################
 # Create Archipel docker image
