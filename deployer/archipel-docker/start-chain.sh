@@ -1,4 +1,4 @@
-.#!/bin/bash 
+#!/bin/bash 
 
 #check if env vars are set
 if [ -z "$ARCHIPEL_NODE_ALIAS" ]
