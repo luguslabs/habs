@@ -21,8 +21,8 @@ fi
 
 if [ -z "$ARCHIPEL_NODE_KEY_FILE" ]
 then
-      echo "\$ARCHIPEL_NODE_KEY_FILE is empty"
-      exit 1
+      echo "\$ARCHIPEL_NODE_KEY_FILE is empty. set default filename archipel_node_key_file that must be uploaded"
+      ARCHIPEL_NODE_KEY_FILE="archipel_node_key_file"
 fi
 
 if [ ! -f /keys/$ARCHIPEL_NODE_KEY_FILE ]
