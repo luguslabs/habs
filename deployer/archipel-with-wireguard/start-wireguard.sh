@@ -38,6 +38,7 @@ for i in "${!WIREGUARD_PEERS_PUB_ADDR_SPACE[@]}"; do
 PublicKey = ${WIREGUARD_PEERS_PUB_ADDR_SPACE[i]}
 AllowedIPs = ${WIREGUARD_PEERS_ALLOWED_IP_SPACE[i]}
 Endpoint = ${WIREGUARD_PEERS_EXTERNAL_ADDR_SPACE[i]}
+PersistentKeepalive = 21
 
 EOF
     fi
