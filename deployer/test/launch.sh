@@ -65,9 +65,15 @@ echo "Local archipel2 node identity is '$NODE2_LOCAL_ID'"
 NODE3_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-peer-id.txt)
 echo "Local archipel3 node identity is '$NODE3_LOCAL_ID'"
 
-# Constructing bootnodes list
+# Constructing bootnodes and reserved nodes lists
 BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "Bootnodes list is '$BOOTNODES_LIST'"
+RESERVED_LIST="--reserved-nodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --reserved-nodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --reserved-nodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
+echo "RESERVED_LIST  is '$RESERVED_LIST'"
+ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=$BOOTNODES_LIST" "$RESERVED_LIST
+
+echo "ARCHIPEL_CHAIN_ADDITIONAL_PARAMS  is '$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS'"
+
 
 POLKADOT_NODE1_IP="172.17.0.2"
 POLKADOT_NODE2_IP="172.17.0.3"
@@ -94,7 +100,7 @@ launch_archipel "archipel1" \
                 "node1-" \
                 "" \
                 "$NODE1_IP" \
-                "$BOOTNODES_LIST" \
+                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key1-node-key-file" \
@@ -106,7 +112,7 @@ launch_archipel "archipel2" \
                 "node2-" \
                 "" \
                 "$NODE2_IP" \
-                "$BOOTNODES_LIST" \
+                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key2-node-key-file" \
@@ -118,7 +124,7 @@ launch_archipel "archipel3" \
                 "node3-" \
                 "" \
                 "$NODE3_IP" \
-                "$BOOTNODES_LIST" \
+                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key3-node-key-file" \

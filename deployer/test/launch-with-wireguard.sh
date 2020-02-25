@@ -90,9 +90,15 @@ echo "Local archipel2 node identity is '$NODE2_LOCAL_ID'"
 NODE3_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-peer-id.txt)
 echo "Local archipel3 node identity is '$NODE3_LOCAL_ID'"
 
-# Constructing bootnodes list
-BOOTNODES_LIST="--bootnodes /ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30334/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30334/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30334/p2p/$NODE3_LOCAL_ID"
+
+# Constructing bootnodes and reserved nodes lists
+BOOTNODES_LIST="--bootnodes /ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "Bootnodes list is '$BOOTNODES_LIST'"
+RESERVED_LIST="--reserved-nodes /ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_LOCAL_ID --reserved-nodes /ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_LOCAL_ID --reserved-nodes /ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_LOCAL_ID"
+echo "RESERVED_LIST  is '$RESERVED_LIST'"
+
+ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="--reserved-only "$RESERVED_LIST
+echo "ARCHIPEL_CHAIN_ADDITIONAL_PARAMS  is '$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS'"
 
 POLKADOT_NODE1_IP="172.17.0.2"
 POLKADOT_NODE2_IP="172.17.0.3"
@@ -119,7 +125,7 @@ launch_archipel "archipel1" \
                 "node1-" \
                 "" \
                 "$NODE1_IP" \
-                "$BOOTNODES_LIST" \
+                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key1-node-key-file" \
@@ -137,7 +143,7 @@ launch_archipel "archipel2" \
                 "node2-" \
                 "" \
                 "$NODE2_IP" \
-                "$BOOTNODES_LIST" \
+                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key2-node-key-file" \
@@ -154,7 +160,7 @@ launch_archipel "archipel3" \
                 "node3-" \
                 "" \
                 "$NODE3_IP" \
-                "$BOOTNODES_LIST" \
+                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key3-node-key-file" \
@@ -164,25 +170,6 @@ launch_archipel "archipel3" \
                 "$WIREGUARD_PEERS_PUB_ADDR" \
                 "$WIREGUARD_PEERS_ALLOWED_IP" \
                 "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
-
-
-docker volume create archipel-node
-
-echo "Launching an Archipel node..."
-docker run -d \
-      -p 9944:9944 \
-      -v archipel-node:/root/chain/data \
-      --name "archipel-node" \
-      --network archipel \
-      --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
-      --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
-      --env ARCHIPEL_NODE_ALIAS="archipel-node" \
-      --env ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="$BOOTNODES_LIST" \
-      luguslabs/archipel-node:test
-
-echo "Launching and Opening Archipel UI..."
-docker run -d -p 8080:80 --name archipel-ui luguslabs/archipel-ui:test
-echo "Archipel UI is running at http://localhost:8080 ..."
 
 echo "Archipel was created."
 docker ps
