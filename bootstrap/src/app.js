@@ -6,8 +6,12 @@ const fileUpload = require('express-fileupload');
 const mainRoutes = require('./routes/main');
 const servicesRoutes = require('./routes/services');
 const generateRoutes = require('./routes/generate');
-const { get404 } = require('./error');
-const { rootDir } = require('./utils');
+const {
+  get404
+} = require('./error');
+const {
+  rootDir
+} = require('./utils');
 
 // Main function
 function main () {
