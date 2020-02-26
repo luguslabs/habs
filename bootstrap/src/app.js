@@ -5,7 +5,6 @@ const fileUpload = require('express-fileupload');
 
 const mainRoutes = require('./routes/main');
 const servicesRoutes = require('./routes/services');
-const joinRoutes = require('./routes/join');
 const generateRoutes = require('./routes/generate');
 const { get404 } = require('./error');
 const { rootDir } = require('./utils');
@@ -31,8 +30,6 @@ function main () {
   app.use('/services', servicesRoutes.routes);
 
   app.use('/generate', generateRoutes.routes);
-
-  app.use('/join', joinRoutes.routes);
 
   // Add not found middleware
   app.use(get404);
