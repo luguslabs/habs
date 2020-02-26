@@ -1,13 +1,14 @@
 const express = require('express');
 
+const {
+  getServices
+} = require('../service');
+
 const router = express.Router();
-const Service = require('../service');
 
-const { asyncMiddleware } = require('../utils');
-
-router.get('/', asyncMiddleware(async (req, res, next) => {
-  const services = await Service.getServices();
-  res.json(services);
-}));
+// Get services list
+router.get('/', (req, res, next) => {
+  res.json(getServices());
+});
 
 exports.routes = router;

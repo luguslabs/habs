@@ -1,4 +1,5 @@
-exports.get404 = (req, res, next) => {
+// Return not found response
+const get404 = (req, res, next) => {
   const error = {
     errors: [
       {
@@ -9,4 +10,8 @@ exports.get404 = (req, res, next) => {
     ]
   };
   res.status(404).json(error);
+};
+
+module.exports = {
+  get404
 };

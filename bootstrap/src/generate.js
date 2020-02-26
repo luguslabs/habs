@@ -1,20 +1,29 @@
 const path = require('path');
 const fs = require('fs');
-
 const {
   rootDir,
-  rmNonEmptyDir,
-  execCmdSync
+  checkConfigFile,
+  writeConfigToFile
 } = require('./utils');
 
-const Service = require('./service');
+const {
+  generateWireguardConfig
+} = require('./wireguard');
+
+const {
+  generateServiceConfig
+} = require('./service');
+
+const {
+  generateArchipelConfig
+} = require('./archipel');
 
 const configFile = 'config.zip';
 const tempDir = '/tmp/archipel-bootstrap';
 const configFilePath = path.join(rootDir, 'public', configFile);
 
 // Get configuration Archive
-exports.getConfig = (req, res, next) => {
+const getConfig = (req, res, next) => {
   if (!fs.existsSync(configFilePath)) {
     throw new Error('Configuration file was not found');
   } else {
@@ -23,7 +32,7 @@ exports.getConfig = (req, res, next) => {
 };
 
 // Delete configuration Archive
-exports.deleteConfig = (req, res, next) => {
+const deleteConfig = (req, res, next) => {
   if (!fs.existsSync(configFilePath)) {
     throw new Error('Configuration file was not found');
   } else {
@@ -34,133 +43,61 @@ exports.deleteConfig = (req, res, next) => {
   }
 };
 
-// Generate configuration Archive
-exports.generateConfig = (req, res, next) => {
-  // Check if config file already exists
-  if (!fs.existsSync(configFilePath)) {
-    // Create temp directory
-    if (fs.existsSync(tempDir)) {
-      rmNonEmptyDir(tempDir);
-      fs.mkdirSync(tempDir);
-    } else {
-      fs.mkdirSync(tempDir);
-    }
-
-    const config = {};
-
-    // Check if federation name was set
-    if (req.body.name === undefined || req.body.name === '') {
-      throw new Error('Please set federation name');
-    }
-    // Set federation name in config
-    config.name = req.body.name;
-
-    // Add service info to configuration
-    const services = Service.getServices();
-    const service = services.find(srv => srv.name === req.body.service);
-
-    // If service was found adding all service fields to config
-    if (service) {
-      config.service = { name: service.name };
-      service.fields.forEach(field => {
-        if (req.body[field.name] !== undefined && req.body[field.name] !== '') {
-          config.service[field.name] = { body: req.body[field.name], env: field.env };
-        } else {
-          throw Error(`'${field.label}' field was not set.`);
-        }
-      });
-    } else {
-      throw new Error(`Service ${req.body.service} was not found`);
-    }
-
-    if (req.body.name === undefined || req.body.name === '') {
-      throw new Error('Please set federation name');
-    }
-
-    // Check if ip list was set
-    if (req.body.ips === undefined || req.body.ips === '') {
-      throw new Error('Please set ip list');
-    }
-
-    // Set external IPs list
-    const externalIPAddresses = req.body.ips;
-    config.externalIPAddresses = externalIPAddresses.split(',');
-
-    // Generate Wireguard keys
-    config.wireGuardKeys = generateWireguardKeys(config.externalIPAddresses.length);
-
-    // Generate Archipel Substrate keys
-    config.archipelSubstrateKeys = generateSubstrateKeys(config.externalIPAddresses.length);
-
-    // Generate Service Node Ids
-    config.serviceNodeIds = generateNodeIds(config.externalIPAddresses.length);
-
-    // Writing JSON to file
-    fs.writeFileSync('/tmp/archipel-bootstrap/config.json', JSON.stringify(config), 'utf8');
-
-    // Creating Archive with config data
-    createArchive('/tmp/archipel-bootstrap', configFilePath);
-
-    // Removing temporary directory
-    rmNonEmptyDir(tempDir);
-
-    res.status(200).json({
-      message: 'Config file was created'
-    });
-  } else {
-    throw new Error('Config file already exists');
-  }
-};
-
-// Generate Wireguard keys
-const generateWireguardKeys = keysNumber => {
-  const keys = [];
-  for (let i = 0; i < keysNumber; i++) {
-    const key = {};
-    key.privateKey = execCmdSync('wg genkey').match(/[A-Za-z0-9+=/]*/).toString();
-    key.publicKey = execCmdSync(`echo ${key.privateKey} | wg pubkey`).match(/[A-Za-z0-9+=/]*/).toString();
-
-    if (key.privateKey.length === 44 && key.publicKey.length === 44) {
-      keys.push(key);
-    }
-  }
-  return keys;
-};
-
-// Generate Substrate Keys and extract sr25519 and ed25519 addresses
-const generateSubstrateKeys = keysNumber => {
-  const keys = [];
-  for (let i = 0; i < keysNumber; i++) {
-    const key = {};
-
-    const subKeyResult = execCmdSync('subkey -n substrate generate');
-    key.seed = subKeyResult.match(/`.*`/).toString().replace(/`/gi, '').toString();
-    key.sr25519Address = subKeyResult.match(/SS58 Address:.*/).toString().replace(/SS58 Address: {5}/, '').toString();
-
-    const subKeyResultEd = execCmdSync(`subkey -n substrate --ed25519 inspect "${key.seed}"`);
-    key.ed25519Address = subKeyResultEd.match(/SS58 Address:.*/).toString().replace(/SS58 Address: {5}/, '').toString();
-
-    keys.push(key);
-  }
-  return keys;
-};
-
-// Create Node id files and get Peer Ids
-const generateNodeIds = nodesNumber => {
-  const nodeIds = [];
-
-  for (let i = 0; i < nodesNumber; i++) {
-    const node = {};
-    const subKeyResult = execCmdSync(`subkey generate-node-key /tmp/archipel-bootstrap/node-id-${i}`).match(/[A-Za-z0-9+=/]*/).toString();
-    node.peerId = subKeyResult;
-    node.idFile = `node-id-${i}`;
-    nodeIds.push(node);
+// Check fields of generate config file request
+const checkGenerateRequestFields = (req, res, next) => {
+  // Check if federation name was set
+  if (req.body.name === undefined || req.body.name === '') {
+    throw new Error('Please set federation name');
   }
 
-  return nodeIds;
+  if (req.body.name === undefined || req.body.name === '') {
+    throw new Error('Please set federation name');
+  }
+
+  // Check if ip list was set
+  if (req.body.ips === undefined || req.body.ips === '') {
+    throw new Error('Please set ip list');
+  }
+
+  // Archipel federation must have minimum 3 nodes
+  if (req.body.ips.split(',').length < 3) {
+    throw new Error('Ip list must have minimum 3 addresses');
+  }
+
+  next();
 };
 
-// Create a zip Archive
-const createArchive = (folderPath, resultFilePath) => {
-  execCmdSync(`zip -r -j ${resultFilePath} ${folderPath}`);
+// Generate configuration archive
+const generateConfig = (req, res, next) => {
+  // Config file checks
+  checkConfigFile(configFilePath, tempDir);
+
+  // Start constructing config
+  let config = {
+    name: req.body.name
+  };
+  const externalIPAddresses = req.body.ips.split(',');
+
+  // Adding service config
+  config = { ...config, ...generateServiceConfig(req.body, externalIPAddresses.length) };
+
+  // Adding wireguard config
+  config = { ...config, ...generateWireguardConfig(externalIPAddresses) };
+
+  // Adding Archipel config
+  config = { ...config, ...generateArchipelConfig(externalIPAddresses.length) };
+
+  // Write configuration to file
+  writeConfigToFile(config, configFilePath, tempDir);
+
+  res.status(200).json({
+    message: 'Config file was created'
+  });
+};
+
+module.exports = {
+  getConfig,
+  deleteConfig,
+  generateConfig,
+  checkGenerateRequestFields
 };
