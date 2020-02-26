@@ -12,6 +12,20 @@ const get404 = (req, res, next) => {
   res.status(404).json(error);
 };
 
+const errorHandler = (err, req, res, next) => {
+  const error = {
+    errors: [
+      {
+        status: '500',
+        title: 'Error',
+        detail: err.toString()
+      }
+    ]
+  };
+  res.status(500).json(error); 
+};
+
 module.exports = {
-  get404
+  get404,
+  errorHandler
 };
