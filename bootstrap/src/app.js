@@ -7,7 +7,8 @@ const mainRoutes = require('./routes/main');
 const servicesRoutes = require('./routes/services');
 const generateRoutes = require('./routes/generate');
 const {
-  get404
+  get404,
+  errorHandler
 } = require('./error');
 const {
   rootDir
@@ -37,6 +38,9 @@ function main () {
 
   // Add not found middleware
   app.use(get404);
+
+  // Add error handler
+  app.use(errorHandler);
 
   app.listen(3000);
 }
