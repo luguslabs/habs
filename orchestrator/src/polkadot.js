@@ -15,6 +15,7 @@ const {
 const config = {};
 
 class Polkadot {
+  // Init configuration
   static initConfig () {
     try {
       // Check if the config can be retrieved from config file
@@ -49,22 +50,20 @@ class Polkadot {
         config.polkadotKeyImon = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_IMON').value;
         config.polkadotKeyPara = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_PARA').value;
         config.polkadotKeyAudi = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_AUDI').value;
-
-        console.log(`GRAN: ${config.polkadotKeyGran}`);
         config.polkadotReservedNodes = process.env.POLKADOT_RESERVED_NODES;
         config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
         config.polkadotLaunchInVpn = true;
-        config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID)-1].idFile;
+        config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile;
       }
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
-
     } catch (error) {
       debug('initConfig', error);
       throw error;
     }
   }
 
+  // Check if configuration was successfully set
   static checkConfig () {
     // Checking if necessary env vars were set
     try {
