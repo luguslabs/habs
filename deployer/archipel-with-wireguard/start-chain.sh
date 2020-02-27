@@ -1,5 +1,27 @@
 #!/bin/bash 
 
+#parsing config file
+if [ ! -z "$CONFIG_FILE" ]; then
+      if [ -z "$NODE_ID" ]; then
+            echo "\$NODE_ID must be set"
+            exit 1
+      fi
+      #unpack config file
+      if [ ! -f "/config/config.json" ]; then
+        unzip -o /config/archipel-config.zip
+      fi
+      cd /config
+
+      #set variables from config file
+      ARCHIPEL_NODE_ALIAS="$(cat config.json | jq '.name' | sed 's/\"//g')-$NODE_ID"
+      ARCHIPEL_KEY_SEED=$(cat config.json | jq ".archipelNodes[$NODE_ID].seed" | sed 's/\"//g')
+      ARCHIPEL_NODE_KEY_FILE=$(cat config.json | jq ".archipelNodes[$NODE_ID].nodeIds.idFile" | sed 's/\"//g')
+      cp /config/$ARCHIPEL_NODE_KEY_FILE /keys
+      ARCHIPEL_AUTHORITIES_SR25519_LIST=$(cat config.json | jq ".archipelSr25519List" | sed 's/\"//g')
+      ARCHIPEL_AUTHORITIES_ED25519_LIST=$(cat config.json | jq ".archipelEd25519List" | sed 's/\"//g')
+      ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=$(cat config.json | jq ".archipelNodes[$NODE_ID].bootNodesList" | sed 's/\"//g')
+fi
+
 #check if env vars are set
 if [ -z "$ARCHIPEL_NODE_ALIAS" ]
 then

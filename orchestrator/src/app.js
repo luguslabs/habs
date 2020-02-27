@@ -14,6 +14,7 @@ const {
   MNEMONIC,
   ALIVE_TIME,
   SERVICE
+
 } = process.env;
 
 // Check if all necessary env vars were set

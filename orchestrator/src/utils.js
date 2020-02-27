@@ -1,5 +1,6 @@
 const { Keyring } = require('@polkadot/keyring');
 const { cryptoWaitReady } = require('@polkadot/util-crypto');
+const fs = require('fs-extra');
 
 // Create a Keyring from seed
 const getKeysFromSeed = async (_seed, type = 'sr25519') => {
@@ -19,6 +20,12 @@ const streamToString = stream => {
     stream.on('error', reject);
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8').replace(/[^\x20-\x7E]/g, '')));
   });
+};
+
+// Read json file content to object
+const readToObj = path => {
+  const fileContent = fs.readFileSync(path);
+  return JSON.parse(fileContent);
 };
 
 // Cleanup on exit
@@ -47,5 +54,6 @@ module.exports = {
   getKeysFromSeed,
   streamToString,
   catchExitSignals,
-  isEmptyString
+  isEmptyString,
+  readToObj
 };

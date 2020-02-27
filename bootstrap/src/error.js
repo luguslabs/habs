@@ -12,6 +12,7 @@ const get404 = (req, res, next) => {
   res.status(404).json(error);
 };
 
+// Error handler
 const errorHandler = (err, req, res, next) => {
   const error = {
     errors: [

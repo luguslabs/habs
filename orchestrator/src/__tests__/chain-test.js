@@ -85,7 +85,7 @@ test('Get and set leader - leader is already set', async () => {
 
 test('Test event listener that updates metrics', async () => {
   const metrics = new Metrics();
-  const orchestrator = { serviceStart: function() {}};
+  const orchestrator = { serviceStart: function () {} };
 
   chain.listenEvents(metrics, orchestrator, mnemonic1);
 
