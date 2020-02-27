@@ -12,6 +12,13 @@ if [ ! -z "$CONFIG_FILE" ]; then
         unzip -o /config/archipel-config.zip -d /config
     fi
 
+    #check if node id is valid
+    NODES_NUMBER=$(cat /config/config.json | jq ".nodesNumber")
+    if [ "$NODE_ID" -eq "0" ] || [ "$NODE_ID" -gt "$NODES_NUMBER" ]; then
+        echo "Invalid node number! Node number must be between 1 and $NODES_NUMBER..."
+        exit 1
+    fi
+
     #set variables from config file
     WIREGUARD_PRIVATE_KEY=$(cat /config/config.json | jq ".wireguardNodes[$(( $NODE_ID - 1))].privateKey" | sed 's/\"//g')
     WIREGUARD_ADDRESS="10.0.1.$NODE_ID/32"
