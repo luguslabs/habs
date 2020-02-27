@@ -18,7 +18,7 @@ const {
   generateArchipelConfig
 } = require('./archipel');
 
-const configFile = 'config.zip';
+const configFile = 'archipel-config.zip';
 const tempDir = '/tmp/archipel-bootstrap';
 const configFilePath = path.join(rootDir, 'public', configFile);
 
@@ -69,6 +69,7 @@ const checkGenerateRequestFields = (req, res, next) => {
 
 // Generate configuration archive
 const generateConfig = (req, res, next) => {
+
   // Config file checks
   checkConfigFile(configFilePath, tempDir);
 
@@ -78,21 +79,25 @@ const generateConfig = (req, res, next) => {
   };
   const externalIPAddresses = req.body.ips.split(',');
 
+  // Add node number to config
+  config.nodesNumber = externalIPAddresses.length;
+
   // Adding service config
-  config = { ...config, ...generateServiceConfig(req.body, externalIPAddresses.length) };
+  config = { ...config, ...generateServiceConfig(req.body, config.nodesNumber) };
 
   // Adding wireguard config
   config = { ...config, ...generateWireguardConfig(externalIPAddresses) };
 
   // Adding Archipel config
-  config = { ...config, ...generateArchipelConfig(externalIPAddresses.length) };
+  config = { ...config, ...generateArchipelConfig(config.nodesNumber) };
 
   // Write configuration to file
   writeConfigToFile(config, configFilePath, tempDir);
 
-  res.status(200).json({
-    message: 'Config file was created'
-  });
+  res.redirect(configFile);
+  //res.status(200).json({
+  //  message: 'Config file was created'
+  //});
 };
 
 module.exports = {

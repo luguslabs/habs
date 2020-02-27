@@ -215,7 +215,33 @@ docker run -d --name "archipel-with-wireguard" \
   -e NODE_ID=1 \
   luguslabs/archipel-with-wireguard:latest
 ```
+
+#### Example docker-compose.yml
+```bash
+version: '3.4'
+services:
+  archipel:
+    image: luguslabs/archipel-with-wireguard:latest
+    volumes:
+      - 'archipel:/root/chain/data'
+      - 'archipel_service:/service'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - './archipel-config.zip:/config/archipel-config.zip'
+    ports:
+      - '51820:51820/udp'
+    privileged: true
+    environment:
+       CONFIG_FILE: 'true'
+       NODE_ID: 1
+    restart: always
+
+volumes:
+  archipel:
+  archipel_service:
+```
 * Warning! You must set good Node ID.
+
+### 
 
 ### Environment Variables
 

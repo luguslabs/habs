@@ -2,7 +2,7 @@ const express = require('express');
 
 const {
   getConfig,
-  deleteConfig,
+  //deleteConfig,
   generateConfig,
   checkGenerateRequestFields
 } = require('../generate');
@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/', getConfig);
 
 // Delete config file route
-router.delete('/', deleteConfig);
+// router.delete('/', deleteConfig);
 
 // Check request fields before config generating
 router.post('/', checkGenerateRequestFields);
