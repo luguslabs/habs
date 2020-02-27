@@ -69,6 +69,7 @@ const checkGenerateRequestFields = (req, res, next) => {
 
 // Generate configuration archive
 const generateConfig = (req, res, next) => {
+
   // Config file checks
   checkConfigFile(configFilePath, tempDir);
 
@@ -93,9 +94,10 @@ const generateConfig = (req, res, next) => {
   // Write configuration to file
   writeConfigToFile(config, configFilePath, tempDir);
 
-  res.status(200).json({
-    message: 'Config file was created'
-  });
+  res.redirect(configFile);
+  //res.status(200).json({
+  //  message: 'Config file was created'
+  //});
 };
 
 module.exports = {

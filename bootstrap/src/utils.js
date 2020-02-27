@@ -40,9 +40,9 @@ const createArchive = (folderPath, resultFilePath) => {
 // Check if config file exists and create a temp dir if necessary
 const checkConfigFile = (configFilePath, tempDir) => {
   // Check if config file already exists
-  if (fs.existsSync(configFilePath)) {
-    throw new Error('Config file already exists');
-  }
+  //if (fs.existsSync(configFilePath)) {
+  //  throw new Error('Config file already exists');
+  //}
 
   // Create temp directory
   if (fs.existsSync(tempDir)) {
