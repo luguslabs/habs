@@ -139,7 +139,7 @@ class Polkadot {
         if (result.includes('"result":null')) {
           this.importedKeys.push(publicKey);
         } else {
-          throw Error(`Can't add key. ${result}`);
+          throw Error(`Can't add key. ${type} - ${result}`);
         }
       } else {
         debug('importAKey', `Key ${publicKey} was already imported to keystore.`);
