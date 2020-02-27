@@ -193,8 +193,29 @@ docker run -d --name "archipel-with-wireguard" \
   -v archipel_service:/service \
   --env-file .env \
   luguslabs/archipel-with-wireguard:latest
-
 ```
+
+
+### Archipel with WireGuard VPN with Config File
+```bash
+# Generate archipel-config.zip file
+# Creating docker volumes
+docker volume create archipel
+docker volume create archipel_service
+
+# Launch docker container
+docker run -d --name "archipel-with-wireguard" \
+  --cap-add net_admin --cap-add sys_module \
+  -p 51820:51820 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v archipel:/root/chain/data \
+  -v archipel_service:/service \
+  -v ./archipel-config.zip:/config/archipel-config.zip \
+  -e CONFIG_FILE='true' \
+  -e NODE_ID=1 \
+  luguslabs/archipel-with-wireguard:latest
+```
+* Warning! You must set good Node ID.
 
 ### Environment Variables
 

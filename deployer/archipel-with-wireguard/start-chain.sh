@@ -1,5 +1,26 @@
 #!/bin/bash 
 
+#parsing config file
+if [ ! -z "$CONFIG_FILE" ]; then
+      if [ -z "$NODE_ID" ]; then
+            echo "\$NODE_ID must be set"
+            exit 1
+      fi
+
+      #unpack config file
+      if [ ! -f "/config/config.json" ]; then
+            unzip -o /config/archipel-config.zip -d /config
+      fi
+
+      #set variables from config file
+      ARCHIPEL_NODE_ALIAS="$(cat /config/config.json | jq '.name' | sed 's/\"//g')-$NODE_ID"
+      ARCHIPEL_KEY_SEED=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].seed" | sed 's/\"//g')
+      ARCHIPEL_NODE_KEY_FILE=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].nodeIds.idFile" | sed 's/\"//g')
+      ARCHIPEL_AUTHORITIES_SR25519_LIST=$(cat /config/config.json | jq ".archipelSr25519List" | sed 's/\"//g')
+      ARCHIPEL_AUTHORITIES_ED25519_LIST=$(cat /config/config.json | jq ".archipelEd25519List" | sed 's/\"//g')
+      ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].bootNodesList" | sed 's/\"//g')
+fi
+
 #check if env vars are set
 if [ -z "$ARCHIPEL_NODE_ALIAS" ]
 then
@@ -25,9 +46,9 @@ then
       ARCHIPEL_NODE_KEY_FILE="archipel_node_key_file"
 fi
 
-if [ ! -f /keys/$ARCHIPEL_NODE_KEY_FILE ]
+if [ ! -f /config/$ARCHIPEL_NODE_KEY_FILE ]
 then
-      echo "\$/keys/$ARCHIPEL_NODE_KEY_FILE file not found"
+      echo "\$/config/$ARCHIPEL_NODE_KEY_FILE file not found"
       exit 1
 fi
 
@@ -201,7 +222,7 @@ then
             --base-path /root/chain/data \
             --validator \
             --port $ARCHIPEL_LISTEN_PORT \
-            --node-key-file /keys/$ARCHIPEL_NODE_KEY_FILE \
+            --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
             --name "$ARCHIPEL_NODE_ALIAS" \
             $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS
 else
@@ -210,6 +231,6 @@ else
             --base-path /root/chain/data \
             --validator \
             --port $ARCHIPEL_LISTEN_PORT \
-            --node-key-file /keys/$ARCHIPEL_NODE_KEY_FILE \
+            --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
             --name "$ARCHIPEL_NODE_ALIAS"
 fi

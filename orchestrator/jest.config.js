@@ -9,7 +9,7 @@ process.env.POLKADOT_KEY_BABE = 'region run sunset rule light gap cool element a
 process.env.POLKADOT_KEY_IMON = 'screen sustain clog husband assist noble artist sea fringe afford coil hawk';
 process.env.POLKADOT_KEY_PARA = 'produce hover hurdle lobster december slight hat note quit bomb drama notice';
 process.env.POLKADOT_KEY_AUDI = 'oak tail stomach fluid trade aunt fire fringe mercy roast style garlic';
-process.env.POLKADOT_NODE_KEY_FILE = 'test-polkadot-node-key-file'
+process.env.POLKADOT_NODE_KEY_FILE = 'test-polkadot-node-key-file';
 process.env.DEBUG = 'app,chain,docker,metrics,polkadot,service';
 
 module.exports = {
