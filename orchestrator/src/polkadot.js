@@ -51,14 +51,14 @@ class Polkadot {
         config.polkadotKeyAudi = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_AUDI').value;
 
         console.log(`GRAN: ${config.polkadotKeyGran}`);
-        config.polkadotReservedNodes = '';
-        config.polkadotTelemetryUrl = '';
+        config.polkadotReservedNodes = process.env.POLKADOT_RESERVED_NODES;
+        config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
         config.polkadotLaunchInVpn = true;
         config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID)-1].idFile;
       }
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
-      
+
     } catch (error) {
       debug('initConfig', error);
       throw error;
