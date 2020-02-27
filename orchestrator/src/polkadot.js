@@ -41,23 +41,24 @@ class Polkadot {
 
         const configFromFile = readToObj('/config/config.json');
 
-        config.polkadotName = `${configFromFile.name}-${NODE_ID}`;
+        config.polkadotName = `${configFromFile.name}-${process.env.NODE_ID}`;
         config.polkadotImage = 'parity/polkadot:latest';
         config.polkadotPrefix = 'node-';
-        config.polkadotKeyGran = configFromFile.service.fields.filter(element => element.env === 'POLKADOT_KEY_GRAN').value;
-        config.polkadotKeyBabe = configFromFile.service.fields.filter(element => element.env === 'POLKADOT_KEY_BABE').value;
-        config.polkadotKeyImon = configFromFile.service.fields.filter(element => element.env === 'POLKADOT_KEY_IMON').value;
-        config.polkadotKeyPara = configFromFile.service.fields.filter(element => element.env === 'POLKADOT_KEY_PARA').value;
-        config.polkadotKeyAudi = configFromFile.service.fields.filter(element => element.env === 'POLKADOT_KEY_AUDI').value;
+        config.polkadotKeyGran = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_GRAN').value;
+        config.polkadotKeyBabe = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_BABE').value;
+        config.polkadotKeyImon = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_IMON').value;
+        config.polkadotKeyPara = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_PARA').value;
+        config.polkadotKeyAudi = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_AUDI').value;
+
+        console.log(`GRAN: ${config.polkadotKeyGran}`);
         config.polkadotReservedNodes = '';
         config.polkadotTelemetryUrl = '';
         config.polkadotLaunchInVpn = true;
-        config.polkadotNodeKeyFile = configFromFile.service.nodeIds[NODE_ID].idFile;
-
-        fs.copyFileSync(`/config/${config.polkadotNodeKeyFile}`, '/keys');
+        config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID)-1].idFile;
       }
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
+      
     } catch (error) {
       debug('initConfig', error);
       throw error;
@@ -156,11 +157,11 @@ class Polkadot {
       console.log('Importing keys to keystore...');
 
       // Importing 5 validator keys into keystore
-      await this.importAKey(containerName, POLKADOT_KEY_GRAN, 'ed25519', 'gran');
-      await this.importAKey(containerName, POLKADOT_KEY_BABE, 'sr25519', 'babe');
-      await this.importAKey(containerName, POLKADOT_KEY_IMON, 'sr25519', 'imon');
-      await this.importAKey(containerName, POLKADOT_KEY_PARA, 'sr25519', 'para');
-      await this.importAKey(containerName, POLKADOT_KEY_AUDI, 'sr25519', 'audi');
+      await this.importAKey(containerName, config.polkadotKeyGran, 'ed25519', 'gran');
+      await this.importAKey(containerName, config.polkadotKeyBabe, 'sr25519', 'babe');
+      await this.importAKey(containerName, config.polkadotKeyImon, 'sr25519', 'imon');
+      await this.importAKey(containerName, config.polkadotKeyPara, 'sr25519', 'para');
+      await this.importAKey(containerName, config.polkadotKeyAudi, 'sr25519', 'audi');
 
       console.log('Keys were successfully added to keystore...');
     } catch (error) {
@@ -174,10 +175,10 @@ class Polkadot {
   async copyFilesToPolkadotContainer () {
     try {
       // Set polkadot user rights
-      await fs.chown('/service', POLKADOT_UNIX_USER_ID, POLKADOT_UNIX_GROUP_ID);
+      await fs.chown('/service', config.polkadotUnixUserId, config.polkadotUnixGroupId);
       await fs.ensureDir('/service/keys');
-      await fs.copy('/keys/' + POLKADOT_NODE_KEY_FILE, '/service/keys/' + POLKADOT_NODE_KEY_FILE);
-      console.log('copy ' + POLKADOT_NODE_KEY_FILE + ' file in polkadot container folder /polkadot/keys/');
+      await fs.copy('/config/' + config.polkadotNodeKeyFile, '/service/keys/' + config.polkadotNodeKeyFile);
+      console.log('copy ' + config.polkadotNodeKeyFile + ' file in polkadot container folder /polkadot/keys/');
     } catch (err) {
       console.error(err);
     }
@@ -189,21 +190,21 @@ class Polkadot {
       const commonPolkadotOptions = ['--pruning=archive', '--wasm-execution', 'Compiled'];
       if (fs.existsSync('/service')) {
         await this.copyFilesToPolkadotContainer();
-        commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + POLKADOT_NODE_KEY_FILE);
+        commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + config.polkadotNodeKeyFile);
       }
-      if (!isEmptyString(POLKADOT_RESERVED_NODES)) {
-        commonPolkadotOptions.push(...Polkadot.formatReservedNodes(POLKADOT_RESERVED_NODES));
+      if (!isEmptyString(config.polkadotReservedNodes)) {
+        commonPolkadotOptions.push(...Polkadot.formatReservedNodes(config.polkadotReservedNodes));
       }
-      if (!isEmptyString(POLKADOT_TELEMETRY_URL)) {
-        if (POLKADOT_TELEMETRY_URL === '--no-telemetry') {
+      if (!isEmptyString(config.polkadotTelemetryUrl)) {
+        if (config.polkadotTelemetryUrl === '--no-telemetry') {
           commonPolkadotOptions.push(...['--no-telemetry']);
         } else {
-          commonPolkadotOptions.push(...['--telemetry-url', POLKADOT_TELEMETRY_URL]);
+          commonPolkadotOptions.push(...['--telemetry-url', config.polkadotTelemetryUrl]);
         }
       }
       // Setting network mode variable if polkadot must be launched in VPN network
       let networkMode = '';
-      if (POLKADOT_LAUNCH_IN_VPN !== undefined && POLKADOT_LAUNCH_IN_VPN === 'true') {
+      if (config.polkadotLaunchInVpn !== undefined && config.polkadotLaunchInVpn === 'true') {
         networkMode = `container:${os.hostname()}`;
         console.log(`Launching container with network mode: ${networkMode}...`);
       }
@@ -214,24 +215,24 @@ class Polkadot {
       if (orchestratorServiceVolume) {
         polkadotVolume = orchestratorServiceVolume.Name;
       } else {
-        polkadotVolume = POLKADOT_PREFIX + 'polkadot-volume';
+        polkadotVolume = config.polkadotPrefix + 'polkadot-volume';
       }
       console.log(`Polkadot will use volume '${polkadotVolume}'...`);
 
       // Launch service in specific mode
       // TODO: Don't sleep before key add
       if (mode === 'active') {
-        await this.docker.startServiceContainer('active', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-active`, ...commonPolkadotOptions, '--validator', '--reserved-only'], '/polkadot', polkadotVolume, networkMode);
+        await this.docker.startServiceContainer('active', config.polkadotPrefix + 'polkadot-validator', config.polkadotPrefix + 'polkadot-sync', config.polkadotImage, ['--name', `${config.polkadotName}-active`, ...commonPolkadotOptions, '--validator', '--reserved-only'], '/polkadot', polkadotVolume, networkMode);
         // Waiting to be sure that container is started
         await new Promise(resolve => setTimeout(resolve, 5000));
         // Adding validator keys
-        await this.polkadotKeysImport(POLKADOT_PREFIX + 'polkadot-validator');
+        await this.polkadotKeysImport(config.polkadotPrefix + 'polkadot-validator');
       } else if (mode === 'passive') {
-        await this.docker.startServiceContainer('passive', POLKADOT_PREFIX + 'polkadot-validator', POLKADOT_PREFIX + 'polkadot-sync', POLKADOT_IMAGE, ['--name', `${POLKADOT_NAME}-passive`, ...commonPolkadotOptions, '--sentry'], '/polkadot', polkadotVolume, networkMode);
+        await this.docker.startServiceContainer('passive', config.polkadotPrefix + 'polkadot-validator', config.polkadotPrefix + 'polkadot-sync', config.polkadotImage, ['--name', `${config.polkadotName}-passive`, ...commonPolkadotOptions, '--sentry'], '/polkadot', polkadotVolume, networkMode);
         // Waiting to be sure that container is started
         await new Promise(resolve => setTimeout(resolve, 5000));
         // Adding validator keys
-        await this.polkadotKeysImport(POLKADOT_PREFIX + 'polkadot-sync');
+        await this.polkadotKeysImport(config.polkadotPrefix + 'polkadot-sync');
       } else {
         throw new Error(`Mode '${mode}' is unknown.`);
       }
@@ -248,8 +249,8 @@ class Polkadot {
       if (!this.cleaningUp) {
         this.cleaningUp = true;
         console.log('Cleaning containers before exit...');
-        await this.docker.removeContainer(POLKADOT_PREFIX + 'polkadot-sync');
-        await this.docker.removeContainer(POLKADOT_PREFIX + 'polkadot-validator');
+        await this.docker.removeContainer(config.polkadotPrefix + 'polkadot-sync');
+        await this.docker.removeContainer(config.polkadotPrefix + 'polkadot-validator');
       } else {
         console.log('Cleaning up was already started...');
       }
