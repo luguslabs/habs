@@ -43,6 +43,12 @@ const generateServiceConfig = (reqBody, federationSize) => {
 
     // Generate Service Node Ids
     config.service.nodeIds = generateNodeIds(service.name, federationSize);
+
+    // Create reserved peers list
+    config.service.reservedPeersList = config.service.nodeIds.reduce((listArray, currentValue, currentIndex) => {
+      return listArray.concat(`/ip4/10.0.1.${currentIndex + 1}/tcp/30333/p2p/${currentValue.peerId},`);
+    }, '').slice(0, -1);
+
   } else {
     throw new Error(`Service ${reqBody.service} was not found`);
   }

@@ -50,9 +50,9 @@ class Polkadot {
         config.polkadotKeyImon = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_IMON').value;
         config.polkadotKeyPara = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_PARA').value;
         config.polkadotKeyAudi = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_AUDI').value;
-        config.polkadotReservedNodes = process.env.POLKADOT_RESERVED_NODES;
+        config.polkadotReservedNodes = configFromFile.service.reservedPeersList;
         config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
-        config.polkadotLaunchInVpn = true;
+        config.polkadotLaunchInVpn = 'true';
         config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile;
       }
       config.polkadotUnixUserId = 1000;
