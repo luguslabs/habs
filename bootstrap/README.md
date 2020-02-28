@@ -1,6 +1,16 @@
 # Archipel Bootstrap
 Archipel Bootstrap is a component that generates configuration and bootstraps an Archipel federation.
 
+## Prerequiste
+- subkey tool installed :
+```bash
+rustup update nightly
+rustup update stable
+rustup target add wasm32-unknown-unknown --toolchain nightly
+cargo install --force --git https://github.com/paritytech/substrate subkey
+```
+- zip
+
 ## Launch Bootstrap
 
 ### Run
