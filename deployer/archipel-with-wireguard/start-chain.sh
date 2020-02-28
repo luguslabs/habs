@@ -25,7 +25,7 @@ if [ ! -z "$CONFIG_FILE" ]; then
       ARCHIPEL_NODE_KEY_FILE=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].nodeIds.idFile" | sed 's/\"//g')
       ARCHIPEL_AUTHORITIES_SR25519_LIST=$(cat /config/config.json | jq ".archipelSr25519List" | sed 's/\"//g')
       ARCHIPEL_AUTHORITIES_ED25519_LIST=$(cat /config/config.json | jq ".archipelEd25519List" | sed 's/\"//g')
-      ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].bootNodesList" | sed 's/\"//g')
+      ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=$(cat /config/config.json | jq ".archipelBootNodesList" | sed 's/\"//g')
 fi
 
 #check if env vars are set
@@ -37,8 +37,8 @@ fi
 
 if [ -z "$ARCHIPEL_LISTEN_PORT" ]
 then
-      echo "\$ARCHIPEL_LISTEN_PORT not set. Set default to 30333"
-      ARCHIPEL_LISTEN_PORT=30333
+      echo "\$ARCHIPEL_LISTEN_PORT not set. Set default to 30334"
+      ARCHIPEL_LISTEN_PORT=30334
 fi
 
 if [ -z "$ARCHIPEL_KEY_SEED" ]

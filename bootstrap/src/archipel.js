@@ -21,13 +21,15 @@ const generateArchipelConfig = (federationSize) => {
 
   // Constructing boot nodes list
   const bootNodesList = nodeIds.reduce((listArray, currentValue, currentIndex) => {
-    return listArray.concat(`--bootnodes /ip4/10.0.1.${currentIndex + 1}/tcp/30333/p2p/${currentValue.peerId} `);
+    return listArray.concat(`--bootnodes /ip4/10.0.1.${currentIndex + 1}/tcp/30334/p2p/${currentValue.peerId} `);
   }, '').slice(0, -1);
+
+  config.archipelBootNodesList = bootNodesList;
 
   // Filling Archipel Nodes configuration
   config.archipelNodes = [];
   for (let i = 0; i < federationSize; i++) {
-    config.archipelNodes.push({ seed: substrateKeys[i].seed, nodeIds: nodeIds[i], bootNodesList: bootNodesList });
+    config.archipelNodes.push({ seed: substrateKeys[i].seed, nodeIds: nodeIds[i] });
   }
 
   return config;
