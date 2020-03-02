@@ -159,7 +159,7 @@ docker run -d --name "archipel-node" \
 cat <<EOF >.env
 ARCHIPEL_NODE_ALIAS=archipel1
 ARCHIPEL_KEY_SEED=mushroom ladder ...
-ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=
+ARCHIPEL_RESERVED_PEERS=
 POLKADOT_NAME=test-name
 POLKADOT_PREFIX=node-
 SERVICE=polkadot
@@ -253,7 +253,7 @@ volumes:
 |----------|-------------|--------|
 | `ARCHIPEL_NODE_ALIAS` | Node name for the Archipel Substrate node within the federation. <br>Example<br> `Archipel-yourFederationName-NodeNameHere` | String |
 | `ARCHIPEL_KEY_SEED` | 12 words mnemonic. <br> Can be generated with [Subkey](https://substrate.dev/docs/en/ecosystem/subkey). <br>Use for Archipel Substrate node. <br>Will be used for consensus authority and transactions propagation in the Archipel Chain. | mnemonic |
-| `ARCHIPEL_CHAIN_ADDITIONAL_PARAMS` | Parameters supported by substrate node.<br> At least, you must valorize bootnodes. To valorize bootnodes you must start nodes first and then rebbot all your 3 nodes in the federation with bootnode list valorized thank to local node id find in logs. <br>Example :<br> `--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID` | String
+| `ARCHIPEL_RESERVED_PEERS` | Reserved peers list. Archipel Chain will connect and maintain connection with reserved peers.<br>Example: `/ip4/10.0.1.1/tcp/30334/p2p/QmdrEysGxniX8gX4QTvkuoUt2bEq2GiQnXcC8BqnKhJku4,/ip4/10.0.1.2/tcp/30334/p2p/QmadaKbxJeqWbx3d1RcAUcmvxCU8LtuQRvDFXdt2xbMahV,/ip4/10.0.1.3/tcp/30334/p2p/QmXWTUUNBPwqeb1gqpyjfqv3qKo86s2ixrPj5tpLoTRoww` | String
 | `ARCHIPEL_AUTHORITIES_SR25519_LIST` | Valorize the Genesis [Spec file](https://github.com/luguslabs/archipel/blob/master/deployer/test/chain/customSpec.json) for Archipel chain with the list of Authorities Public Keys in SR25519 format separated by \",\" char.<br> `<SR25519 Public Key Node 1>,<SR25519 Public Key Node 2>,<SR25519 Public Key Node 3>`|  Public Key, Public Key, Public Key
 | `ARCHIPEL_AUTHORITIES_ED25519_LIST` | Valorize the Genesis [Spec file](https://github.com/luguslabs/archipel/blob/master/deployer/test/chain/customSpec.json) for Archipel chain with the list of Authorities Public Keys in ED25519 format separated by \",\" char.<br>`<ED25519 Public Key Node 1>,<ED25519 Public Key Node 2>,<ED25519 Public Key Node 3>`| Public Key, Public Key, Public Key
 | `SERVICE` | External service you want to launch. Only support `polkadot` at the moment. | polkadot |
