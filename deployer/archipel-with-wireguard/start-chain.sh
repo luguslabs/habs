@@ -258,6 +258,12 @@ then
       done
 fi
 
+ARCHIPEL_TELEMETRY_URL_CMD="--no-telemetry"
+if [ ! -z "$ARCHIPEL_TELEMETRY_URL" ]
+then
+      ARCHIPEL_TELEMETRY_URL_CMD="--telemetry-url $ARCHIPEL_TELEMETRY_URL"
+fi
+
 # generate raw spec file 
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json
 
@@ -291,6 +297,7 @@ then
             --validator \
             --port $ARCHIPEL_LISTEN_PORT \
             --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
+            $ARCHIPEL_TELEMETRY_URL_CMD \
             --name "$ARCHIPEL_NODE_ALIAS" \
             $RESERVED_PEERS_PARAM
 else
@@ -300,5 +307,6 @@ else
             --validator \
             --port $ARCHIPEL_LISTEN_PORT \
             --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
+            $ARCHIPEL_TELEMETRY_URL_CMD \
             --name "$ARCHIPEL_NODE_ALIAS"
 fi
