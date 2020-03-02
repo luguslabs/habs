@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const { Docker } = require('../docker');
 
 // Test configuration

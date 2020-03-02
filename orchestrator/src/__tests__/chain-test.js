@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const { exec } = require('child_process');
 
 const { Chain } = require('../chain');
