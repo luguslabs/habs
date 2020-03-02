@@ -4,7 +4,10 @@ const dotenv = require('dotenv');
 
 const { Chain } = require('./chain');
 const { Metrics } = require('./metrics');
-const { catchExitSignals } = require('./utils');
+const { 
+  catchExitSignals,
+  checkVariable
+ } = require('./utils');
 const { Orchestrator } = require('./orchestrator');
 
 // Import env variables from .env file
@@ -14,19 +17,20 @@ const {
   MNEMONIC,
   ALIVE_TIME,
   SERVICE
-
 } = process.env;
 
 // Check if all necessary env vars were set
 const checkEnvVars = () => {
   try {
-    // Checking env variables
-    if (NODE_WS === undefined || MNEMONIC === undefined || ALIVE_TIME === undefined || SERVICE === undefined) {
-      throw Error('Archipel needs at least NODE_WS, MNEMONIC, ALIVE_TIME, SERVICE variables to work.');
-    }
+
+    checkVariable(NODE_WS, 'NODE_WS');
+    checkVariable(MNEMONIC, 'MNEMONIC');
+    checkVariable(ALIVE_TIME, 'ALIVE_TIME');
+    checkVariable(SERVICE, 'SERVICE');
+
   } catch (error) {
     debug('checkEnvVars', error);
-    console.error(error);
+    throw error;
   }
 };
 

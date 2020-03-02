@@ -14,7 +14,7 @@ class Docker {
   }
 
   // Pull docker image progress
-  onProgress (event) {
+  static onProgress (event) {
     if (event.progress) console.log(event.progress);
   }
 
@@ -24,13 +24,13 @@ class Docker {
       // Pulling docker image
       this.docker.pull(image, (error, stream) => {
         console.log(`Pulling ${image} image...`);
-        if (error) reject(error);
+        if (error) return reject(error);
         // Following pull progress
         this.docker.modem.followProgress(stream, error => {
-          if (error) reject(error);
+          if (error) return reject(error);
           console.log('Image was successfully pulled.');
-          resolve(true);
-        }, this.onProgress);
+          return resolve(true);
+        }, Docker.onProgress);
       });
     });
   }

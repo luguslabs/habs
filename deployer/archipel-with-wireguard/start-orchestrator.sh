@@ -1,4 +1,22 @@
-#!/bin/sh 
+#!/bin/bash
+
+#detect error in piped command
+set -eo pipefail
+
+#functions
+function check_cmd {
+      if [ "$1" != "0" ]; then
+            echo "Error! Can't execute command to $2."
+            exit 1
+      fi
+}
+
+function check_result {
+      if [ "$1" == "null" ]; then
+            echo "Error! Config for '$2' not found"
+            exit 1
+      fi
+}
 
 #parsing config file
 if [ ! -z "$CONFIG_FILE" ]; then
@@ -15,11 +33,8 @@ if [ ! -z "$CONFIG_FILE" ]; then
         else 
                 unzip -o /config/archipel-config.zip -d /config
         fi
-        #if unzip failed exit
-        if [ ! $? -eq 0 ]; then
-                echo "Error! Can't unzip config file."
-                exit 1
-        fi
+        #check unzip command
+        check_cmd $? 'unzip config file'
     fi
 
     #check if node id is valid
@@ -30,8 +45,17 @@ if [ ! -z "$CONFIG_FILE" ]; then
     fi
 
     #set variables from config file
-    ARCHIPEL_KEY_SEED=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].seed" | sed 's/\"//g')
-    export SERVICE=$(cat /config/config.json | jq ".service.name" | sed 's/\"//g')
+    if [ -z "$ARCHIPEL_KEY_SEED" ]; then
+        ARCHIPEL_KEY_SEED=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].seed" | sed 's/\"//g')
+        #check result and if config was extracted successfully
+        check_cmd $? 'retrieve ARCHIPEL_KEY_SEED'
+        check_result "$ARCHIPEL_KEY_SEED" 'ARCHIPEL_KEY_SEED'
+    fi
+    if [ -z "$SERVICE" ]; then
+        export SERVICE=$(cat /config/config.json | jq ".service.name" | sed 's/\"//g')
+        check_cmd $? 'retrieve SERVICE'
+        check_result "$SERVICE" 'SERVICE'
+    fi
 
 fi
 

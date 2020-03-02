@@ -1,4 +1,22 @@
-#!/bin/bash 
+#!/bin/bash
+
+#detect error in piped command
+set -eo pipefail
+
+#functions
+function check_cmd {
+      if [ "$1" != "0" ]; then
+            echo "Error! Can't execute command to $2."
+            exit 1
+      fi
+}
+
+function check_result {
+      if [ "$1" == "null" ]; then
+            echo "Error! Config for '$2' not found in config file."
+            exit 1
+      fi
+}
 
 #parsing config file
 if [ ! -z "$CONFIG_FILE" ]; then
@@ -15,11 +33,8 @@ if [ ! -z "$CONFIG_FILE" ]; then
             else 
                   unzip -o /config/archipel-config.zip -d /config
             fi
-            #if unzip failed exit
-            if [ ! $? -eq 0 ]; then
-                  echo "Error! Can't unzip config file."
-                  exit 1
-            fi
+            #check unzip command
+            check_cmd $? 'unzip config file'
       fi
       
       #check if node id is valid
@@ -29,13 +44,39 @@ if [ ! -z "$CONFIG_FILE" ]; then
             exit 1
       fi
 
-      #set variables from config file
-      ARCHIPEL_NODE_ALIAS="$(cat /config/config.json | jq '.name' | sed 's/\"//g')-$NODE_ID"
-      ARCHIPEL_KEY_SEED=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].seed" | sed 's/\"//g')
-      ARCHIPEL_NODE_KEY_FILE=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].nodeIds.idFile" | sed 's/\"//g')
-      ARCHIPEL_AUTHORITIES_SR25519_LIST=$(cat /config/config.json | jq ".archipelSr25519List" | sed 's/\"//g')
-      ARCHIPEL_AUTHORITIES_ED25519_LIST=$(cat /config/config.json | jq ".archipelEd25519List" | sed 's/\"//g')
-      ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=$(cat /config/config.json | jq ".archipelBootNodesList" | sed 's/\"//g')
+      #set variables from config file if they are not set
+      if [ -z "$ARCHIPEL_NODE_ALIAS" ]; then
+            ARCHIPEL_NODE_ALIAS_CMD=$(cat /config/config.json | jq '.name' | sed 's/\"//g')
+            #check result and if config was extracted successfully
+            check_cmd $? 'retrieve ARCHIPEL_NODE_ALIAS_CMD'
+            check_result $ARCHIPEL_NODE_ALIAS_CMD 'ARCHIPEL_NODE_ALIAS'
+            ARCHIPEL_NODE_ALIAS="$ARCHIPEL_NODE_ALIAS_CMD-$NODE_ID"
+      fi
+      if [ -z "$ARCHIPEL_KEY_SEED" ]; then
+            ARCHIPEL_KEY_SEED=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1 ))].seed" | sed 's/\"//g')
+            check_cmd $? 'retrieve ARCHIPEL_KEY_SEED'
+            check_result $ARCHIPEL_KEY_SEED 'ARCHIPEL_KEY_SEED'
+      fi
+      if [ -z "$ARCHIPEL_NODE_KEY_FILE" ]; then
+            ARCHIPEL_NODE_KEY_FILE=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1 ))].nodeIds.idFile" | sed 's/\"//g')
+            check_cmd $? 'retrieve ARCHIPEL_NODE_KEY_FILE'
+            check_result $ARCHIPEL_NODE_KEY_FILE 'ARCHIPEL_NODE_KEY_FILE'
+      fi
+      if [ -z "$ARCHIPEL_AUTHORITIES_SR25519_LIST" ]; then
+            ARCHIPEL_AUTHORITIES_SR25519_LIST=$(cat /config/config.json | jq ".archipelSr25519List" | sed 's/\"//g')
+            check_cmd $? 'retrieve ARCHIPEL_AUTHORITIES_SR25519_LIST'
+            check_result $ARCHIPEL_AUTHORITIES_SR25519_LIST 'ARCHIPEL_AUTHORITIES_SR25519_LIST'
+      fi
+      if [ -z "$ARCHIPEL_AUTHORITIES_ED25519_LIST" ]; then
+            ARCHIPEL_AUTHORITIES_ED25519_LIST=$(cat /config/config.json | jq ".archipelEd25519List" | sed 's/\"//g')
+            check_cmd $? 'retrieve ARCHIPEL_AUTHORITIES_ED25519_LIST'
+            check_result $ARCHIPEL_AUTHORITIES_ED25519_LIST 'ARCHIPEL_AUTHORITIES_ED25519_LIST'
+      fi
+      if [ -z "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" ]; then
+            ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=$(cat /config/config.json | jq ".archipelBootNodesList" | sed 's/\"//g')
+            check_cmd $? 'retrieve ARCHIPEL_CHAIN_ADDITIONAL_PARAMS'
+            check_result $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS 'ARCHIPEL_CHAIN_ADDITIONAL_PARAMS'
+      fi
 fi
 
 #check if env vars are set
