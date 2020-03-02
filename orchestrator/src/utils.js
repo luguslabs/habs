@@ -50,10 +50,17 @@ const isEmptyString = (str) => {
   return (!str || str.length === 0);
 };
 
+const checkVariable = (value, name) => {
+  if (isEmptyString(value)) {
+    throw Error(`Error! Variable ${name} was not set.`);
+  }
+};
+
 module.exports = {
   getKeysFromSeed,
   streamToString,
   catchExitSignals,
   isEmptyString,
-  readToObj
+  readToObj,
+  checkVariable
 };

@@ -1,5 +1,23 @@
 #!/bin/bash
 
+#detect error in piped command
+set -eo pipefail
+
+#functions
+function check_cmd {
+      if [ "$1" != "0" ]; then
+            echo "Error! Can't execute command to $2."
+            exit 1
+      fi
+}
+
+function check_result {
+      if [ "$1" == "null" ]; then
+            echo "Error! Config for '$2' not found"
+            exit 1
+      fi
+}
+
 #parsing config file
 if [ ! -z "$CONFIG_FILE" ]; then
     if [ -z "$NODE_ID" ]; then
@@ -15,11 +33,8 @@ if [ ! -z "$CONFIG_FILE" ]; then
         else 
                 unzip -o /config/archipel-config.zip -d /config
         fi
-        #if unzip failed exit
-        if [ ! $? -eq 0 ]; then
-                echo "Error! Can't unzip config file."
-                exit 1
-        fi
+        #check unzip command
+        check_cmd $? 'unzip config file'
     fi
 
     #check if node id is valid
@@ -29,13 +44,34 @@ if [ ! -z "$CONFIG_FILE" ]; then
         exit 1
     fi
 
-    #set variables from config file
-    WIREGUARD_PRIVATE_KEY=$(cat /config/config.json | jq ".wireguardNodes[$(( $NODE_ID - 1))].privateKey" | sed 's/\"//g')
-    WIREGUARD_ADDRESS="10.0.1.$NODE_ID/32"
-    WIREGUARD_LISTEN_PORT="51820"
-    WIREGUARD_PEERS_EXTERNAL_ADDR=$(cat /config/config.json | jq ".wireguardExternalAddrList" | sed 's/\"//g')
-    WIREGUARD_PEERS_PUB_ADDR=$(cat /config/config.json | jq ".wireguardPeersPubAddrList" | sed 's/\"//g')
-    WIREGUARD_PEERS_ALLOWED_IP=$(cat /config/config.json | jq ".wireguardAllowedIpsList" | sed 's/\"//g')
+    #set variables from config file if they are not set
+    if [ -z "$WIREGUARD_PRIVATE_KEY" ]; then
+        WIREGUARD_PRIVATE_KEY=$(cat /config/config.json | jq ".wireguardNodes[$(( $NODE_ID - 1))].privateKey" | sed 's/\"//g')
+        #check result and if config was extracted successfully
+        check_cmd $? 'retrieve WIREGUARD_PRIVATE_KEY'
+        check_result $WIREGUARD_PRIVATE_KEY 'WIREGUARD_PRIVATE_KEY'
+    fi
+    if [ -z "$WIREGUARD_ADDRESS" ]; then
+        WIREGUARD_ADDRESS="10.0.1.$NODE_ID/32"
+    fi
+    if [ -z "$WIREGUARD_LISTEN_PORT" ]; then
+        WIREGUARD_LISTEN_PORT="51820"
+    fi
+    if [ -z "$WIREGUARD_PEERS_EXTERNAL_ADDR" ]; then
+        WIREGUARD_PEERS_EXTERNAL_ADDR=$(cat /config/config.json | jq ".wireguardExternalAddrList" | sed 's/\"//g')
+        check_cmd $? 'retrieve WIREGUARD_PEERS_EXTERNAL_ADDR'
+        check_result $WIREGUARD_PEERS_EXTERNAL_ADDR 'WIREGUARD_PEERS_EXTERNAL_ADDR'
+    fi
+    if [ -z "$WIREGUARD_PEERS_PUB_ADDR" ]; then
+        WIREGUARD_PEERS_PUB_ADDR=$(cat /config/config.json | jq ".wireguardPeersPubAddrList" | sed 's/\"//g')
+        check_cmd $? 'retrieve WIREGUARD_PEERS_PUB_ADDR'
+        check_result $WIREGUARD_PEERS_PUB_ADDR 'WIREGUARD_PEERS_PUB_ADDR'
+    fi
+    if [ -z "$WIREGUARD_PEERS_ALLOWED_IP" ]; then
+        WIREGUARD_PEERS_ALLOWED_IP=$(cat /config/config.json | jq ".wireguardAllowedIpsList" | sed 's/\"//g')
+        check_cmd $? 'retrieve WIREGUARD_PEERS_ALLOWED_IP'
+        check_result $WIREGUARD_PEERS_ALLOWED_IP 'WIREGUARD_PEERS_ALLOWED_IP'
+    fi
 fi
 
 # Checking env vars

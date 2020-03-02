@@ -9,7 +9,8 @@ const fs = require('fs-extra');
 const {
   getKeysFromSeed,
   isEmptyString,
-  readToObj
+  readToObj,
+  checkVariable
 } = require('./utils');
 
 const config = {};
@@ -18,42 +19,83 @@ class Polkadot {
   // Init configuration
   static initConfig () {
     try {
-      // Check if the config can be retrieved from config file
-      if (isEmptyString(process.env.CONFIG_FILE)) {
-        // If config can't be retrieved from config file get config from env vars
-        // Import env variables from .env file
-        dotenv.config();
-        config.polkadotName = process.env.POLKADOT_NAME;
-        config.polkadotImage = process.env.POLKADOT_IMAGE;
-        config.polkadotPrefix = process.env.POLKADOT_PREFIX;
-        config.polkadotKeyGran = process.env.POLKADOT_KEY_GRAN;
-        config.polkadotKeyBabe = process.env.POLKADOT_KEY_BABE;
-        config.polkadotKeyImon = process.env.POLKADOT_KEY_IMON;
-        config.polkadotKeyPara = process.env.POLKADOT_KEY_PARA;
-        config.polkadotKeyAudi = process.env.POLKADOT_KEY_AUDI;
-        config.polkadotReservedNodes = process.env.POLKADOT_RESERVED_NODES;
-        config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
-        config.polkadotLaunchInVpn = process.env.POLKADOT_LAUNCH_IN_VPN;
-        config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
-      } else {
+      dotenv.config();
+      config.polkadotName = process.env.POLKADOT_NAME;
+      config.polkadotImage = process.env.POLKADOT_IMAGE;
+      config.polkadotPrefix = process.env.POLKADOT_PREFIX;
+      config.polkadotKeyGran = process.env.POLKADOT_KEY_GRAN;
+      config.polkadotKeyBabe = process.env.POLKADOT_KEY_BABE;
+      config.polkadotKeyImon = process.env.POLKADOT_KEY_IMON;
+      config.polkadotKeyPara = process.env.POLKADOT_KEY_PARA;
+      config.polkadotKeyAudi = process.env.POLKADOT_KEY_AUDI;
+      config.polkadotReservedNodes = process.env.POLKADOT_RESERVED_NODES;
+      config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
+      config.polkadotLaunchInVpn = process.env.POLKADOT_LAUNCH_IN_VPN;
+      config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
+
+      // If the config can be retrieved from config file
+      if (!isEmptyString(process.env.CONFIG_FILE)) {
         if (isEmptyString(process.env.NODE_ID)) {
           throw Error('Polkadot Service need NODE_ID when config file was set.');
         }
 
         const configFromFile = readToObj('/config/config.json');
 
-        config.polkadotName = `${configFromFile.name}-${process.env.NODE_ID}`;
-        config.polkadotImage = 'parity/polkadot:latest';
-        config.polkadotPrefix = 'node-';
-        config.polkadotKeyGran = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_GRAN').value;
-        config.polkadotKeyBabe = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_BABE').value;
-        config.polkadotKeyImon = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_IMON').value;
-        config.polkadotKeyPara = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_PARA').value;
-        config.polkadotKeyAudi = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_AUDI').value;
-        config.polkadotReservedNodes = configFromFile.service.reservedPeersList;
-        config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
-        config.polkadotLaunchInVpn = 'true';
-        config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile;
+        // Checking if value was not already set by env vars
+        if (isEmptyString(config.polkadotName)) {
+          if ('name' in configFromFile) {
+            config.polkadotName = `${configFromFile.name}-${process.env.NODE_ID}`;
+          }
+        }
+        if (isEmptyString(config.polkadotImage)) {
+          config.polkadotImage = 'parity/polkadot:latest';
+        }
+        if (isEmptyString(config.polkadotPrefix)) {
+          config.polkadotPrefix = 'node-';
+        }
+        if (isEmptyString(config.polkadotKeyGran)) {
+          const polkadotKeyGran = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_GRAN');
+          if (polkadotKeyGran !== undefined) {
+            config.polkadotKeyGran = polkadotKeyGran.value;
+          }
+        }
+        if (isEmptyString(config.polkadotKeyBabe)) {
+          const polkadotKeyBabe = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_BABE');
+          if (polkadotKeyBabe !== undefined) {
+            config.polkadotKeyBabe = polkadotKeyBabe.value;
+          }
+        }
+        if (isEmptyString(config.polkadotKeyImon)) {
+          const polkadotKeyImon = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_IMON');
+          if (polkadotKeyImon !== undefined) {
+            config.polkadotKeyImon = polkadotKeyImon.value;
+          }
+        }
+        if (isEmptyString(config.polkadotKeyPara)) {
+          const polkadotKeyPara = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_PARA');
+          if (polkadotKeyPara !== undefined) {
+            config.polkadotKeyPara = polkadotKeyPara.value;
+          }
+        }
+        if (isEmptyString(config.polkadotKeyAudi)) {
+          const polkadotKeyAudi = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_AUDI');
+          if (polkadotKeyAudi !== undefined) {
+            config.polkadotKeyAudi = polkadotKeyAudi.value;
+          }
+        }
+        if (isEmptyString(config.polkadotReservedNodes)) {
+          if ('service' in configFromFile && 'reservedPeersList' in configFromFile.service) {
+            config.polkadotReservedNodes = configFromFile.service.reservedPeersList;
+          }
+        }
+        if (isEmptyString(config.polkadotLaunchInVpn)) {
+          config.polkadotLaunchInVpn = 'true';
+        }
+        if (isEmptyString(config.polkadotNodeKeyFile)) {
+          if ('nodeIds' in configFromFile.service && configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile !== undefined) {
+            config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile;
+          }
+        }
       }
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
@@ -68,12 +110,16 @@ class Polkadot {
     // Checking if necessary env vars were set
     try {
       // Checking if all necessary variables where set
-      if (isEmptyString(config.polkadotName) || isEmptyString(config.polkadotImage) ||
-        isEmptyString(config.polkadotPrefix) || isEmptyString(config.polkadotKeyGran) ||
-        isEmptyString(config.polkadotKeyBabe) || isEmptyString(config.polkadotKeyPara) ||
-        isEmptyString(config.polkadotKeyImon) || isEmptyString(config.polkadotKeyAudi)) {
-        throw Error('Invalid service config.');
-      }
+      checkVariable(config.polkadotName, 'Polkadot Name');
+      checkVariable(config.polkadotImage, 'Polkadot Image');
+      checkVariable(config.polkadotPrefix, 'Polkadot Prefix');
+      checkVariable(config.polkadotKeyGran, 'Polkadot Key Gran');
+      checkVariable(config.polkadotKeyBabe, 'Polkadot Key Babe');
+      checkVariable(config.polkadotKeyPara, 'Polkadot Key Para');
+      checkVariable(config.polkadotKeyImon, 'Polkadot Key Imon');
+      checkVariable(config.polkadotKeyAudi, 'Polkadot Key Audi');
+
+      // Check if polkadot node key file exists
       if (fs.existsSync('/service') && isEmptyString(config.polkadotNodeKeyFile)) {
         throw Error('Polkadot Service needs POLKADOT_NODE_KEY_FILE env variables set.');
       }
