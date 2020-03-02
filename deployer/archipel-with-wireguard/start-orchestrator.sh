@@ -9,7 +9,17 @@ if [ ! -z "$CONFIG_FILE" ]; then
 
     #unpack config file
     if [ ! -f "/config/config.json" ]; then
-        unzip -o /config/archipel-config.zip -d /config
+        #if config file password was set unzip with password
+        if [ ! -z "$CONFIG_FILE_PASSWORD" ]; then
+                unzip -P "$CONFIG_FILE_PASSWORD" -o /config/archipel-config.zip -d /config
+        else 
+                unzip -o /config/archipel-config.zip -d /config
+        fi
+        #if unzip failed exit
+        if [ ! $? -eq 0 ]; then
+                echo "Error! Can't unzip config file."
+                exit 1
+        fi
     fi
 
     #check if node id is valid

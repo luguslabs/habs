@@ -92,7 +92,7 @@ const generateConfig = (req, res, next) => {
   config = { ...config, ...generateArchipelConfig(config.nodesNumber) };
 
   // Write configuration to file
-  writeConfigToFile(config, configFilePath, tempDir);
+  writeConfigToFile(config, configFilePath, tempDir, req.body.password);
 
   res.redirect(configFile);
   //res.status(200).json({

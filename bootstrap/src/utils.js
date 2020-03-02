@@ -33,8 +33,12 @@ const execCmdSync = cmd => {
 };
 
 // Create a zip Archive
-const createArchive = (folderPath, resultFilePath) => {
-  execCmdSync(`zip -r -j ${resultFilePath} ${folderPath}`);
+const createArchive = (folderPath, resultFilePath, password) => {
+  if (password !== undefined && password !== ''){
+    execCmdSync(`zip -P "${password}" -r -j ${resultFilePath} ${folderPath}`);
+  } else {
+    execCmdSync(`zip -r -j ${resultFilePath} ${folderPath}`);
+  }
 };
 
 // Check if config file exists and create a temp dir if necessary
@@ -54,12 +58,12 @@ const checkConfigFile = (configFilePath, tempDir) => {
 };
 
 // Write json content into config file and create an archive
-const writeConfigToFile = (config, configFilePath, tempDir) => {
+const writeConfigToFile = (config, configFilePath, tempDir, password) => {
   // Writing JSON to file
   fs.writeFileSync('/tmp/archipel-bootstrap/config.json', JSON.stringify(config), 'utf8');
 
   // Creating Archive with config data
-  createArchive('/tmp/archipel-bootstrap', configFilePath);
+  createArchive('/tmp/archipel-bootstrap', configFilePath, password);
 
   // Removing temporary directory
   rmNonEmptyDir(tempDir);
