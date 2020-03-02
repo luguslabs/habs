@@ -233,17 +233,21 @@ services:
     environment:
        CONFIG_FILE: 'true'
        NODE_ID: 1
+       CONFIG_FILE_PASSWORD: ''
     restart: always
 
 volumes:
   archipel:
   archipel_service:
 ```
+* Set CONFIG_FILE_PASSWORD if config file was generated with password.
 * Warning! You must set good Node ID.
 
 ### 
 
 ### Environment Variables
+
+#### Without config file
 
 | Variable | Description | Values |
 |----------|-------------|--------|
@@ -263,6 +267,12 @@ volumes:
 | `POLKADOT_KEY_AUDI` |12 words mnemonic. <br> Polkadot Sessions keys needed to operate as validator.<br> AUDI keyType. sr25519.<br> Use for Audit. <br>[More details for sessions keys](https://github.com/luguslabs/archipel/tree/master/orchestrator#polkadot-sessions-keys-explained)| mnemonic |
 | `POLKADOT_LAUNCH_IN_VPN` |Launches the service container in Archipel network environment. <br> If Archipel is launched with WireGuard, the service container will be able to access the VPN network.| boolean |
 
+#### With config file
+| Variable | Description | Values |
+|----------|-------------|--------|
+| `CONFIG_FILE` |Try to load configuration from configuration archive or not. | boolean |
+| `NODE_ID` |Every configuration archive contains configuration of multiple nodes.<br> You must select node number. | integer |
+| `CONFIG_FILE_PASSWORD` |Configuration archive can be protected by a password. | string |
 
 ### Archipel UI
 ```bash
