@@ -5,6 +5,8 @@ ARCHIPEL_VERSION="test"
 
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
+echo "$SCRIPTPATH"
+
 # Launch Archipel orchestrator in docker container
 function launch_archipel () {
   echo "Starting $1..."
@@ -14,7 +16,7 @@ function launch_archipel () {
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $1:/root/chain/data \
     -v $1_service:/service \
-    -v $SCRIPTPATH/chain/keys:/keys \
+    -v $SCRIPTPATH/chain/keys:/config \
     --network archipel \
     --ip "$6" \
     --cap-add=NET_ADMIN \
@@ -24,7 +26,7 @@ function launch_archipel () {
     --env ARCHIPEL_LISTEN_PORT=30334 \
     --env ARCHIPEL_KEY_SEED="$2" \
     --env ARCHIPEL_NODE_KEY_FILE="${10}" \
-    --env ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="$7" \
+    --env ARCHIPEL_RESERVED_PEERS="$7" \
     --env POLKADOT_NAME=$3 \
     --env POLKADOT_PREFIX=$4 \
     --env SERVICE="polkadot" \
@@ -93,13 +95,8 @@ echo "Local archipel3 node identity is '$NODE3_LOCAL_ID'"
 
 
 # Constructing bootnodes and reserved nodes lists
-BOOTNODES_LIST="--bootnodes /ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_LOCAL_ID"
-echo "Bootnodes list is '$BOOTNODES_LIST'"
-RESERVED_LIST="--reserved-nodes /ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_LOCAL_ID --reserved-nodes /ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_LOCAL_ID --reserved-nodes /ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_LOCAL_ID"
+RESERVED_LIST="/ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "RESERVED_LIST  is '$RESERVED_LIST'"
-
-ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="--reserved-only "$RESERVED_LIST
-echo "ARCHIPEL_CHAIN_ADDITIONAL_PARAMS  is '$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS'"
 
 POLKADOT_NODE1_IP="172.17.0.2"
 POLKADOT_NODE2_IP="172.17.0.3"
@@ -126,7 +123,7 @@ launch_archipel "archipel1" \
                 "node1-" \
                 "" \
                 "$NODE1_IP" \
-                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
+                "$RESERVED_LIST" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key1-node-key-file" \
@@ -144,7 +141,7 @@ launch_archipel "archipel2" \
                 "node2-" \
                 "" \
                 "$NODE2_IP" \
-                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
+                "$RESERVED_LIST" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key2-node-key-file" \
@@ -161,7 +158,7 @@ launch_archipel "archipel3" \
                 "node3-" \
                 "" \
                 "$NODE3_IP" \
-                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
+                "$RESERVED_LIST" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key3-node-key-file" \

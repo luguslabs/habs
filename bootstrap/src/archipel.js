@@ -20,11 +20,11 @@ const generateArchipelConfig = (federationSize) => {
   const nodeIds = generateNodeIds('archipel', federationSize);
 
   // Constructing boot nodes list
-  const bootNodesList = nodeIds.reduce((listArray, currentValue, currentIndex) => {
-    return listArray.concat(`--bootnodes /ip4/10.0.1.${currentIndex + 1}/tcp/30334/p2p/${currentValue.peerId} `);
+  const reservedPeersList = nodeIds.reduce((listArray, currentValue, currentIndex) => {
+    return listArray.concat(`/ip4/10.0.1.${currentIndex + 1}/tcp/30334/p2p/${currentValue.peerId},`);
   }, '').slice(0, -1);
 
-  config.archipelBootNodesList = bootNodesList;
+  config.archipelReservedPeersList = reservedPeersList;
 
   // Filling Archipel Nodes configuration
   config.archipelNodes = [];

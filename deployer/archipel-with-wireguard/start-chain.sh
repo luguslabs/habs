@@ -72,10 +72,10 @@ if [ ! -z "$CONFIG_FILE" ]; then
             check_cmd $? 'retrieve ARCHIPEL_AUTHORITIES_ED25519_LIST'
             check_result $ARCHIPEL_AUTHORITIES_ED25519_LIST 'ARCHIPEL_AUTHORITIES_ED25519_LIST'
       fi
-      if [ -z "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" ]; then
-            ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=$(cat /config/config.json | jq ".archipelBootNodesList" | sed 's/\"//g')
-            check_cmd $? 'retrieve ARCHIPEL_CHAIN_ADDITIONAL_PARAMS'
-            check_result $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS 'ARCHIPEL_CHAIN_ADDITIONAL_PARAMS'
+      if [ -z "$ARCHIPEL_RESERVED_PEERS" ]; then
+            ARCHIPEL_RESERVED_PEERS=$(cat /config/config.json | jq ".archipelReservedPeersList" | sed 's/\"//g')
+            check_cmd $? 'retrieve ARCHIPEL_RESERVED_PEERS'
+            check_result $ARCHIPEL_RESERVED_PEERS 'ARCHIPEL_RESERVED_PEERS'
       fi
 fi
 
@@ -248,6 +248,16 @@ done
 LIST_TO_INJECT=${LIST_TO_INJECT%?} 
 sed -i "s/\"REPLACE_BALANCES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
+# reserved peers list construct
+RESERVED_PEERS_PARAM="--reserved-only"
+if [ ! -z "$ARCHIPEL_RESERVED_PEERS" ]
+then
+      for ITEM in $(echo $ARCHIPEL_RESERVED_PEERS |  tr "," " ")
+      do
+            RESERVED_PEERS_PARAM="$RESERVED_PEERS_PARAM --reserved-nodes $ITEM"
+      done
+fi
+
 # generate raw spec file 
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json
 
@@ -270,10 +280,10 @@ echo "SR25519_FILE_PATH: $SR25519_FILE_PATH"
 echo "Writing key seed into files..."
 echo "\"$ARCHIPEL_KEY_SEED\"" > "/root/chain/data/chains/archipel/keystore/$ED25519_FILE_PATH"
 echo "\"$ARCHIPEL_KEY_SEED\"" > "/root/chain/data/chains/archipel/keystore/$SR25519_FILE_PATH"
+echo "RESERVED_PEERS_PARAM: $RESERVED_PEERS_PARAM"
 
 # if archipel chain has additionals params
-# is used for --bootnodes
-if [ ! -z "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" ]
+if [ ! -z "$RESERVED_PEERS_PARAM" ]
 then
       /root/chain/archipel \
             --chain=/root/chain/archipelSpecRaw.json \
@@ -282,7 +292,7 @@ then
             --port $ARCHIPEL_LISTEN_PORT \
             --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
             --name "$ARCHIPEL_NODE_ALIAS" \
-            $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS
+            $RESERVED_PEERS_PARAM
 else
       /root/chain/archipel \
             --chain=/root/chain/archipelSpecRaw.json \
