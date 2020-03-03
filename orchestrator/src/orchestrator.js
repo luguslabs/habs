@@ -124,17 +124,22 @@ class Orchestrator {
   // Set leader on chain and launch service
   async becomeLeader (oldLeaderKey, nodeKey) {
     try {
-      console.log('Trying to become leader...');
-      const leaderSet = await this.chain.setLeader(oldLeaderKey, this.mnemonic);
-
-      if (leaderSet === true) {
-        console.log('The leader set transaction was completed...');
-        console.log('Sleeping 5 seconds to be sure that transaction was propagated to every node...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        await this.serviceStartIfAnyoneActive(nodeKey);
+      console.log('Before trying to become leader, check if service is ready and safe to become leader...');
+      const isServiceReadyToStart = await this.isServiceReadyToStart();
+      if (isServiceReadyToStart) {
+        console.log('Trying to become leader...');
+        const leaderSet = await this.chain.setLeader(oldLeaderKey, this.mnemonic);
+        if (leaderSet === true) {
+          console.log('The leader set transaction was completed...');
+          console.log('Sleeping 5 seconds to be sure that transaction was propagated to every node...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          await this.serviceStartIfAnyoneActive(nodeKey);
+        } else {
+          console.log('Can\'t set leader.');
+          console.log('Transaction failed or someone already took the leader place...');
+        }
       } else {
-        console.log('Can\'t set leader.');
-        console.log('Transaction failed or someone already took the leader place...');
+        console.log('Service not ready... DO NOT try to become leader...');
       }
     } catch (error) {
       debug('becomeLeader', error);
@@ -162,7 +167,16 @@ class Orchestrator {
     }
   };
 
-  // Start a service
+  // Check isServiceReadyToStart
+  async isServiceReadyToStart () {
+    try {
+      return await this.service.isServiceReadyToStart();
+    } catch (error) {
+      debug('isServiceReadyToStart', error);
+      throw error;
+    }
+  };
+
   async serviceStart (mode) {
     try {
       await this.service.start(mode);

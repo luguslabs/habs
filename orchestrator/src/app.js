@@ -4,10 +4,10 @@ const dotenv = require('dotenv');
 
 const { Chain } = require('./chain');
 const { Metrics } = require('./metrics');
-const { 
+const {
   catchExitSignals,
   checkVariable
- } = require('./utils');
+} = require('./utils');
 const { Orchestrator } = require('./orchestrator');
 
 // Import env variables from .env file
@@ -22,12 +22,10 @@ const {
 // Check if all necessary env vars were set
 const checkEnvVars = () => {
   try {
-
     checkVariable(NODE_WS, 'NODE_WS');
     checkVariable(MNEMONIC, 'MNEMONIC');
     checkVariable(ALIVE_TIME, 'ALIVE_TIME');
     checkVariable(SERVICE, 'SERVICE');
-
   } catch (error) {
     debug('checkEnvVars', error);
     throw error;
