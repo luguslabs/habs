@@ -48,6 +48,8 @@ beforeAll(async () => {
 
   // Create Orchestrator instance
   orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 60000);
+  //mock isServiceReadyToStart
+  orchestrator.isServiceReadyToStart = () => true;
 });
 
 afterAll(async () => {

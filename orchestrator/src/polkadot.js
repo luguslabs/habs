@@ -32,6 +32,11 @@ class Polkadot {
       config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
       config.polkadotLaunchInVpn = process.env.POLKADOT_LAUNCH_IN_VPN;
       config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
+      // For test purpurse add a simulate synch to note wait full kusama to synch
+      config.polkadotSimulateSynch = false;
+      if (!isEmptyString(process.env.POLKADOT_SIMULATE_SYNCH) && process.env.POLKADOT_SIMULATE_SYNCH.includes('true')) {
+        config.polkadotSimulateSynch = true;
+      }
 
       // If the config can be retrieved from config file
       if (!isEmptyString(process.env.CONFIG_FILE)) {
@@ -99,6 +104,7 @@ class Polkadot {
       }
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
+      config.polkadotRpcPort = '9993';
     } catch (error) {
       debug('initConfig', error);
       throw error;
@@ -165,7 +171,7 @@ class Polkadot {
         debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);
 
         // Constructing command to import key
-        const command = ['curl', 'http://localhost:9933', '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+        const command = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
                         `{
                           "jsonrpc":"2.0",
                           "id":1,
@@ -216,6 +222,75 @@ class Polkadot {
     }
   }
 
+  // Check if polkadot is synch and ready to operate (Synch etc ...)
+  // Curl result exemple :  "W{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":1,"shouldHavePeers":true},"id":1}"
+  // TODO ? call also system_networkState
+  // - add metrics "averageDownloadPerSec"
+  // - add metrics "averageUploadPerSec"
+  async isServiceReadyToStart () {
+    try {
+      console.log('isServiceReadyToStart function start');
+      const containerName = config.polkadotPrefix + 'polkadot-sync';
+      // check container exist and running
+      const containerExistAndRunning = await this.docker.isContainerRunningByName(containerName);
+      if (!containerExistAndRunning) {
+        debug('isServiceReadyToStart', `Service NOT ready to start, container : "${containerName}" is not running. `);
+        return false;
+      }
+      debug('isServiceReadyToStart', `container : "${containerName}" exist and in running state.`);
+      // call and check polkadot system_health
+      const commandSystemHealth = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+                       `{
+                        "jsonrpc":"2.0",
+                        "id":1,
+                        "method":"system_health"
+      }`];
+
+      // Call system_health command in docker container
+      const resultSystemHealth = await this.docker.dockerExecute(containerName, commandSystemHealth);
+      debug('isServiceReadyToStart', `Command system_health result: "${resultSystemHealth}"`);
+
+      // Checking system_health result
+      if (resultSystemHealth.includes('"result":')) {
+        // Checking Peers number > 0
+        const peersSystemHealth = resultSystemHealth.match(/"peers":\d+/);
+        debug('isServiceReadyToStart', 'peersSystemHealth:' + peersSystemHealth);
+        if (peersSystemHealth && peersSystemHealth.length === 1) {
+          const peersNumber = parseInt(peersSystemHealth[0].split(':')[1]);
+          if (peersNumber > 0) {
+            debug('isServiceReadyToStart', `system_health peers > 0 :"${peersNumber}" peers. Check synch status.`);
+            if (config.polkadotSimulateSynch) {
+              debug('isServiceReadyToStart', 'Test mode simulate synch node.');
+              return true;
+            }
+            // Checking isSyncing
+            const isSyncingSystemHealth = resultSystemHealth.match(/"isSyncing":true|false/);
+            debug('isServiceReadyToStart', 'isSyncingSystemHealth:' + isSyncingSystemHealth);
+            if (isSyncingSystemHealth.includes('false')) {
+              debug('isServiceReadyToStart', 'system_health call node is SYNCH. Service is READY to validate');
+              return true;
+            } else {
+              debug('isServiceReadyToStart', 'system_health call node is currently syncing. Service not ready.');
+              return false;
+            }
+          } else {
+            debug('isServiceReadyToStart', 'system_health peers == 0. Service not ready.');
+            return false;
+          }
+        } else {
+          debug('isServiceReadyToStart', 'system_health call has no peers result. Service not ready.');
+          return false;
+        }
+      } else {
+        debug('isServiceReadyToStart', 'system_health call has no result. Service not ready.');
+        return false;
+      }
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  }
+
   // Copy keys files to volume
   async copyFilesToPolkadotContainer () {
     try {
@@ -233,6 +308,8 @@ class Polkadot {
   async start (mode) {
     try {
       const commonPolkadotOptions = ['--pruning=archive', '--wasm-execution', 'Compiled'];
+      commonPolkadotOptions.push(...['--rpc-cors', 'http://localhost']);
+      commonPolkadotOptions.push(...['--rpc-port', config.polkadotRpcPort]);
       if (fs.existsSync('/service')) {
         await this.copyFilesToPolkadotContainer();
         commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + config.polkadotNodeKeyFile);
