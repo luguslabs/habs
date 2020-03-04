@@ -27,6 +27,7 @@ function launch_archipel () {
     --env ARCHIPEL_KEY_SEED="$2" \
     --env ARCHIPEL_NODE_KEY_FILE="${10}" \
     --env ARCHIPEL_RESERVED_PEERS="$7" \
+    --env ARCHIPEL_SUSPEND_SERVICE="false" \
     --env POLKADOT_NAME=$3 \
     --env POLKADOT_PREFIX=$4 \
     --env SERVICE="polkadot" \

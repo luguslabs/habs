@@ -16,7 +16,8 @@ const {
   NODE_WS,
   MNEMONIC,
   ALIVE_TIME,
-  SERVICE
+  SERVICE,
+  SUSPEND_SERVICE
 } = process.env;
 
 // Check if all necessary env vars were set
@@ -47,7 +48,7 @@ async function main () {
     const metrics = new Metrics();
 
     // Create orchestrator instance
-    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME);
+    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME, SUSPEND_SERVICE);
 
     // Start service in passive mode
     console.log('Starting service in passive mode...');
