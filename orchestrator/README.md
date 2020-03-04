@@ -15,6 +15,7 @@ NODE_WS='ws://127.0.0.1:9944'
 MNEMONIC='mushroom ladder...'
 ALIVE_TIME=60000
 SERVICE='polkadot'
+SUSPEND_SERVICE=false
 
 # Polkadot Validator Variables
 POLKADOT_NAME='validator1'
