@@ -156,7 +156,7 @@ class Orchestrator {
   async serviceStartIfAnyoneActive (nodeKey) {
     try {
       // The node is not isolated launching service in active mode
-      if (this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
+      if (!this.suspendService && this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
         console.log('Found someone online...');
         console.log('Launching active node...');
         await this.serviceStart('active');
