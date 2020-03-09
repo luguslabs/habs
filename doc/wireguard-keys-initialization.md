@@ -1,6 +1,6 @@
 # Wiregrade Keys initialization 
 
-The Archipel chain and services use a secure VPN Wireguard. It a pre-requiste keys generation.
+The Archipel chain and services use a secure VPN [Wireguard](https://www.wireguard.com/). It a pre-requiste keys generation.
 
 
 ## Subkey Tool

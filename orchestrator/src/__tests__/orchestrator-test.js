@@ -49,7 +49,9 @@ beforeAll(async () => {
   metrics = new Metrics();
 
   // Create Orchestrator instance
-  orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 60000);
+  orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 60000, "false");
+  //mock isServiceReadyToStart
+  orchestrator.isServiceReadyToStart = () => true;
 });
 
 afterAll(async () => {

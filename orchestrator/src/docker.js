@@ -67,6 +67,20 @@ class Docker {
     }
   }
 
+  // return true if container is running
+  async isContainerRunningByName (name) {
+    let result = false;
+    try {
+      const container = await this.getContainerByName(name);
+      if (container && container.State === 'running') {
+        result = true;
+      }
+    } catch (e) {
+      result = false;
+    }
+    return result;
+  }
+
   // Get volume instance by name
   async getVolumeByName (name) {
     try {

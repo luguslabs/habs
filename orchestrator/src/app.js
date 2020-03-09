@@ -4,10 +4,10 @@ const dotenv = require('dotenv');
 
 const { Chain } = require('./chain');
 const { Metrics } = require('./metrics');
-const { 
+const {
   catchExitSignals,
   checkVariable
- } = require('./utils');
+} = require('./utils');
 const { Orchestrator } = require('./orchestrator');
 
 // Import env variables from .env file
@@ -16,18 +16,17 @@ const {
   NODE_WS,
   MNEMONIC,
   ALIVE_TIME,
-  SERVICE
+  SERVICE,
+  SUSPEND_SERVICE
 } = process.env;
 
 // Check if all necessary env vars were set
 const checkEnvVars = () => {
   try {
-
     checkVariable(NODE_WS, 'NODE_WS');
     checkVariable(MNEMONIC, 'MNEMONIC');
     checkVariable(ALIVE_TIME, 'ALIVE_TIME');
     checkVariable(SERVICE, 'SERVICE');
-
   } catch (error) {
     debug('checkEnvVars', error);
     throw error;
@@ -49,7 +48,7 @@ async function main () {
     const metrics = new Metrics();
 
     // Create orchestrator instance
-    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME);
+    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME, SUSPEND_SERVICE);
 
     // Start service in passive mode
     console.log('Starting service in passive mode...');

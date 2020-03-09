@@ -22,7 +22,7 @@ class Orchestrator {
     }
   }
 
-  constructor (chain, service, metrics, mnemonic, aliveTime) {
+  constructor (chain, service, metrics, mnemonic, aliveTime, suspendService) {
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
@@ -32,6 +32,7 @@ class Orchestrator {
     this.metrics = metrics;
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
+    this.suspendService = suspendService.includes('true');
   }
 
   // Orchestrate service
@@ -124,17 +125,26 @@ class Orchestrator {
   // Set leader on chain and launch service
   async becomeLeader (oldLeaderKey, nodeKey) {
     try {
-      console.log('Trying to become leader...');
-      const leaderSet = await this.chain.setLeader(oldLeaderKey, this.mnemonic);
-
-      if (leaderSet === true) {
-        console.log('The leader set transaction was completed...');
-        console.log('Sleeping 5 seconds to be sure that transaction was propagated to every node...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        await this.serviceStartIfAnyoneActive(nodeKey);
+      if (!this.suspendService) {
+        console.log('Before trying to become leader, check if service is ready and safe to become leader...');
+        const isServiceReadyToStart = await this.isServiceReadyToStart();
+        if (isServiceReadyToStart) {
+          console.log('Trying to become leader...');
+          const leaderSet = await this.chain.setLeader(oldLeaderKey, this.mnemonic);
+          if (leaderSet === true) {
+            console.log('The leader set transaction was completed...');
+            console.log('Sleeping 5 seconds to be sure that transaction was propagated to every node...');
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            await this.serviceStartIfAnyoneActive(nodeKey);
+          } else {
+            console.log('Can\'t set leader.');
+            console.log('Transaction failed or someone already took the leader place...');
+          }
+        } else {
+          console.log('Service not ready... DO NOT try to become leader...');
+        }
       } else {
-        console.log('Can\'t set leader.');
-        console.log('Transaction failed or someone already took the leader place...');
+        console.log('ARCHIPEL_SUSPEND_SERVICE is set to true... Only Passive mode. Leader will be never launched on this node.');
       }
     } catch (error) {
       debug('becomeLeader', error);
@@ -146,7 +156,7 @@ class Orchestrator {
   async serviceStartIfAnyoneActive (nodeKey) {
     try {
       // The node is not isolated launching service in active mode
-      if (this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
+      if (!this.suspendService && this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
         console.log('Found someone online...');
         console.log('Launching active node...');
         await this.serviceStart('active');
@@ -162,7 +172,16 @@ class Orchestrator {
     }
   };
 
-  // Start a service
+  // Check isServiceReadyToStart
+  async isServiceReadyToStart () {
+    try {
+      return await this.service.isServiceReadyToStart();
+    } catch (error) {
+      debug('isServiceReadyToStart', error);
+      throw error;
+    }
+  };
+
   async serviceStart (mode) {
     try {
       await this.service.start(mode);

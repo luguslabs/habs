@@ -27,6 +27,7 @@ function launch_archipel () {
     --env ARCHIPEL_KEY_SEED="$2" \
     --env ARCHIPEL_NODE_KEY_FILE="${10}" \
     --env ARCHIPEL_RESERVED_PEERS="$7" \
+    --env ARCHIPEL_SUSPEND_SERVICE="false" \
     --env POLKADOT_NAME=$3 \
     --env POLKADOT_PREFIX=$4 \
     --env SERVICE="polkadot" \
@@ -40,6 +41,7 @@ function launch_archipel () {
     --env POLKADOT_TELEMETRY_URL="$9" \
     --env POLKADOT_NODE_KEY_FILE="${11}" \
     --env POLKADOT_LAUNCH_IN_VPN="true" \
+    --env POLKADOT_SIMULATE_SYNCH="true" \
     --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
     --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
     --env DEBUG="app,chain,docker,metrics,polkadot,service" \
