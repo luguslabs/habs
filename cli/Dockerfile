@@ -37,6 +37,6 @@ RUN npm install
 COPY . .
 COPY --from=builder-subkey /usr/local/cargo/bin/subkey /usr/local/bin/
 
-EXPOSE 3000
+RUN npm -g install . --no-optional
 
-CMD [ "node", "src/app.js" ]
+ENTRYPOINT [ "archipel-cli" ]

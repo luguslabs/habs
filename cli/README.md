@@ -6,7 +6,22 @@ Archipel CLI is a component that generates configuration and bootstraps an Archi
 ### Run
 ```bash
 yarn install
-yarn run start
+yarn start
+```
+
+### Use with Docker
+```bash
+# BASH
+echo 'alias archipel-cli="docker run --interactive --tty --rm -v $(pwd):/archipel-cli -w /archipel-cli luguslabs/archipel-cli:latest"' >> ~/.bash_aliases && source ~/.bashrc
+# ZSH
+echo 'alias archipel-cli="docker run --interactive --tty --rm -v $(pwd):/archipel-cli -w /archipel-cli luguslabs/archipel-cli:latest"' >> ~/.zshrc && source ~/.zshrc
+```
+
+### Install
+```bash
+git clone https://github.com/luguslabs/archipel.git
+cd ./cli
+npm install -g .
 ```
 
 ### Testing

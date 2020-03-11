@@ -1,7 +1,10 @@
+#!/usr/bin/env node
+
 const { runCli } = require('./cli');
 const figlet = require('figlet');
 const debug = require('debug')('main');
 
+// Show a Archipel CLI figlet and welcome message
 const welcomeMessage = () => {
     console.log(
         figlet.textSync('Archipel CLI', { horizontalLayout: 'full' })

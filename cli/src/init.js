@@ -39,7 +39,7 @@ const initConfig = async (service, spinner) => {
 
         // Add service fields into config
         config = {...config, ...fieldsObject}
-        
+
         // Saving config into config file in working directory
         await saveJSONToFile(config, 'archipel.json');
 
