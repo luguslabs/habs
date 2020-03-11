@@ -3,44 +3,44 @@ const cli = require('clui');
 const debug = require('debug')('cli');
 
 const {
-    generateConfig
+  generateConfig
 } = require('./generate');
 
 const {
-    initConfig
+  initConfig
 } = require('./init');
 
 const Spinner = cli.Spinner;
 
 // Parse Archipel CLI arguments
 const runCli = async args => {
-    try {
-        program
-            .version('0.0.1');
+  try {
+    program
+      .version('0.0.1');
 
-        program
-            .command('init <service>')
-            .description('Init Archipel cli config file')
-            .action(service => {
-                const spinner = new Spinner('Initializing Archipel CLI config file...');
-                initConfig(service, spinner);
-            });
+    program
+      .command('init <service>')
+      .description('Init Archipel cli config file')
+      .action(service => {
+        const spinner = new Spinner('Initializing Archipel CLI config file...');
+        initConfig(service, spinner);
+      });
 
-        program
-            .command('generate')
-            .description('Generate Archipel config archive')
-            .action(() => {
-                const spinner = new Spinner('Generating Archipel Config Archive...');
-                generateConfig(spinner);
-            });
+    program
+      .command('generate')
+      .description('Generate Archipel config archive')
+      .action(() => {
+        const spinner = new Spinner('Generating Archipel Config Archive...');
+        generateConfig(spinner);
+      });
 
-        await program.parseAsync(args);
-    } catch (error) {
-        debug('runCli()', error);
-        throw error;
-    }
-}
+    await program.parseAsync(args);
+  } catch (error) {
+    debug('runCli()', error);
+    throw error;
+  }
+};
 
 module.exports = {
-    runCli
-}
+  runCli
+};
