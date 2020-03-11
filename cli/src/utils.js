@@ -4,17 +4,20 @@ const { exec } = require('child_process');
 
 const rootDir = path.dirname(process.mainModule.filename);
 
+// Save object to file
 const saveJSONToFile = async (json, fileName) => {
     const filePath = path.join(process.cwd(), fileName);
     const text = JSON.stringify(json, null, 2);
     await fs.writeFile(filePath, text);
 };
 
+// Save object to a specific path
 const saveJSONToPath = async (json, path) => {
   const text = JSON.stringify(json, null, 2);
   await fs.writeFile(path, text);
 };
 
+// Load JSON file to object
 const loadJSONFile = async (fileName) => {
     const filePath = path.join(process.cwd(), fileName);
     const fileJSON = await fs.readFile(filePath, 'utf8');
@@ -65,6 +68,7 @@ const createArchive = async (folderPath, resultFilePath, password) => {
   rmNonEmptyDir(folderPath);
 };
 
+// Exec a command asynchronously 
 const execAsync = cmd => new Promise((resolve, reject) => {
     exec(cmd, (error, stdout, stderr) => {
       if (error) {
@@ -74,6 +78,7 @@ const execAsync = cmd => new Promise((resolve, reject) => {
     });
 });
 
+// Check if file exists
 const fileExists = async fileName => new Promise((resolve, reject) => {
     const filePath = path.join(process.cwd(), fileName);
     fs.access(filePath, (error) => {

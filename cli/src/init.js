@@ -15,35 +15,41 @@ const configTemplate = {
 const initConfig = async (service, spinner) => {
 
     try {
-
         spinner.start();
 
+        // Starting config construction from template
         let config = {...configTemplate};
 
+        // Get service and its fields from services.json
         const serviceObject = getService(service);
 
-        if (serviceObject) {
-            config['service'] = service;
-            const fields = serviceObject.fields.map(el => el.name);
-
-            const fieldsObject = fields.reduce((result, item) => {
-                result[item] = ''
-                return result;
-            }, {});
-
-            config = {...config, ...fieldsObject}
-        } else {
-            throw Error(`Service ${service} is not supported yet.`)
+        // Throw if service was not found in services.json
+        if (!serviceObject) {
+            throw Error(`Service ${service} is not supported yet.`);
         }
 
-        await saveJSONToFile(config, 'archipel.json');
-        spinner.stop();
+        config['service'] = service;
 
-        console.log(`\nSuccess! Config file for service '${service}' was initialized!`);
+        // Get service fields and convert into object keys
+        const fields = serviceObject.fields.map(el => el.name);
+        const fieldsObject = fields.reduce((result, item) => {
+            result[item] = ''
+            return result;
+        }, {});
+
+        // Add service fields into config
+        config = {...config, ...fieldsObject}
+        
+        // Saving config into config file in working directory
+        await saveJSONToFile(config, 'archipel.json');
+
+        spinner.stop();        
+        console.log(`Success! Config file for service '${service}' was initialized!`);
     } catch (error) {
         spinner.stop();
         debug('initConfig()', error);
         console.error(error);
+        process.exit(1);
     }
 }
 

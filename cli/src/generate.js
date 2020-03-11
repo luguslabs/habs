@@ -31,6 +31,7 @@ const generateConfig = async (spinner) => {
         // Config file checks
         await prepareTempDirectory(tempDir);
 
+        // Check if config file was found
         if (!await fileExists(configFile)) {
             throw Error(`Archipel config file was not found. Try to launch 'init' command.`);
         }
@@ -60,14 +61,13 @@ const generateConfig = async (spinner) => {
         // Creating configuration archive
         await createArchive(tempDir, path.join(process.cwd(), 'config.zip'), '1111');
 
-        console.log(`\nSuccess! Archipel configuration archive was generated!`)
         spinner.stop();
-
+        console.log(`Success! Archipel configuration archive was generated!`)
     } catch (error) {
+        spinner.stop();
         debug('generateConfig()', error);
         console.log(error);
-        spinner.stop();
-
+        process.exit(1);
     }
 }
 
