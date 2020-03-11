@@ -1,0 +1,32 @@
+{
+  "name": "archipel-cli",
+  "version": "0.0.1",
+  "description": "Archipel CLI is a component that generates configuration and bootstraps an Archipel federation.  ",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "start:dev": "nodemon src/app.js",
+    "eslint": "eslint ./",
+    "eslint-fix": "eslint ./ --fix",
+    "test": "jest --detectOpenHandles --runInBand --forceExit"
+  },
+  "author": "Lugus Labs",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "jest": "^25.1.0",
+    "nodemon": "^2.0.2"
+  },
+  "dependencies": {
+    "clui": "^0.3.6",
+    "commander": "^4.1.1",
+    "figlet": "^1.3.0",
+    "fs-extra": "^8.1.0",
+    "inquirer": "^7.1.0"
+  }
+}

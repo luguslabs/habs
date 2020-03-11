@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const { Metrics } = require('../metrics');
 
 test('Test metrics addition', () => {

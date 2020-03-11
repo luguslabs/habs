@@ -1,0 +1,36 @@
+[{
+    "id": "0",
+    "name": "polkadot",
+    "fields": [
+      {
+        "type": "text",
+        "name": "granKey",
+        "label": "Gran Key",
+        "env": "POLKADOT_KEY_GRAN"
+      },
+      {
+        "type": "text",
+        "name": "babeKey",
+        "label": "Babe Key",
+        "env": "POLKADOT_KEY_BABE"
+      },
+      {
+        "type": "text",
+        "name": "imonKey",
+        "label": "Imon Key",
+        "env": "POLKADOT_KEY_IMON"
+      },
+      {
+        "type": "text",
+        "name": "paraKey",
+        "label": "Para Key",
+        "env": "POLKADOT_KEY_PARA"
+      },
+      {
+        "type": "text",
+        "name": "audiKey",
+        "label": "Audi Key",
+        "env": "POLKADOT_KEY_AUDI"
+      }
+    ]
+}]
