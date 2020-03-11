@@ -1,5 +1,6 @@
 const debug = require('debug')('generate');
 const path = require('path');
+const inquirer = require('inquirer');
 const {
     loadJSONFile,
     createArchive,
@@ -23,9 +24,31 @@ const {
 const configFile = 'archipel.json';
 const tempDir = '/tmp/archipel-bootstrap';
 
+// Get password from user
+const getPasswordFromUser = () => {
+    const questions = [
+        {
+            name: 'password',
+            type: 'password',
+            message: 'Choose a password to protect Archipel archive:',
+            validate: function(value) {
+                if (value.length) {
+                    return true;
+                } else {
+                    return 'Please enter a password.';
+                }
+            }
+        }
+    ];
+    return inquirer.prompt(questions);
+}
+
 const generateConfig = async (spinner) => {
 
     try {
+        // Get archive password password from user
+        const password = await getPasswordFromUser();
+
         spinner.start();
 
         // Config file checks
@@ -59,7 +82,7 @@ const generateConfig = async (spinner) => {
         await saveJSONToPath(config, `${tempDir}/config.json`);
 
         // Creating configuration archive
-        await createArchive(tempDir, path.join(process.cwd(), 'config.zip'), '1111');
+        await createArchive(tempDir, path.join(process.cwd(), 'config.zip'), password.password);
 
         spinner.stop();
         console.log(`Success! Archipel configuration archive was generated!`)

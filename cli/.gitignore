@@ -4,3 +4,5 @@ npm-debug.log
 coverage
 package-lock.json
 yarn.lock
+archipel.json
+config.zip
