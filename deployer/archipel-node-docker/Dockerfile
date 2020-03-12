@@ -27,6 +27,6 @@ RUN	apt-get -y update; \
 		libssl-dev curl jq
 COPY ./deployer/archipel-node-docker/start-node.sh .
 
-EXPOSE 9933 9944 30333
+EXPOSE 9933 9944 30334
 
 ENTRYPOINT [ "./start-node.sh" ]

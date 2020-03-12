@@ -299,6 +299,9 @@ then
             --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
             $ARCHIPEL_TELEMETRY_URL_CMD \
             --name "$ARCHIPEL_NODE_ALIAS" \
+            --rpc-cors "all" \
+            --ws-port 9944 \
+            --unsafe-ws-external \
             $RESERVED_PEERS_PARAM
 else
       /root/chain/archipel \
@@ -308,5 +311,8 @@ else
             --port $ARCHIPEL_LISTEN_PORT \
             --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
             $ARCHIPEL_TELEMETRY_URL_CMD \
-            --name "$ARCHIPEL_NODE_ALIAS"
+            --name "$ARCHIPEL_NODE_ALIAS" \
+            --rpc-cors "all" \
+            --ws-port 9944 \
+            --unsafe-ws-external
 fi

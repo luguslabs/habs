@@ -10,6 +10,8 @@ pub trait Trait: timestamp::Trait + system::Trait {
 // This module's storage items.
 decl_storage! {
     trait Store for Module<T: Trait> as ArchipelModule {
+        // Heartbeats storage
+        Heartbeats get(get_heartbeats): map T::AccountId => T::Moment;
         // Metrics storage
         Metrics get(get_metrics): map T::AccountId => u32;
         // Current leader storage
@@ -62,6 +64,9 @@ decl_module! {
 
             // Adding metrics into metrics map
             <Metrics<T>>::insert(&sender, metrics_value);
+
+            // Adding Moment into Heartbeats map
+            <Heartbeats<T>>::insert(&sender, now);
 
             // Triggering metrics update event
             Self::deposit_event(RawEvent::MetricsUpdated(sender, metrics_value, now));
