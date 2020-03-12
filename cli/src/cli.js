@@ -1,5 +1,4 @@
 const program = require('commander');
-const cli = require('clui');
 const debug = require('debug')('cli');
 
 const {
@@ -10,29 +9,24 @@ const {
   initConfig
 } = require('./init');
 
-const Spinner = cli.Spinner;
-
 // Parse Archipel CLI arguments
 const runCli = async args => {
   try {
+    // Set cli version
     program
       .version('0.0.1');
 
+    // Init command
     program
       .command('init <service>')
       .description('Init Archipel cli config file')
-      .action(service => {
-        const spinner = new Spinner('Initializing Archipel CLI config file...');
-        initConfig(service, spinner);
-      });
+      .action(initConfig);
 
+    // Generate command
     program
       .command('generate')
       .description('Generate Archipel config archive')
-      .action(() => {
-        const spinner = new Spinner('Generating Archipel Config Archive...');
-        generateConfig(spinner);
-      });
+      .action(generateConfig);
 
     await program.parseAsync(args);
   } catch (error) {

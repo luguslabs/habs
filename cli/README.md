@@ -12,9 +12,9 @@ yarn start
 ### Use with Docker
 ```bash
 # BASH
-echo 'alias archipel-cli="docker run --interactive --tty --rm -v $(pwd):/archipel-cli -w /archipel-cli luguslabs/archipel-cli:latest"' >> ~/.bash_aliases && source ~/.bashrc
+echo 'alias archipel-cli='"'"'docker run --interactive --tty --rm -v $(pwd):/archipel-cli -w /archipel-cli luguslabs/archipel-cli:latest'"'"'' >> ~/.bash_aliases && source ~/.bashrc
 # ZSH
-echo 'alias archipel-cli="docker run --interactive --tty --rm -v $(pwd):/archipel-cli -w /archipel-cli luguslabs/archipel-cli:latest"' >> ~/.zshrc && source ~/.zshrc
+echo 'alias archipel-cli='"'"'docker run --interactive --tty --rm -v $(pwd):/archipel-cli -w /archipel-cli luguslabs/archipel-cli:latest'"'"'' >> ~/.zshrc && source ~/.zshrc
 ```
 
 ### Install

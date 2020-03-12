@@ -90,6 +90,13 @@ const fileExists = async fileName => new Promise((resolve, reject) => {
   });
 });
 
+// Check if a string is empty
+const isEmptyString = (str, msg) => {
+  if (!str || str.length === 0) {
+    throw Error(msg);
+  }
+};
+
 module.exports = {
   rootDir,
   saveJSONToFile,
@@ -98,5 +105,6 @@ module.exports = {
   fileExists,
   prepareTempDirectory,
   saveJSONToPath,
-  createArchive
+  createArchive,
+  isEmptyString
 };

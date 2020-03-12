@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-
-const { runCli } = require('./cli');
 const figlet = require('figlet');
 const debug = require('debug')('main');
+const {
+  runCli
+} = require('./cli');
 
 // Show a Archipel CLI figlet and welcome message
 const welcomeMessage = () => {
@@ -18,7 +19,8 @@ async function main () {
     await runCli(process.argv);
   } catch (error) {
     debug('main()', error);
-    throw error;
+    console.error(error);
+    process.exit(1);
   }
 }
 

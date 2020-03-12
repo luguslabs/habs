@@ -36,7 +36,14 @@ const generateNodeIds = async (service, nodesNumber) => {
   return nodeIds;
 };
 
+// Validate a seed
+const validateSeed = async seed => {
+  const subKeyCommand = await execAsync(`subkey -n substrate --ed25519 inspect "${seed}"`);
+  return !subKeyCommand.includes('Invalid');
+};
+
 module.exports = {
   generateSubstrateKeys,
-  generateNodeIds
+  generateNodeIds,
+  validateSeed
 };

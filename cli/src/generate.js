@@ -1,16 +1,20 @@
 const debug = require('debug')('generate');
 const path = require('path');
 const inquirer = require('inquirer');
+const Spinner = require('clui').Spinner;
+const net = require('net');
 const {
   loadJSONFile,
   createArchive,
   fileExists,
   prepareTempDirectory,
-  saveJSONToPath
+  saveJSONToPath,
+  isEmptyString
 } = require('./utils');
 
 const {
-  generateServiceConfig
+  generateServiceConfig,
+  validateServiceConfig
 } = require('./service');
 
 const {
@@ -43,12 +47,34 @@ const getPasswordFromUser = () => {
   return inquirer.prompt(questions);
 };
 
-const generateConfig = async (spinner) => {
-  try {
-    // Get archive password password from user
-    const password = await getPasswordFromUser();
+// Validate config data from archipel.json file
+const validateConfigData = async configData => {
+  isEmptyString(configData.name, 'Archipel Name was not set in archipel.json file.');
+  isEmptyString(configData.publicIps, 'Nodes public ips were not set in archipel.json file.');
+  isEmptyString(configData.service, 'Service name was not found in archipel.json file.');
+  validatePublicIps(configData.publicIps);
+  await validateServiceConfig(configData);
+};
 
-    spinner.start();
+// Validate public ips list
+const validatePublicIps = ips => {
+  const externalIPAddresses = ips.split(',');
+  if (externalIPAddresses.length !== 3) {
+    throw Error('For now Archipel supports only 3 nodes config.');
+  }
+  // Check if every ip address in list is valid
+  externalIPAddresses.forEach(element => {
+    if (!net.isIP(element)) {
+      throw Error(`Public ip list has an invalid IP address (${element}).`);
+    }
+  });
+};
+
+// Generate config
+const generateConfig = async () => {
+  try {
+    // Create a spinner
+    const spinner = new Spinner('Generating Archipel Config Archive...');
 
     // Config file checks
     await prepareTempDirectory(tempDir);
@@ -60,6 +86,15 @@ const generateConfig = async (spinner) => {
 
     console.log('Generating init config file...');
     const configData = await loadJSONFile(configFile);
+
+    // Validate loaded configuration data
+    await validateConfigData(configData);
+
+    // Get archive password password from user
+    const password = await getPasswordFromUser();
+
+    // Start spinner
+    spinner.start();
 
     // Start constructing config
     let config = {};
@@ -86,9 +121,8 @@ const generateConfig = async (spinner) => {
     spinner.stop();
     console.log('Success! Archipel configuration archive was generated!');
   } catch (error) {
-    spinner.stop();
     debug('generateConfig()', error);
-    console.log(error);
+    console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 };

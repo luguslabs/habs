@@ -1,67 +1,89 @@
-const path = require('path');
-const fs = require('fs');
-
 const {
-  rootDir
+  isEmptyString
 } = require('./utils');
 
 const {
   generateNodeIds
 } = require('./substrate');
 
-// Service file path
-const serviceFile = path.join(rootDir, '..', 'services.json');
+const {
+  validatePolkadotConfig,
+  polkadotFields
+} = require('./polkadot');
 
-// Get services from file
-const getServices = () => {
-  const fileContent = fs.readFileSync(serviceFile);
-  return JSON.parse(fileContent);
+let serviceFields = [];
+
+// Validate service config
+const validateServiceConfig = async configData => {
+  // Check if service is supported
+  if (configData.service === 'polkadot') {
+    await validatePolkadotConfig(configData);
+    serviceFields = polkadotFields;
+  } else {
+    throw Error(`Service ${configData.service} is not supported yet.`);
+  }
+
+  // Fill each field value in config
+  serviceFields.forEach(field => {
+    // If service field was set in request
+    isEmptyString(configData[field.name], `'${field.name}' field was not set in archipel.json file.`);
+  });
 };
 
-// Get a specific service from service config file
-const getService = name => {
-  return getServices(name).find(el => el.name === name);
+// Generate service template
+const generateServiceTemplate = serviceName => {
+  if (serviceName === 'polkadot') {
+    let template = {};
+
+    serviceFields = polkadotFields;
+
+    template.service = serviceName;
+
+    const fields = serviceFields.map(el => el.name);
+    const fieldsObject = fields.reduce((result, item) => {
+      result[item] = '';
+      return result;
+    }, {});
+
+    template = { ...template, ...fieldsObject };
+
+    return template;
+  } else {
+    throw Error(`Service ${serviceName} is not supported yet.`);
+  }
 };
 
 // Generate service configuration
 const generateServiceConfig = async (configData, federationSize) => {
   const config = {};
 
-  // Add service info to configuration
-  const services = getServices();
-  const service = services.find(srv => srv.name === configData.service);
+  // Fill name and init fields
+  config.service = { name: configData.service };
+  config.service.fields = [];
 
-  // If service was found adding all service fields to config
-  if (service) {
-    // Fill name and init fields
-    config.service = { name: service.name };
-    config.service.fields = [];
+  // Fill each field value in config
+  serviceFields.forEach(field => {
+    // If service field was set in request
+    if (configData[field.name] !== undefined && configData[field.name] !== '') {
+      config.service.fields.push({ name: field.name, value: configData[field.name], env: field.env });
+    } else {
+      throw Error(`'${field.label}' field was not set.`);
+    }
+  });
 
-    // Fill each field value in config
-    service.fields.forEach(field => {
-      // If service field was set in request
-      if (configData[field.name] !== undefined && configData[field.name] !== '') {
-        config.service.fields.push({ name: field.name, value: configData[field.name], env: field.env });
-      } else {
-        throw Error(`'${field.label}' field was not set.`);
-      }
-    });
+  // Generate Service Node Ids
+  config.service.nodeIds = await generateNodeIds(configData.service, federationSize);
 
-    // Generate Service Node Ids
-    config.service.nodeIds = await generateNodeIds(service.name, federationSize);
-
-    // Create reserved peers list
-    config.service.reservedPeersList = config.service.nodeIds.reduce((listArray, currentValue, currentIndex) => {
-      return listArray.concat(`/ip4/10.0.1.${currentIndex + 1}/tcp/30333/p2p/${currentValue.peerId},`);
-    }, '').slice(0, -1);
-  } else {
-    throw new Error(`Service ${configData.service} was not found`);
-  }
+  // Create reserved peers list
+  config.service.reservedPeersList = config.service.nodeIds.reduce((listArray, currentValue, currentIndex) => {
+    return listArray.concat(`/ip4/10.0.1.${currentIndex + 1}/tcp/30333/p2p/${currentValue.peerId},`);
+  }, '').slice(0, -1);
 
   return config;
 };
 
 module.exports = {
-  getService,
-  generateServiceConfig
+  generateServiceConfig,
+  validateServiceConfig,
+  generateServiceTemplate
 };
