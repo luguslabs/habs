@@ -37,6 +37,21 @@ cd ./cli
 docker build -t luguslabs/archipel-cli .
 ```
 
+## Use
+
+### Init
+Initializes a template of configuration file in archipel.json.
+```bash
+archipel-cli init <service>
+```
+* **service** - you need to provide service name to Archipel CLI. For now only `polkadot` service is supported.
+
+### Generate
+Reads archipel.json file and then generates Archipel Federation bootstrap archive (config.zip).
+```bash
+archipel-cli generate
+```
+
 ## Note 
 
 Please use **eslint** before every commit.
