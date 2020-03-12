@@ -122,7 +122,7 @@ const generateConfig = async () => {
     console.log('Success! Archipel configuration archive was generated!');
   } catch (error) {
     debug('generateConfig()', error);
-    console.log(error);
+    console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 };

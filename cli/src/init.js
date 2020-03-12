@@ -28,7 +28,7 @@ const initConfig = async service => {
     console.log(`Success! Config file for service '${service}' was initialized!`);
   } catch (error) {
     debug('initConfig()', error);
-    console.error(error);
+    console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 };
