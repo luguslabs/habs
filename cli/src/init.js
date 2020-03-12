@@ -1,6 +1,7 @@
 const debug = require('debug')('init');
+const Spinner = require('clui').Spinner;
 const {
-  getService
+  generateServiceTemplate
 } = require('./service');
 
 const {
@@ -12,32 +13,13 @@ const configTemplate = {
   publicIps: '1.1.1.1,2.2.2.2,3.3.3.3'
 };
 
-const initConfig = async (service, spinner) => {
+const initConfig = async service => {
   try {
+    const spinner = new Spinner('Initializing Archipel CLI config file...');
     spinner.start();
 
-    // Starting config construction from template
-    let config = { ...configTemplate };
-
-    // Get service and its fields from services.json
-    const serviceObject = getService(service);
-
-    // Throw if service was not found in services.json
-    if (!serviceObject) {
-      throw Error(`Service ${service} is not supported yet.`);
-    }
-
-    config.service = service;
-
-    // Get service fields and convert into object keys
-    const fields = serviceObject.fields.map(el => el.name);
-    const fieldsObject = fields.reduce((result, item) => {
-      result[item] = '';
-      return result;
-    }, {});
-
-    // Add service fields into config
-    config = { ...config, ...fieldsObject };
+    // Constructing configuration
+    const config = { ...configTemplate, ...generateServiceTemplate(service) };
 
     // Saving config into config file in working directory
     await saveJSONToFile(config, 'archipel.json');
@@ -45,7 +27,6 @@ const initConfig = async (service, spinner) => {
     spinner.stop();
     console.log(`Success! Config file for service '${service}' was initialized!`);
   } catch (error) {
-    spinner.stop();
     debug('initConfig()', error);
     console.error(error);
     process.exit(1);

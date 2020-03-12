@@ -29,6 +29,10 @@
     "fs-extra": "^8.1.0",
     "inquirer": "^7.1.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luguslabs/archipel/tree/master/cli"
+  },
   "bin": {
     "archipel-cli": "./src/app.js"
   }
