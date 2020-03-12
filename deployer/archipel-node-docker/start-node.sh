@@ -7,6 +7,12 @@ then
       exit 1
 fi
 
+if [ -z "$ARCHIPEL_LISTEN_PORT" ]
+then
+      echo "\$ARCHIPEL_LISTEN_PORT not set. Set default to 30334"
+      ARCHIPEL_LISTEN_PORT=30334
+fi
+
 if [ -z "$ARCHIPEL_AUTHORITIES_SR25519_LIST" ]
 then
       echo "\$ARCHIPEL_AUTHORITIES_SR25519_LIST is empty"
@@ -123,5 +129,6 @@ exec /root/chain/archipel \
       --rpc-cors "all" \
       --unsafe-rpc-external \
       --unsafe-ws-external \
+      --port $ARCHIPEL_LISTEN_PORT \
       --name "$ARCHIPEL_NODE_ALIAS" \
       $ARCHIPEL_CHAIN_ADDITIONAL_PARAMS 
