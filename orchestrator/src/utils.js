@@ -56,11 +56,20 @@ const checkVariable = (value, name) => {
   }
 };
 
+const formatReservedNodesList = (inputList) => {
+  return inputList.split(',').reduce((resultArray, item) => {
+    resultArray.push('--reserved-nodes');
+    resultArray.push(item);
+    return resultArray;
+  }, []);
+};
+
 module.exports = {
   getKeysFromSeed,
   streamToString,
   catchExitSignals,
   isEmptyString,
   readToObj,
-  checkVariable
+  checkVariable,
+  formatReservedNodesList
 };

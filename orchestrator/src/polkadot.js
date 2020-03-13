@@ -10,7 +10,8 @@ const {
   getKeysFromSeed,
   isEmptyString,
   readToObj,
-  checkVariable
+  checkVariable,
+  formatReservedNodesList
 } = require('./utils');
 
 const config = {};
@@ -33,7 +34,7 @@ class Polkadot {
       config.polkadotLaunchInVpn = process.env.POLKADOT_LAUNCH_IN_VPN;
       config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
 
-      // For test purpose add a simulate synch to note wait full Kusama to synch
+      // Simulate Polkadot node synchronized state. For test purposes only
       config.polkadotSimulateSynch = false;
       if (!isEmptyString(process.env.POLKADOT_SIMULATE_SYNCH) && process.env.POLKADOT_SIMULATE_SYNCH.includes('true')) {
         config.polkadotSimulateSynch = true;
@@ -128,21 +129,12 @@ class Polkadot {
 
       // Check if polkadot node key file exists
       if (fs.existsSync('/service') && isEmptyString(config.polkadotNodeKeyFile)) {
-        throw Error('Polkadot Service needs POLKADOT_NODE_KEY_FILE env variables set.');
+        throw Error('Polkadot Service needs polkadotNodeKeyFile variable set.');
       }
     } catch (error) {
       debug('checkConfig', error);
       throw error;
     }
-  }
-
-  static formatReservedNodes (inputList) {
-    const result = [];
-    inputList.split(',').map(item => {
-      result.push('--reserved-nodes');
-      result.push(item);
-    });
-    return result;
   }
 
   constructor (docker) {
@@ -167,36 +159,39 @@ class Polkadot {
       // Get public key hex from mnemonic
       const keys = await getKeysFromSeed(mnemonic, crypto);
       const publicKey = u8aToHex(keys.publicKey);
+
       // Check if the key was already imported
-      if (!this.importedKeys.includes(publicKey)) {
-        debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);
-
-        // Constructing command to import key
-        const command = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-                        `{
-                          "jsonrpc":"2.0",
-                          "id":1,
-                          "method":"author_insertKey",
-                          "params": [
-                            "${type}",
-                            "${mnemonic}",
-                            "${publicKey}"
-                          ]
-        }`];
-
-        // Importing key by executing command in docker container
-        const result = await this.docker.dockerExecute(containerName, command);
-        debug('importAKey', `Command result: "${result}"`);
-
-        // Checking result
-        if (result.includes('"result":null')) {
-          this.importedKeys.push(publicKey);
-        } else {
-          throw Error(`Can't add key. ${type} - ${result}`);
-        }
-      } else {
-        debug('importAKey', `Key ${publicKey} was already imported to keystore.`);
+      if (this.importedKeys.includes(publicKey)) {
+        console.log(`Key ${publicKey} was already imported to keystore...`);
+        return;
       }
+
+      debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);
+
+      // Constructing command to import key
+      const command = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+                      `{
+                        "jsonrpc":"2.0",
+                        "id":1,
+                        "method":"author_insertKey",
+                        "params": [
+                          "${type}",
+                          "${mnemonic}",
+                          "${publicKey}"
+                        ]
+      }`];
+
+      // Importing key by executing command in docker container
+      const result = await this.docker.dockerExecute(containerName, command);
+      debug('importAKey', `Command result: "${result}"`);
+
+      // Checking result
+      if (!result.includes('"result":null')) {
+        console.log(`Can't add key. ${type} - ${result}. Will retry the next time...`);
+        return;
+      }
+
+      this.importedKeys.push(publicKey);
     } catch (error) {
       debug('importAKey', error);
       throw error;
@@ -224,7 +219,7 @@ class Polkadot {
   }
 
   // Check if polkadot is synch and ready to operate (Synch etc ...)
-  // Curl result exemple :  "W{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":1,"shouldHavePeers":true},"id":1}"
+  // Curl result example :  "W{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":1,"shouldHavePeers":true},"id":1}"
   // TODO ? call also system_networkState
   // - add metrics "averageDownloadPerSec"
   // - add metrics "averageUploadPerSec"
@@ -232,14 +227,16 @@ class Polkadot {
     try {
       console.log('isServiceReadyToStart function start');
       const containerName = config.polkadotPrefix + 'polkadot-sync';
-      // check container exist and running
+
+      // Check if container exists and is running
       const containerExistAndRunning = await this.docker.isContainerRunningByName(containerName);
       if (!containerExistAndRunning) {
-        debug('isServiceReadyToStart', `Service NOT ready to start, container : "${containerName}" is not running. `);
+        debug('isServiceReadyToStart', `Service is not ready to start. Container : "${containerName}" is not running. `);
         return false;
       }
       debug('isServiceReadyToStart', `container : "${containerName}" exist and in running state.`);
-      // call and check polkadot system_health
+
+      // Construct command to check system_health
       const commandSystemHealth = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
                        `{
                         "jsonrpc":"2.0",
@@ -251,39 +248,44 @@ class Polkadot {
       const resultSystemHealth = await this.docker.dockerExecute(containerName, commandSystemHealth);
       debug('isServiceReadyToStart', `Command system_health result: "${resultSystemHealth}"`);
 
-      // Checking system_health result
-      if (resultSystemHealth.includes('"result":')) {
-        // Checking Peers number > 0
-        const peersSystemHealth = resultSystemHealth.match(/"peers":\d+/);
-        debug('isServiceReadyToStart', 'peersSystemHealth:' + peersSystemHealth);
-        if (peersSystemHealth && peersSystemHealth.length === 1) {
-          const peersNumber = parseInt(peersSystemHealth[0].split(':')[1]);
-          if (peersNumber > 0) {
-            debug('isServiceReadyToStart', `system_health peers > 0 :"${peersNumber}" peers. Check synch status.`);
-            if (config.polkadotSimulateSynch) {
-              debug('isServiceReadyToStart', 'Test mode simulate synch node.');
-              return true;
-            }
-            // Checking isSyncing
-            const isSyncingSystemHealth = resultSystemHealth.match(/"isSyncing":true|false/);
-            debug('isServiceReadyToStart', 'isSyncingSystemHealth:' + isSyncingSystemHealth);
-            if (isSyncingSystemHealth.includes('false')) {
-              debug('isServiceReadyToStart', 'system_health call node is SYNCH. Service is READY to validate');
-              return true;
-            } else {
-              debug('isServiceReadyToStart', 'system_health call node is currently syncing. Service not ready.');
-              return false;
-            }
-          } else {
-            debug('isServiceReadyToStart', 'system_health peers == 0. Service not ready.');
-            return false;
-          }
-        } else {
-          debug('isServiceReadyToStart', 'system_health call has no peers result. Service not ready.');
-          return false;
-        }
-      } else {
+      // Checking if system_health gives a result
+      if (!resultSystemHealth.includes('"result":')) {
         debug('isServiceReadyToStart', 'system_health call has no result. Service not ready.');
+        return false;
+      }
+
+      // Get peers info
+      const peersSystemHealth = resultSystemHealth.match(/"peers":\d+/);
+      debug('isServiceReadyToStart', 'peersSystemHealth:' + peersSystemHealth);
+
+      // Check if peers info is ready
+      if (!peersSystemHealth || peersSystemHealth.length !== 1) {
+        debug('isServiceReadyToStart', 'system_health call has no peers result. Service not ready.');
+        return false;
+      }
+
+      // Check peers number
+      const peersNumber = parseInt(peersSystemHealth[0].split(':')[1]);
+      if (peersNumber <= 0) {
+        debug('isServiceReadyToStart', 'system_health peers == 0. Service not ready.');
+        return false;
+      }
+
+      // Check if a simulate synch option was set
+      debug('isServiceReadyToStart', `system_health peers > 0 :"${peersNumber}" peers. Check synch status.`);
+      if (config.polkadotSimulateSynch) {
+        debug('isServiceReadyToStart', 'Test mode simulate synch node.');
+        return true;
+      }
+
+      // Check if node is in synch state
+      const isSyncingSystemHealth = resultSystemHealth.match(/"isSyncing":true|false/);
+      debug('isServiceReadyToStart', 'isSyncingSystemHealth:' + isSyncingSystemHealth);
+      if (isSyncingSystemHealth.includes('false')) {
+        debug('isServiceReadyToStart', 'Node is synchronized. Node is ready to validate...');
+        return true;
+      } else {
+        debug('isServiceReadyToStart', 'Node is currently syncing. Service not ready.');
         return false;
       }
     } catch (err) {
@@ -308,28 +310,41 @@ class Polkadot {
   // Polkadot start function
   async start (mode) {
     try {
-      const commonPolkadotOptions = ['--pruning=archive', '--wasm-execution', 'Compiled'];
-      commonPolkadotOptions.push(...['--rpc-cors', 'http://localhost']);
-      commonPolkadotOptions.push(...['--rpc-port', config.polkadotRpcPort]);
+      const commonPolkadotOptions = [
+        '--pruning=archive',
+        '--wasm-execution',
+        'Compiled',
+        '--rpc-cors',
+        'http://localhost',
+        '--rpc-port',
+        config.polkadotRpcPort
+      ];
+
+      // If service directory exists a node key file will be provided
       if (fs.existsSync('/service')) {
         await this.copyFilesToPolkadotContainer();
         commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + config.polkadotNodeKeyFile);
       }
+
+      // Adding reserved nodes
       if (!isEmptyString(config.polkadotReservedNodes)) {
-        commonPolkadotOptions.push(...Polkadot.formatReservedNodes(config.polkadotReservedNodes));
+        commonPolkadotOptions.push(...formatReservedNodesList(config.polkadotReservedNodes));
       }
+
+      // Adding telemetry Url
       if (!isEmptyString(config.polkadotTelemetryUrl)) {
         if (config.polkadotTelemetryUrl === '--no-telemetry') {
-          commonPolkadotOptions.push(...['--no-telemetry']);
+          commonPolkadotOptions.push('--no-telemetry');
         } else {
           commonPolkadotOptions.push(...['--telemetry-url', config.polkadotTelemetryUrl]);
         }
       }
+
       // Setting network mode variable if polkadot must be launched in VPN network
       let networkMode = '';
       if (config.polkadotLaunchInVpn !== undefined && config.polkadotLaunchInVpn === 'true') {
         networkMode = `container:${os.hostname()}`;
-        console.log(`Launching container with network mode: ${networkMode}...`);
+        console.log(`Container network mode: ${networkMode}...`);
       }
 
       // Get service volume from orchestrator and give this volume to polkadot container
@@ -343,21 +358,40 @@ class Polkadot {
       console.log(`Polkadot will use volume '${polkadotVolume}'...`);
 
       // Launch service in specific mode
-      // TODO: Don't sleep before key add
+      let containerName = '';
       if (mode === 'active') {
-        await this.docker.startServiceContainer('active', config.polkadotPrefix + 'polkadot-validator', config.polkadotPrefix + 'polkadot-sync', config.polkadotImage, ['--name', `${config.polkadotName}-active`, ...commonPolkadotOptions, '--validator', '--reserved-only'], '/polkadot', polkadotVolume, networkMode);
-        // Waiting to be sure that container is started
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        // Adding validator keys
-        await this.polkadotKeysImport(config.polkadotPrefix + 'polkadot-validator');
+        await this.docker.startServiceContainer(
+          'active',
+          config.polkadotPrefix + 'polkadot-validator',
+          config.polkadotPrefix + 'polkadot-sync',
+          config.polkadotImage,
+          ['--name', `${config.polkadotName}-active`, ...commonPolkadotOptions, '--validator', '--reserved-only']
+          , '/polkadot',
+          polkadotVolume,
+          networkMode
+        );
+        containerName = config.polkadotPrefix + 'polkadot-validator';
       } else if (mode === 'passive') {
-        await this.docker.startServiceContainer('passive', config.polkadotPrefix + 'polkadot-validator', config.polkadotPrefix + 'polkadot-sync', config.polkadotImage, ['--name', `${config.polkadotName}-passive`, ...commonPolkadotOptions, '--sentry'], '/polkadot', polkadotVolume, networkMode);
-        // Waiting to be sure that container is started
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        // Adding validator keys
-        await this.polkadotKeysImport(config.polkadotPrefix + 'polkadot-sync');
+        await this.docker.startServiceContainer(
+          'passive',
+          config.polkadotPrefix + 'polkadot-validator',
+          config.polkadotPrefix + 'polkadot-sync',
+          config.polkadotImage,
+          ['--name', `${config.polkadotName}-passive`, ...commonPolkadotOptions, '--sentry'],
+          '/polkadot',
+          polkadotVolume,
+          networkMode
+        );
+        containerName = config.polkadotPrefix + 'polkadot-sync';
       } else {
         throw new Error(`Mode '${mode}' is unknown.`);
+      }
+
+      // Adding keys to polkadot keystore if there is no already 5 keys
+      if (this.importedKeys.length < 5) {
+        // Waiting for 10 seconds to be sure that node was started
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        await this.polkadotKeysImport(containerName);
       }
     } catch (error) {
       debug('polkadotStart', error);
