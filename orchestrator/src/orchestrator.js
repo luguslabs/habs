@@ -72,7 +72,7 @@ class Orchestrator {
       debug('orchestrateService', `Current Node Key: ${nodeKey}`);
 
       // Check if anyone is alive
-      console.log('Checking is anyone in federation is alive...')
+      console.log('Checking is anyone in federation is alive...');
       if (!this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
         console.log('Seems that no one is alive. Enforcing \'passive\' service mode...');
         this.serviceStart('passive');
@@ -92,7 +92,6 @@ class Orchestrator {
       // If all checks passed we can start service in active mode
       console.log('All checks passed. Launching service in active mode...');
       await this.serviceStart('active');
-
     } catch (error) {
       debug('orchestrateService', error);
       throw error;

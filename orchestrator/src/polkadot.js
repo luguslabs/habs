@@ -10,7 +10,8 @@ const {
   getKeysFromSeed,
   isEmptyString,
   readToObj,
-  checkVariable
+  checkVariable,
+  formatReservedNodesList
 } = require('./utils');
 
 const config = {};
@@ -33,7 +34,7 @@ class Polkadot {
       config.polkadotLaunchInVpn = process.env.POLKADOT_LAUNCH_IN_VPN;
       config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
 
-      // For test purpose add a simulate synch to note wait full Kusama to synch
+      // Simulate Polkadot node synchronized state. For test purposes only
       config.polkadotSimulateSynch = false;
       if (!isEmptyString(process.env.POLKADOT_SIMULATE_SYNCH) && process.env.POLKADOT_SIMULATE_SYNCH.includes('true')) {
         config.polkadotSimulateSynch = true;
@@ -128,21 +129,12 @@ class Polkadot {
 
       // Check if polkadot node key file exists
       if (fs.existsSync('/service') && isEmptyString(config.polkadotNodeKeyFile)) {
-        throw Error('Polkadot Service needs POLKADOT_NODE_KEY_FILE env variables set.');
+        throw Error('Polkadot Service needs polkadotNodeKeyFile variable set.');
       }
     } catch (error) {
       debug('checkConfig', error);
       throw error;
     }
-  }
-
-  static formatReservedNodes (inputList) {
-    const result = [];
-    inputList.split(',').map(item => {
-      result.push('--reserved-nodes');
-      result.push(item);
-    });
-    return result;
   }
 
   constructor (docker) {
@@ -167,36 +159,39 @@ class Polkadot {
       // Get public key hex from mnemonic
       const keys = await getKeysFromSeed(mnemonic, crypto);
       const publicKey = u8aToHex(keys.publicKey);
+
       // Check if the key was already imported
-      if (!this.importedKeys.includes(publicKey)) {
-        debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);
-
-        // Constructing command to import key
-        const command = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-                        `{
-                          "jsonrpc":"2.0",
-                          "id":1,
-                          "method":"author_insertKey",
-                          "params": [
-                            "${type}",
-                            "${mnemonic}",
-                            "${publicKey}"
-                          ]
-        }`];
-
-        // Importing key by executing command in docker container
-        const result = await this.docker.dockerExecute(containerName, command);
-        debug('importAKey', `Command result: "${result}"`);
-
-        // Checking result
-        if (result.includes('"result":null')) {
-          this.importedKeys.push(publicKey);
-        } else {
-          throw Error(`Can't add key. ${type} - ${result}`);
-        }
-      } else {
-        debug('importAKey', `Key ${publicKey} was already imported to keystore.`);
+      if (this.importedKeys.includes(publicKey)) {
+        console.log(`Key ${publicKey} was already imported to keystore...`);
+        return;
       }
+
+      debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);
+
+      // Constructing command to import key
+      const command = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+                      `{
+                        "jsonrpc":"2.0",
+                        "id":1,
+                        "method":"author_insertKey",
+                        "params": [
+                          "${type}",
+                          "${mnemonic}",
+                          "${publicKey}"
+                        ]
+      }`];
+
+      // Importing key by executing command in docker container
+      const result = await this.docker.dockerExecute(containerName, command);
+      debug('importAKey', `Command result: "${result}"`);
+
+      // Checking result
+      if (!result.includes('"result":null')) {
+        console.log(`Can't add key. ${type} - ${result}. Will retry the next time...`);
+        return;
+      }
+
+      this.importedKeys.push(publicKey);
     } catch (error) {
       debug('importAKey', error);
       throw error;
@@ -224,7 +219,7 @@ class Polkadot {
   }
 
   // Check if polkadot is synch and ready to operate (Synch etc ...)
-  // Curl result exemple :  "W{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":1,"shouldHavePeers":true},"id":1}"
+  // Curl result example :  "W{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":1,"shouldHavePeers":true},"id":1}"
   // TODO ? call also system_networkState
   // - add metrics "averageDownloadPerSec"
   // - add metrics "averageUploadPerSec"
@@ -308,28 +303,41 @@ class Polkadot {
   // Polkadot start function
   async start (mode) {
     try {
-      const commonPolkadotOptions = ['--pruning=archive', '--wasm-execution', 'Compiled'];
-      commonPolkadotOptions.push(...['--rpc-cors', 'http://localhost']);
-      commonPolkadotOptions.push(...['--rpc-port', config.polkadotRpcPort]);
+      const commonPolkadotOptions = [
+        '--pruning=archive',
+        '--wasm-execution',
+        'Compiled',
+        '--rpc-cors',
+        'http://localhost',
+        '--rpc-port',
+        config.polkadotRpcPort
+      ];
+
+      // If service directory exists a node key file will be provided
       if (fs.existsSync('/service')) {
         await this.copyFilesToPolkadotContainer();
         commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + config.polkadotNodeKeyFile);
       }
+
+      // Adding reserved nodes
       if (!isEmptyString(config.polkadotReservedNodes)) {
-        commonPolkadotOptions.push(...Polkadot.formatReservedNodes(config.polkadotReservedNodes));
+        commonPolkadotOptions.push(...formatReservedNodesList(config.polkadotReservedNodes));
       }
+
+      // Adding telemetry Url
       if (!isEmptyString(config.polkadotTelemetryUrl)) {
         if (config.polkadotTelemetryUrl === '--no-telemetry') {
-          commonPolkadotOptions.push(...['--no-telemetry']);
+          commonPolkadotOptions.push('--no-telemetry');
         } else {
           commonPolkadotOptions.push(...['--telemetry-url', config.polkadotTelemetryUrl]);
         }
       }
+
       // Setting network mode variable if polkadot must be launched in VPN network
       let networkMode = '';
       if (config.polkadotLaunchInVpn !== undefined && config.polkadotLaunchInVpn === 'true') {
         networkMode = `container:${os.hostname()}`;
-        console.log(`Launching container with network mode: ${networkMode}...`);
+        console.log(`Container network mode: ${networkMode}...`);
       }
 
       // Get service volume from orchestrator and give this volume to polkadot container
@@ -343,22 +351,43 @@ class Polkadot {
       console.log(`Polkadot will use volume '${polkadotVolume}'...`);
 
       // Launch service in specific mode
-      // TODO: Don't sleep before key add
+      let containerName = '';
       if (mode === 'active') {
-        await this.docker.startServiceContainer('active', config.polkadotPrefix + 'polkadot-validator', config.polkadotPrefix + 'polkadot-sync', config.polkadotImage, ['--name', `${config.polkadotName}-active`, ...commonPolkadotOptions, '--validator', '--reserved-only'], '/polkadot', polkadotVolume, networkMode);
-        // Waiting to be sure that container is started
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        // Adding validator keys
-        await this.polkadotKeysImport(config.polkadotPrefix + 'polkadot-validator');
+        await this.docker.startServiceContainer(
+          'active',
+          config.polkadotPrefix + 'polkadot-validator',
+          config.polkadotPrefix + 'polkadot-sync',
+          config.polkadotImage,
+          ['--name', `${config.polkadotName}-active`, ...commonPolkadotOptions, '--validator', '--reserved-only']
+          , '/polkadot',
+          polkadotVolume,
+          networkMode
+        );
+        containerName = config.polkadotPrefix + 'polkadot-validator';
       } else if (mode === 'passive') {
-        await this.docker.startServiceContainer('passive', config.polkadotPrefix + 'polkadot-validator', config.polkadotPrefix + 'polkadot-sync', config.polkadotImage, ['--name', `${config.polkadotName}-passive`, ...commonPolkadotOptions, '--sentry'], '/polkadot', polkadotVolume, networkMode);
-        // Waiting to be sure that container is started
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        // Adding validator keys
-        await this.polkadotKeysImport(config.polkadotPrefix + 'polkadot-sync');
+        await this.docker.startServiceContainer(
+          'passive',
+          config.polkadotPrefix + 'polkadot-validator',
+          config.polkadotPrefix + 'polkadot-sync',
+          config.polkadotImage,
+          ['--name', `${config.polkadotName}-passive`, ...commonPolkadotOptions, '--sentry'],
+          '/polkadot',
+          polkadotVolume,
+          networkMode
+        );
+        containerName = config.polkadotPrefix + 'polkadot-sync';
       } else {
         throw new Error(`Mode '${mode}' is unknown.`);
       }
+
+      // Adding keys to polkadot keystore if there is no already 5 keys
+      if (this.importedKeys.length < 5) {
+        // Waiting for 10 seconds to be sure that node was started
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        await this.polkadotKeysImport(containerName);
+      }
+
+      throw new Error(`Mode '${mode}' is unknown.`);
     } catch (error) {
       debug('polkadotStart', error);
       throw error;
