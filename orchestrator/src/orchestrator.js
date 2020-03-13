@@ -38,27 +38,30 @@ class Orchestrator {
   // Orchestrate service
   async orchestrateService () {
     try {
-      console.log('Orchestrating service.....');
+      console.log('Orchestrating service...');
 
       // If node state permits to send transactions
+      console.log('Checking if Archipel chain node can receive transactions...');
       const sendTransaction = await this.chain.canSendTransactions();
       if (!sendTransaction) {
-        console.log('Archipel chain node can\'t receive transactions...');
+        console.log('Archipel chain node can\'t receive transactions. Enforcing \'passive\' service mode...');
         this.serviceStart('passive');
         return;
       }
 
       // Check if service was not suspended
+      console.log('Checking if service was not suspended...');
       if (this.suspendService) {
-        console.log('ARCHIPEL_SUSPEND_SERVICE is set to true... Only Passive mode. Leader will be never launched on this node.');
+        console.log('ARCHIPEL_SUSPEND_SERVICE is set to true. Enforcing \'passive\' service mode...');
         this.serviceStart('passive');
         return;
       }
 
       // Check if service is ready to start in active mode
-      const serviceReady = await this.service.isServiceReadyToStart();
+      console.log('Checking is service is ready to start...');
+      const serviceReady = await this.isServiceReadyToStart();
       if (!serviceReady) {
-        console.log('Service not ready... DO NOT try to become leader...');
+        console.log('Service not ready. Enforcing \'passive\' service mode...');
         this.serviceStart('passive');
         return;
       }
@@ -69,8 +72,9 @@ class Orchestrator {
       debug('orchestrateService', `Current Node Key: ${nodeKey}`);
 
       // Check if anyone is alive
+      console.log('Checking is anyone in federation is alive...')
       if (!this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
-        console.log('Seems that no one is online...');
+        console.log('Seems that no one is alive. Enforcing \'passive\' service mode...');
         this.serviceStart('passive');
         return;
       }
@@ -80,7 +84,7 @@ class Orchestrator {
       const leadership = await this.leadershipManagement(nodeKey);
 
       if (!leadership) {
-        console.log('The current node is not leader...');
+        console.log('The current node is not leader. Enforcing \'passive\' service mode...');
         this.serviceStart('passive');
         return;
       }
@@ -88,6 +92,7 @@ class Orchestrator {
       // If all checks passed we can start service in active mode
       console.log('All checks passed. Launching service in active mode...');
       await this.serviceStart('active');
+
     } catch (error) {
       debug('orchestrateService', error);
       throw error;
@@ -166,7 +171,7 @@ class Orchestrator {
         } else {
           console.log(`Can't check leader ${currentLeader} liveness for ${this.noLivenessThreshold} times. Trying to become new leader...`);
           this.noLivenessFromLeader = 0;
-          const becomeLeaderResult = await this.becomeLeader(nodeKey);
+          const becomeLeaderResult = await this.becomeLeader(currentLeader);
           return becomeLeaderResult;
         }
       }
@@ -177,7 +182,7 @@ class Orchestrator {
       // Checking if leader can be considered alive
       if (lastSeenAgo > this.aliveTime) {
         console.log(`Leader ${currentLeader} is down. Trying to become new leader...`);
-        const becomeLeaderResult =  await this.becomeLeader(nodeKey);
+        const becomeLeaderResult = await this.becomeLeader(currentLeader);
         return becomeLeaderResult;
       } else {
         console.log(`Leader ${currentLeader} is alive...`);
@@ -188,6 +193,26 @@ class Orchestrator {
       throw error;
     }
   }
+
+  // Check isServiceReadyToStart
+  async isServiceReadyToStart () {
+    try {
+      return await this.service.isServiceReadyToStart();
+    } catch (error) {
+      debug('isServiceReadyToStart', error);
+      throw error;
+    }
+  };
+
+  // Start service
+  async serviceStart (mode) {
+    try {
+      await this.service.start(mode);
+    } catch (error) {
+      debug('serviceStart', error);
+      throw error;
+    }
+  };
 
   // Cleanup a service
   async serviceCleanUp () {
