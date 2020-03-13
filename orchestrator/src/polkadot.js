@@ -227,14 +227,16 @@ class Polkadot {
     try {
       console.log('isServiceReadyToStart function start');
       const containerName = config.polkadotPrefix + 'polkadot-sync';
-      // check container exist and running
+
+      // Check if container exists and is running
       const containerExistAndRunning = await this.docker.isContainerRunningByName(containerName);
       if (!containerExistAndRunning) {
-        debug('isServiceReadyToStart', `Service NOT ready to start, container : "${containerName}" is not running. `);
+        debug('isServiceReadyToStart', `Service is not ready to start. Container : "${containerName}" is not running. `);
         return false;
       }
       debug('isServiceReadyToStart', `container : "${containerName}" exist and in running state.`);
-      // call and check polkadot system_health
+
+      // Construct command to check system_health
       const commandSystemHealth = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
                        `{
                         "jsonrpc":"2.0",
@@ -246,39 +248,44 @@ class Polkadot {
       const resultSystemHealth = await this.docker.dockerExecute(containerName, commandSystemHealth);
       debug('isServiceReadyToStart', `Command system_health result: "${resultSystemHealth}"`);
 
-      // Checking system_health result
-      if (resultSystemHealth.includes('"result":')) {
-        // Checking Peers number > 0
-        const peersSystemHealth = resultSystemHealth.match(/"peers":\d+/);
-        debug('isServiceReadyToStart', 'peersSystemHealth:' + peersSystemHealth);
-        if (peersSystemHealth && peersSystemHealth.length === 1) {
-          const peersNumber = parseInt(peersSystemHealth[0].split(':')[1]);
-          if (peersNumber > 0) {
-            debug('isServiceReadyToStart', `system_health peers > 0 :"${peersNumber}" peers. Check synch status.`);
-            if (config.polkadotSimulateSynch) {
-              debug('isServiceReadyToStart', 'Test mode simulate synch node.');
-              return true;
-            }
-            // Checking isSyncing
-            const isSyncingSystemHealth = resultSystemHealth.match(/"isSyncing":true|false/);
-            debug('isServiceReadyToStart', 'isSyncingSystemHealth:' + isSyncingSystemHealth);
-            if (isSyncingSystemHealth.includes('false')) {
-              debug('isServiceReadyToStart', 'system_health call node is SYNCH. Service is READY to validate');
-              return true;
-            } else {
-              debug('isServiceReadyToStart', 'system_health call node is currently syncing. Service not ready.');
-              return false;
-            }
-          } else {
-            debug('isServiceReadyToStart', 'system_health peers == 0. Service not ready.');
-            return false;
-          }
-        } else {
-          debug('isServiceReadyToStart', 'system_health call has no peers result. Service not ready.');
-          return false;
-        }
-      } else {
+      // Checking if system_health gives a result
+      if (!resultSystemHealth.includes('"result":')) {
         debug('isServiceReadyToStart', 'system_health call has no result. Service not ready.');
+        return false;
+      }
+
+      // Get peers info
+      const peersSystemHealth = resultSystemHealth.match(/"peers":\d+/);
+      debug('isServiceReadyToStart', 'peersSystemHealth:' + peersSystemHealth);
+
+      // Check if peers info is ready
+      if (!peersSystemHealth || peersSystemHealth.length !== 1) {
+        debug('isServiceReadyToStart', 'system_health call has no peers result. Service not ready.');
+        return false;
+      }
+
+      // Check peers number
+      const peersNumber = parseInt(peersSystemHealth[0].split(':')[1]);
+      if (peersNumber <= 0) {
+        debug('isServiceReadyToStart', 'system_health peers == 0. Service not ready.');
+        return false;
+      }
+
+      // Check if a simulate synch option was set
+      debug('isServiceReadyToStart', `system_health peers > 0 :"${peersNumber}" peers. Check synch status.`);
+      if (config.polkadotSimulateSynch) {
+        debug('isServiceReadyToStart', 'Test mode simulate synch node.');
+        return true;
+      }
+
+      // Check if node is in synch state
+      const isSyncingSystemHealth = resultSystemHealth.match(/"isSyncing":true|false/);
+      debug('isServiceReadyToStart', 'isSyncingSystemHealth:' + isSyncingSystemHealth);
+      if (isSyncingSystemHealth.includes('false')) {
+        debug('isServiceReadyToStart', 'Node is synchronized. Node is ready to validate...');
+        return true;
+      } else {
+        debug('isServiceReadyToStart', 'Node is currently syncing. Service not ready.');
         return false;
       }
     } catch (err) {
@@ -386,8 +393,6 @@ class Polkadot {
         await new Promise(resolve => setTimeout(resolve, 10000));
         await this.polkadotKeysImport(containerName);
       }
-
-      throw new Error(`Mode '${mode}' is unknown.`);
     } catch (error) {
       debug('polkadotStart', error);
       throw error;
