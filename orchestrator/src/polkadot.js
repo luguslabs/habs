@@ -32,7 +32,8 @@ class Polkadot {
       config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
       config.polkadotLaunchInVpn = process.env.POLKADOT_LAUNCH_IN_VPN;
       config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
-      // For test purpurse add a simulate synch to note wait full kusama to synch
+
+      // For test purpose add a simulate synch to note wait full Kusama to synch
       config.polkadotSimulateSynch = false;
       if (!isEmptyString(process.env.POLKADOT_SIMULATE_SYNCH) && process.env.POLKADOT_SIMULATE_SYNCH.includes('true')) {
         config.polkadotSimulateSynch = true;
