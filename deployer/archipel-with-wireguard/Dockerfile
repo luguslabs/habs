@@ -7,7 +7,7 @@ COPY ./chain .
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
 		g++ libssl-dev gcc clang libclang-dev make \
-		git pkg-config curl time rhash
+		git pkg-config curl time rhash python
 RUN ./scripts/init.sh && cargo build --release
 RUN ./target/release/archipel build-spec --chain template > archipelTemplateSpec.json
 RUN ./target/release/archipel build-spec --chain template --raw > archipelTemplateSpecRaw.json
@@ -22,7 +22,7 @@ RUN cargo install --force --git https://github.com/paritytech/substrate subkey
 ###########################
 FROM node:10 as build-ui
 WORKDIR /usr/src/app
-COPY ui/package.json ui/yarn.lock ./
+COPY ui/package.json ./
 COPY ui/ .
 RUN yarn install
 COPY . ./
@@ -56,7 +56,7 @@ RUN echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.li
 RUN	apt-get -y update && \
 	apt-get install -y --no-install-recommends \
 		libssl-dev curl supervisor jq build-essential nginx \
-		wireguard-tools iptables net-tools procps && \
+		wireguard-tools iptables net-tools procps python && \
 	echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections && \
     apt install -y resolvconf && \
     apt clean

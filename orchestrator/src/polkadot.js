@@ -250,7 +250,7 @@ class Polkadot {
 
       // Checking if system_health gives a result
       if (!resultSystemHealth.includes('"result":')) {
-        debug('isServiceReadyToStart', 'system_health call has no result. Service not ready.');
+        debug('isServiceReadyToStart', 'system_health call has no result. Service is not ready.');
         return false;
       }
 
@@ -260,14 +260,14 @@ class Polkadot {
 
       // Check if peers info is ready
       if (!peersSystemHealth || peersSystemHealth.length !== 1) {
-        debug('isServiceReadyToStart', 'system_health call has no peers result. Service not ready.');
+        debug('isServiceReadyToStart', 'system_health call has no peers result. Service is not ready.');
         return false;
       }
 
       // Check peers number
       const peersNumber = parseInt(peersSystemHealth[0].split(':')[1]);
       if (peersNumber <= 0) {
-        debug('isServiceReadyToStart', 'system_health peers == 0. Service not ready.');
+        debug('isServiceReadyToStart', 'system_health peers == 0. Service us not ready.');
         return false;
       }
 
@@ -285,7 +285,7 @@ class Polkadot {
         debug('isServiceReadyToStart', 'Node is synchronized. Node is ready to validate...');
         return true;
       } else {
-        debug('isServiceReadyToStart', 'Node is currently syncing. Service not ready.');
+        debug('isServiceReadyToStart', 'Node is currently syncing. Service is not ready.');
         return false;
       }
     } catch (err) {
