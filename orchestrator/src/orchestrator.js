@@ -33,6 +33,7 @@ class Orchestrator {
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
     this.suspendService = suspendService.includes('true');
+    this.mode = 'passive';
   }
 
   // Orchestrate service
@@ -53,15 +54,6 @@ class Orchestrator {
       console.log('Checking if service was not suspended...');
       if (this.suspendService) {
         console.log('ARCHIPEL_SUSPEND_SERVICE is set to true. Enforcing \'passive\' service mode...');
-        this.serviceStart('passive');
-        return;
-      }
-
-      // Check if service is ready to start in active mode
-      console.log('Checking is service is ready to start...');
-      const serviceReady = await this.isServiceReadyToStart();
-      if (!serviceReady) {
-        console.log('Service not ready. Enforcing \'passive\' service mode...');
         this.serviceStart('passive');
         return;
       }
@@ -87,6 +79,20 @@ class Orchestrator {
         console.log('The current node is not leader. Enforcing \'passive\' service mode...');
         this.serviceStart('passive');
         return;
+      }
+
+      // Check service readiness only if in passive mode
+      if (this.mode === 'passive') {
+      // Check if service is ready to start in active mode
+        console.log('Checking is service is ready to start...');
+        const serviceReady = await this.isServiceReadyToStart();
+        if (!serviceReady) {
+          console.log('Service is not ready. Enforcing \'passive\' service mode...');
+          this.serviceStart('passive');
+          return;
+        }
+      } else {
+        console.log('Skipping service readiness check. The service is already in active mode...');
       }
 
       // If all checks passed we can start service in active mode
@@ -207,6 +213,7 @@ class Orchestrator {
   async serviceStart (mode) {
     try {
       await this.service.start(mode);
+      this.mode = mode;
     } catch (error) {
       debug('serviceStart', error);
       throw error;
