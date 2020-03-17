@@ -20,6 +20,7 @@ class Polkadot {
   // Init configuration
   static initConfig () {
     try {
+      // Get config from env variables
       dotenv.config();
       config.polkadotName = process.env.POLKADOT_NAME;
       config.polkadotImage = process.env.POLKADOT_IMAGE;
@@ -33,6 +34,9 @@ class Polkadot {
       config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
       config.polkadotLaunchInVpn = process.env.POLKADOT_LAUNCH_IN_VPN;
       config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
+      config.polkadotUnixUserId = 1000;
+      config.polkadotUnixGroupId = 1000;
+      config.polkadotRpcPort = '9993';
 
       // Simulate Polkadot node synchronized state. For test purposes only
       config.polkadotSimulateSynch = false;
@@ -40,73 +44,82 @@ class Polkadot {
         config.polkadotSimulateSynch = true;
       }
 
-      // If the config can be retrieved from config file
-      if (!isEmptyString(process.env.CONFIG_FILE)) {
-        if (isEmptyString(process.env.NODE_ID)) {
-          throw Error('Polkadot Service need NODE_ID when config file was set.');
-        }
+      // Check if the config can be retrieved from config file
+      if (isEmptyString(process.env.CONFIG_FILE)) {
+        return;
+      }
 
-        const configFromFile = readToObj('/config/config.json');
+      if (isEmptyString(process.env.NODE_ID)) {
+        throw Error('Polkadot Service need NODE_ID when config file was set.');
+      }
 
-        // Checking if value was not already set by env vars
-        if (isEmptyString(config.polkadotName)) {
-          if ('name' in configFromFile) {
-            config.polkadotName = `${configFromFile.name}-${process.env.NODE_ID}`;
-          }
-        }
-        if (isEmptyString(config.polkadotImage)) {
-          config.polkadotImage = 'parity/polkadot:latest';
-        }
-        if (isEmptyString(config.polkadotPrefix)) {
-          config.polkadotPrefix = 'node-';
-        }
-        if (isEmptyString(config.polkadotKeyGran)) {
-          const polkadotKeyGran = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_GRAN');
-          if (polkadotKeyGran !== undefined) {
-            config.polkadotKeyGran = polkadotKeyGran.value;
-          }
-        }
-        if (isEmptyString(config.polkadotKeyBabe)) {
-          const polkadotKeyBabe = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_BABE');
-          if (polkadotKeyBabe !== undefined) {
-            config.polkadotKeyBabe = polkadotKeyBabe.value;
-          }
-        }
-        if (isEmptyString(config.polkadotKeyImon)) {
-          const polkadotKeyImon = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_IMON');
-          if (polkadotKeyImon !== undefined) {
-            config.polkadotKeyImon = polkadotKeyImon.value;
-          }
-        }
-        if (isEmptyString(config.polkadotKeyPara)) {
-          const polkadotKeyPara = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_PARA');
-          if (polkadotKeyPara !== undefined) {
-            config.polkadotKeyPara = polkadotKeyPara.value;
-          }
-        }
-        if (isEmptyString(config.polkadotKeyAudi)) {
-          const polkadotKeyAudi = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_AUDI');
-          if (polkadotKeyAudi !== undefined) {
-            config.polkadotKeyAudi = polkadotKeyAudi.value;
-          }
-        }
-        if (isEmptyString(config.polkadotReservedNodes)) {
-          if ('service' in configFromFile && 'reservedPeersList' in configFromFile.service) {
-            config.polkadotReservedNodes = configFromFile.service.reservedPeersList;
-          }
-        }
-        if (isEmptyString(config.polkadotLaunchInVpn)) {
-          config.polkadotLaunchInVpn = 'true';
-        }
-        if (isEmptyString(config.polkadotNodeKeyFile)) {
-          if ('nodeIds' in configFromFile.service && configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile !== undefined) {
-            config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile;
-          }
+      const configFromFile = readToObj('/config/config.json');
+
+      // Checking if value was not already set by env vars
+      if (isEmptyString(config.polkadotName)) {
+        if ('name' in configFromFile) {
+          config.polkadotName = `${configFromFile.name}-${process.env.NODE_ID}`;
         }
       }
-      config.polkadotUnixUserId = 1000;
-      config.polkadotUnixGroupId = 1000;
-      config.polkadotRpcPort = '9993';
+
+      if (isEmptyString(config.polkadotImage)) {
+        config.polkadotImage = 'parity/polkadot:latest';
+      }
+
+      if (isEmptyString(config.polkadotPrefix)) {
+        config.polkadotPrefix = 'node-';
+      }
+
+      if (isEmptyString(config.polkadotKeyGran)) {
+        const polkadotKeyGran = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_GRAN');
+        if (polkadotKeyGran !== undefined) {
+          config.polkadotKeyGran = polkadotKeyGran.value;
+        }
+      }
+
+      if (isEmptyString(config.polkadotKeyBabe)) {
+        const polkadotKeyBabe = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_BABE');
+        if (polkadotKeyBabe !== undefined) {
+          config.polkadotKeyBabe = polkadotKeyBabe.value;
+        }
+      }
+
+      if (isEmptyString(config.polkadotKeyImon)) {
+        const polkadotKeyImon = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_IMON');
+        if (polkadotKeyImon !== undefined) {
+          config.polkadotKeyImon = polkadotKeyImon.value;
+        }
+      }
+
+      if (isEmptyString(config.polkadotKeyPara)) {
+        const polkadotKeyPara = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_PARA');
+        if (polkadotKeyPara !== undefined) {
+          config.polkadotKeyPara = polkadotKeyPara.value;
+        }
+      }
+
+      if (isEmptyString(config.polkadotKeyAudi)) {
+        const polkadotKeyAudi = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_AUDI');
+        if (polkadotKeyAudi !== undefined) {
+          config.polkadotKeyAudi = polkadotKeyAudi.value;
+        }
+      }
+
+      if (isEmptyString(config.polkadotReservedNodes)) {
+        if ('service' in configFromFile && 'reservedPeersList' in configFromFile.service) {
+          config.polkadotReservedNodes = configFromFile.service.reservedPeersList;
+        }
+      }
+
+      if (isEmptyString(config.polkadotLaunchInVpn)) {
+        config.polkadotLaunchInVpn = 'true';
+      }
+
+      if (isEmptyString(config.polkadotNodeKeyFile)) {
+        if ('nodeIds' in configFromFile.service && configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile !== undefined) {
+          config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile;
+        }
+      }
     } catch (error) {
       debug('initConfig', error);
       throw error;
@@ -191,6 +204,14 @@ class Polkadot {
         return;
       }
 
+      // Check if key is present in containers file system
+      const keyAdded = await this.checkKeyAdded(mnemonic, crypto, containerName);
+      if (!keyAdded) {
+        console.log(`Key (${type} - ${result}) can not be found in container. Will retry to add the next time...`);
+        return;
+      }
+
+      // Add key into imported key list
       this.importedKeys.push(publicKey);
     } catch (error) {
       debug('importAKey', error);
@@ -215,6 +236,30 @@ class Polkadot {
       debug('polkadotKeysImport', error);
       console.error('Error: Can\'t add keys. We will retry the next time.');
       console.error(error);
+    }
+  }
+
+  // Check if a key file is present in container file system
+  async checkKeyAdded (mnemonic, crypto, containerName) {
+    try {
+      const keys = await getKeysFromSeed(mnemonic, crypto);
+      const publicKey = u8aToHex(keys.publicKey);
+
+      const command = [
+        'find',
+        '/polkadot',
+        '-name',
+        `*${publicKey.substring(2)}`
+      ];
+
+      // Call find key command in docker container
+      const result = await this.docker.dockerExecute(containerName, command);
+      debug('checkKeyAdded', `Command find key result: "${result}"`);
+
+      return !!result;
+    } catch (error) {
+      debug('checkKeyAdded', error);
+      throw error;
     }
   }
 
@@ -297,13 +342,26 @@ class Polkadot {
   // Copy keys files to volume
   async copyFilesToPolkadotContainer () {
     try {
-      // Set polkadot user rights
-      await fs.chown('/service', config.polkadotUnixUserId, config.polkadotUnixGroupId);
+      // Check if node key file is already present
+      if (fs.existsSync(`/service/keys/${config.polkadotNodeKeyFile}`)) {
+        console.log(`File ${config.polkadotNodeKeyFile} is already in /service/key directory...`);
+        return;
+      }
+
+      // Create keys directory
       await fs.ensureDir('/service/keys');
-      await fs.copy('/config/' + config.polkadotNodeKeyFile, '/service/keys/' + config.polkadotNodeKeyFile);
-      console.log('copy ' + config.polkadotNodeKeyFile + ' file in polkadot container folder /polkadot/keys/');
-    } catch (err) {
-      console.error(err);
+
+      // Copy polkadot node key file
+      console.log(`Copying ${config.polkadotNodeKeyFile} from /config/ to /service/keys/...`);
+      await fs.copy(`/config/${config.polkadotNodeKeyFile}`, `/service/keys/${config.polkadotNodeKeyFile}`);
+
+      // Fix permissions
+      await fs.chown('/service', config.polkadotUnixUserId, config.polkadotUnixGroupId);
+      await fs.chown('/service/keys', config.polkadotUnixUserId, config.polkadotUnixGroupId);
+      await fs.chown(`/service/keys/${config.polkadotNodeKeyFile}`, config.polkadotUnixUserId, config.polkadotUnixGroupId);
+    } catch (error) {
+      debug('copyFilesToPolkadotContainer', error);
+      throw error;
     }
   }
 
@@ -320,8 +378,9 @@ class Polkadot {
         config.polkadotRpcPort
       ];
 
-      // If service directory exists a node key file will be provided
-      if (fs.existsSync('/service')) {
+      // If polkadotNodeKeyFile variable is set
+      // And service directory exists use node key file
+      if (!isEmptyString(config.polkadotNodeKeyFile) && fs.existsSync('/service')) {
         await this.copyFilesToPolkadotContainer();
         commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + config.polkadotNodeKeyFile);
       }
