@@ -230,8 +230,6 @@ class Polkadot {
       await this.importAKey(containerName, config.polkadotKeyImon, 'sr25519', 'imon');
       await this.importAKey(containerName, config.polkadotKeyPara, 'sr25519', 'para');
       await this.importAKey(containerName, config.polkadotKeyAudi, 'sr25519', 'audi');
-
-      console.log('Keys were successfully added to keystore...');
     } catch (error) {
       debug('polkadotKeysImport', error);
       console.error('Error: Can\'t add keys. We will retry the next time.');
@@ -340,7 +338,7 @@ class Polkadot {
   }
 
   // Copy keys files to volume
-  async copyFilesToPolkadotContainer () {
+  async copyFilesToServiceDirectory () {
     try {
       // Check if node key file is already present
       if (fs.existsSync(`/service/keys/${config.polkadotNodeKeyFile}`)) {
@@ -360,9 +358,13 @@ class Polkadot {
       await fs.chown('/service/keys', config.polkadotUnixUserId, config.polkadotUnixGroupId);
       await fs.chown(`/service/keys/${config.polkadotNodeKeyFile}`, config.polkadotUnixUserId, config.polkadotUnixGroupId);
     } catch (error) {
-      debug('copyFilesToPolkadotContainer', error);
+      debug('copyFilesToServiceDirectory', error);
       throw error;
     }
+  }
+
+  async serviceStartedMode () {
+
   }
 
   // Polkadot start function
@@ -381,7 +383,7 @@ class Polkadot {
       // If polkadotNodeKeyFile variable is set
       // And service directory exists use node key file
       if (!isEmptyString(config.polkadotNodeKeyFile) && fs.existsSync('/service')) {
-        await this.copyFilesToPolkadotContainer();
+        await this.copyFilesToServiceDirectory();
         commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + config.polkadotNodeKeyFile);
       }
 
