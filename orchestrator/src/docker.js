@@ -133,8 +133,12 @@ class Docker {
   }
 
   // Remove 'down' container and start 'up' container
-  async prepareAndStart (containerData, upName, downName, containerUp, containerDown) {
+  async prepareAndStart (containerData, upName, downName) {
     try {
+      // Get passive and active containers
+      const containerUp = await this.getContainerByName(upName);
+      const containerDown = await this.getContainerByName(downName);
+
       // Setting container name
       containerData.name = upName;
 
@@ -170,6 +174,18 @@ class Docker {
   // Start passive or active service container
   async startServiceContainer (type, activeName, passiveName, image, cmd, mountTarget, mountSource, networkMode) {
     try {
+      // Check if active service container is already running
+      if (type === 'active' && await this.isContainerRunningByName(activeName)) {
+        console.log(`Service is already running in ${type} mode...`);
+        return;
+      }
+
+      // Check if passive service container is already running
+      if (type === 'passive' && await this.isContainerRunningByName(passiveName)) {
+        console.log(`Service is already running in ${type} mode...`);
+        return;
+      }
+
       // Creating volume
       await this.createVolume(mountSource);
 
@@ -194,16 +210,12 @@ class Docker {
         containerData.HostConfig.NetworkMode = networkMode;
       }
 
-      // Get passive and active containers
-      const containerPassive = await this.getContainerByName(passiveName);
-      const containerActive = await this.getContainerByName(activeName);
-
       // If we want to start active container
       if (type === 'active') {
-        return await this.prepareAndStart(containerData, activeName, passiveName, containerActive, containerPassive);
+        return await this.prepareAndStart(containerData, activeName, passiveName);
       // We want to start passive container
       } else {
-        return await this.prepareAndStart(containerData, passiveName, activeName, containerPassive, containerActive);
+        return await this.prepareAndStart(containerData, passiveName, activeName);
       }
     } catch (error) {
       debug('startServiceContainer', error);
