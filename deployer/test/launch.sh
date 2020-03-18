@@ -1,9 +1,9 @@
 #!/bin/bash
-
-#!/bin/bash
 ARCHIPEL_VERSION="test"
 
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+echo "$SCRIPTPATH"
 
 # Launch Archipel orchestrator in docker container
 function launch_archipel () {
@@ -14,14 +14,18 @@ function launch_archipel () {
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $1:/root/chain/data \
     -v $1_service:/service \
-    -v $SCRIPTPATH/chain/keys:/keys \
+    -v $SCRIPTPATH/chain/keys:/config \
     --network archipel \
     --ip "$6" \
+    --cap-add=NET_ADMIN \
+    --cap-add=SYS_MODULE \
+    --privileged \
     --env ARCHIPEL_NODE_ALIAS=$1 \
-    --env ARCHIPEL_LISTEN_PORT=30333 \
+    --env ARCHIPEL_LISTEN_PORT=30334 \
     --env ARCHIPEL_KEY_SEED="$2" \
     --env ARCHIPEL_NODE_KEY_FILE="${10}" \
-    --env ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="$7" \
+    --env ARCHIPEL_RESERVED_PEERS="$7" \
+    --env ARCHIPEL_SUSPEND_SERVICE="false" \
     --env POLKADOT_NAME=$3 \
     --env POLKADOT_PREFIX=$4 \
     --env SERVICE="polkadot" \
@@ -34,9 +38,17 @@ function launch_archipel () {
     --env POLKADOT_RESERVED_NODES="$8" \
     --env POLKADOT_TELEMETRY_URL="$9" \
     --env POLKADOT_NODE_KEY_FILE="${11}" \
+    --env POLKADOT_LAUNCH_IN_VPN="true" \
+    --env POLKADOT_SIMULATE_SYNCH="true" \
     --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
     --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
     --env DEBUG="app,chain,docker,metrics,polkadot,service" \
+    --env WIREGUARD_PRIVATE_KEY="${12}" \
+    --env WIREGUARD_ADDRESS="${13}" \
+    --env WIREGUARD_LISTEN_PORT=51820 \
+    --env WIREGUARD_PEERS_PUB_ADDR="${14}" \
+    --env WIREGUARD_PEERS_ALLOWED_IP="${15}" \
+    --env WIREGUARD_PEERS_EXTERNAL_ADDR="${16}" \
     luguslabs/archipel:$ARCHIPEL_VERSION
 
   echo "Waiting 10 seconds to be sure that archipel is started..."
@@ -46,6 +58,22 @@ function launch_archipel () {
 NODE1_IP="172.28.42.2"
 NODE2_IP="172.28.42.3"
 NODE3_IP="172.28.42.4"
+
+WIREGUARD_PRIVATE_KEY_NODE1=+M0IaceBwxP9DbT91Rzf9LyTSPuwvN6sYomP5g6Y53g=
+WIREGUARD_FULL_ADDRESS_NODE1=10.0.1.1/32
+WIREGUARD_ADDRESS_NODE1=10.0.1.1
+
+WIREGUARD_PRIVATE_KEY_NODE2=sGOTT/f0Is7nb1qxLG2NZMmERPL6FcxFFOcuCwN9qkw=
+WIREGUARD_FULL_ADDRESS_NODE2=10.0.1.2/32
+WIREGUARD_ADDRESS_NODE2=10.0.1.2
+
+WIREGUARD_PRIVATE_KEY_NODE1=CLuE2RAE7hSFv4yXSfZMayDJHVyYnRbuoaCj5djCr28=
+WIREGUARD_FULL_ADDRESS_NODE3=10.0.1.3/32
+WIREGUARD_ADDRESS_NODE3=10.0.1.3
+
+WIREGUARD_PEERS_PUB_ADDR=W4fsCLN+53bIsNPtZXVmSzy8XoUcqxRbZfmwxSw28Ug=,Ye1zL1kDRafBCyqLl+gk3uszWac9dpkkTjpFVJZBvDo=,kmBiuOoUpsVf8U2vXEIF/ALNsct1vcb9Tr4d3iMIhxM=
+WIREGUARD_PEERS_ALLOWED_IP=10.0.1.1/32,10.0.1.2/32,10.0.1.3/32
+WIREGUARD_PEERS_EXTERNAL_ADDR=$NODE1_IP:51820,$NODE2_IP:51820,$NODE3_IP:51820
 
 # Creating a docker network for Archipel chain
 echo "Creating docker network for archipel test..."
@@ -65,15 +93,10 @@ echo "Local archipel2 node identity is '$NODE2_LOCAL_ID'"
 NODE3_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-peer-id.txt)
 echo "Local archipel3 node identity is '$NODE3_LOCAL_ID'"
 
+
 # Constructing bootnodes and reserved nodes lists
-BOOTNODES_LIST="--bootnodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --bootnodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --bootnodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
-echo "Bootnodes list is '$BOOTNODES_LIST'"
-RESERVED_LIST="--reserved-nodes /ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID --reserved-nodes /ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID --reserved-nodes /ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
+RESERVED_LIST="/ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_LOCAL_ID"
 echo "RESERVED_LIST  is '$RESERVED_LIST'"
-ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=$BOOTNODES_LIST" "$RESERVED_LIST
-
-echo "ARCHIPEL_CHAIN_ADDITIONAL_PARAMS  is '$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS'"
-
 
 POLKADOT_NODE1_IP="172.17.0.2"
 POLKADOT_NODE2_IP="172.17.0.3"
@@ -88,7 +111,7 @@ NODE3_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-polkadot-peer-id.txt)
 echo "Local node3-polkadot-sync node identity is '$NODE3_POLKADOT_LOCAL_ID'"
 
 # Constructing reserved peers polkadot list
-POLKADOT_RESERVED_NODES="/ip4/$POLKADOT_NODE1_IP/tcp/30333/p2p/$NODE1_POLKADOT_LOCAL_ID,/ip4/$POLKADOT_NODE2_IP/tcp/30333/p2p/$NODE2_POLKADOT_LOCAL_ID,/ip4/$POLKADOT_NODE3_IP/tcp/30333/p2p/$NODE3_POLKADOT_LOCAL_ID"
+POLKADOT_RESERVED_NODES="/ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_POLKADOT_LOCAL_ID"
 echo "POLKADOT_RESERVED_NODES list is '$POLKADOT_RESERVED_NODES'"
 
 # You can add a custom Telemery URL like POLKADOT_TELEMETRY_URL="ws://IP_HERE:8000/submit"
@@ -100,11 +123,17 @@ launch_archipel "archipel1" \
                 "node1-" \
                 "" \
                 "$NODE1_IP" \
-                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
+                "$RESERVED_LIST" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key1-node-key-file" \
                 "key1-polkadot-node-key-file" \
+                "$WIREGUARD_PRIVATE_KEY_NODE1" \
+                "$WIREGUARD_FULL_ADDRESS_NODE1" \
+                "$WIREGUARD_PEERS_PUB_ADDR" \
+                "$WIREGUARD_PEERS_ALLOWED_IP" \
+                "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
+                
                 
 launch_archipel "archipel2" \
                 "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
@@ -112,11 +141,16 @@ launch_archipel "archipel2" \
                 "node2-" \
                 "" \
                 "$NODE2_IP" \
-                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
+                "$RESERVED_LIST" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key2-node-key-file" \
                 "key2-polkadot-node-key-file" \
+                "$WIREGUARD_PRIVATE_KEY_NODE2" \
+                "$WIREGUARD_FULL_ADDRESS_NODE2" \
+                "$WIREGUARD_PEERS_PUB_ADDR" \
+                "$WIREGUARD_PEERS_ALLOWED_IP" \
+                "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
 
 launch_archipel "archipel3" \
                 "borrow initial guard hunt corn trust student opera now economy thumb argue" \
@@ -124,29 +158,16 @@ launch_archipel "archipel3" \
                 "node3-" \
                 "" \
                 "$NODE3_IP" \
-                "$ARCHIPEL_CHAIN_ADDITIONAL_PARAMS" \
+                "$RESERVED_LIST" \
                 "$POLKADOT_RESERVED_NODES" \
                 "$POLKADOT_TELEMETRY_URL" \
                 "key3-node-key-file" \
                 "key3-polkadot-node-key-file" \
-
-docker volume create archipel-node
-
-echo "Launching an Archipel node..."
-docker run -d \
-      -p 9944:9944 \
-      -v archipel-node:/root/chain/data \
-      --name "archipel-node" \
-      --network archipel \
-      --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
-      --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
-      --env ARCHIPEL_NODE_ALIAS="archipel-node" \
-      --env ARCHIPEL_CHAIN_ADDITIONAL_PARAMS="$BOOTNODES_LIST" \
-      luguslabs/archipel-node:test
-
-echo "Launching and Opening Archipel UI..."
-docker run -d -p 8080:80 --name archipel-ui luguslabs/archipel-ui:test
-echo "Archipel UI is running at http://localhost:8080 ..."
+                "$WIREGUARD_PRIVATE_KEY_NODE3" \
+                "$WIREGUARD_FULL_ADDRESS_NODE3" \
+                "$WIREGUARD_PEERS_PUB_ADDR" \
+                "$WIREGUARD_PEERS_ALLOWED_IP" \
+                "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
 
 echo "Archipel was created."
 docker ps

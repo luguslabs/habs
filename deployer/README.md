@@ -6,19 +6,12 @@ Archipel End-To-End tests, build scripts and deploy tools.
 ```bash
 # Clone the repository
 git clone https://github.com/luguslabs/archipel.git
-docker build -t luguslabs/archipel . -f deployer/archipel-docker/Dockerfile
+docker build -t luguslabs/archipel . -f deployer/archipel/Dockerfile
 ```
 
-### Archipel Node
+### Create Archipel Test version
 ```bash
 # Clone the repository
 git clone https://github.com/luguslabs/archipel.git
-docker build -t luguslabs/archipel-node . -f deployer/archipel-node-docker/Dockerfile
-```
-
-### Archipel with WireGuard VPN
-```bash
-# Clone the repository
-git clone https://github.com/luguslabs/archipel.git
-docker build -t luguslabs/archipel-with-wireguard . -f deployer/archipel-with-wireguard/Dockerfile
+docker build -t luguslabs/archipel:test . -f deployer/archipel/Dockerfile
 ```
