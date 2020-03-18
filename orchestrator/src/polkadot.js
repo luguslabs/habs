@@ -266,10 +266,16 @@ class Polkadot {
   // TODO ? call also system_networkState
   // - add metrics "averageDownloadPerSec"
   // - add metrics "averageUploadPerSec"
-  async isServiceReadyToStart () {
+  async isServiceReadyToStart (mode) {
     try {
-      console.log('isServiceReadyToStart function start');
-      const containerName = config.polkadotPrefix + 'polkadot-sync';
+
+      // By default we will check sync container
+      let containerName = config.polkadotPrefix + 'polkadot-sync';
+
+      // If mode is active we will check validator container
+      if (mode === 'active') {
+        containerName = config.polkadotPrefix + 'polkadot-validator';
+      }
 
       // Check if container exists and is running
       const containerExistAndRunning = await this.docker.isContainerRunningByName(containerName);
@@ -278,6 +284,12 @@ class Polkadot {
         return false;
       }
       debug('isServiceReadyToStart', `container : "${containerName}" exist and in running state.`);
+
+      // Check if a simulate synch option was set
+      if (config.polkadotSimulateSynch) {
+        debug('isServiceReadyToStart', 'Test mode simulate synch node.');
+        return true;
+      }
 
       // Construct command to check system_health
       const commandSystemHealth = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
@@ -313,13 +325,7 @@ class Polkadot {
         debug('isServiceReadyToStart', 'system_health peers == 0. Service us not ready.');
         return false;
       }
-
-      // Check if a simulate synch option was set
       debug('isServiceReadyToStart', `system_health peers > 0 :"${peersNumber}" peers. Check synch status.`);
-      if (config.polkadotSimulateSynch) {
-        debug('isServiceReadyToStart', 'Test mode simulate synch node.');
-        return true;
-      }
 
       // Check if node is in synch state
       const isSyncingSystemHealth = resultSystemHealth.match(/"isSyncing":true|false/);
