@@ -6,8 +6,7 @@ RUN rustup update nightly
 RUN rustup update stable
 RUN rustup target add wasm32-unknown-unknown --toolchain nightly
 # Install subkey tool
-RUN cargo install --force --git https://github.com/paritytech/substrate subkey
-
+RUN cargo +stable install --force --git https://github.com/paritytech/substrate subkey
 FROM node:10-buster
 # Add debian unstable repo for wireguard packages
 RUN echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list && \
