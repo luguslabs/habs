@@ -164,6 +164,19 @@ class Polkadot {
 
     // Check config
     Polkadot.checkConfig();
+
+    // Polkadot volume init
+    this.polkadotVolume = '';
+
+    // Common PolkadotOptions
+    this.commonPolkadotOptions = [];
+
+    // Network mode init 
+    this.networkMode = '';
+
+    // Service prepared
+    this.prepared = false;
+
   }
 
   // Importing a key in keystore
@@ -345,12 +358,6 @@ class Polkadot {
   // Copy keys files to volume
   async copyFilesToServiceDirectory () {
     try {
-      // Check if node key file is already present
-      if (fs.existsSync(`/service/keys/${config.polkadotNodeKeyFile}`)) {
-        console.log(`File ${config.polkadotNodeKeyFile} is already in /service/key directory...`);
-        return;
-      }
-
       // Create keys directory
       await fs.ensureDir('/service/keys');
 
@@ -379,61 +386,72 @@ class Polkadot {
     return 'none';
   }
 
+  // Prepare service before launch
+  async prepareService () {
+
+    // Common polkadot options
+    this.commonPolkadotOptions = [
+      '--pruning=archive',
+      '--wasm-execution',
+      'Compiled',
+      '--grandpa-pause',
+      '0',
+      '0',
+      '--db-cache',
+      '512',
+      '--rpc-cors',
+      'http://localhost',
+      '--rpc-port',
+      config.polkadotRpcPort
+    ];
+
+    // If polkadotNodeKeyFile variable is set
+    // And service directory exists use node key file
+    if (!isEmptyString(config.polkadotNodeKeyFile) && fs.existsSync('/service')) {
+      await this.copyFilesToServiceDirectory();
+      this.commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + config.polkadotNodeKeyFile);
+    }
+
+    // Adding reserved nodes
+    if (!isEmptyString(config.polkadotReservedNodes)) {
+      this.commonPolkadotOptions.push(...formatReservedNodesList(config.polkadotReservedNodes));
+    }
+
+    // Adding telemetry Url
+    if (!isEmptyString(config.polkadotTelemetryUrl)) {
+      if (config.polkadotTelemetryUrl === '--no-telemetry') {
+        this.commonPolkadotOptions.push('--no-telemetry');
+      } else {
+        this.commonPolkadotOptions.push(...['--telemetry-url', config.polkadotTelemetryUrl]);
+      }
+    }
+
+    // Setting network mode variable if polkadot must be launched in VPN network
+    if (config.polkadotLaunchInVpn !== undefined && config.polkadotLaunchInVpn === 'true') {
+      this.networkMode = `container:${os.hostname()}`;
+      console.log(`Container network mode: ${this.networkMode}...`);
+    }
+
+    // Get service volume from orchestrator and give this volume to polkadot container
+    const orchestratorServiceVolume = await this.docker.getMountThatContains(os.hostname(), 'service');
+    if (orchestratorServiceVolume) {
+      this.polkadotVolume = orchestratorServiceVolume.Name;
+    } else {
+      this.polkadotVolume = config.polkadotPrefix + 'polkadot-volume';
+    }
+    console.log(`Polkadot will use volume '${this.polkadotVolume}'...`);
+
+    this.prepared = true;
+  }
+
   // Polkadot start function
   async start (mode) {
     try {
-      const commonPolkadotOptions = [
-        '--pruning=archive',
-        '--wasm-execution',
-        'Compiled',
-        '--grandpa-pause',
-        '0',
-        '0',
-        '--db-cache',
-        '512',
-        '--rpc-cors',
-        'http://localhost',
-        '--rpc-port',
-        config.polkadotRpcPort
-      ];
 
-      // If polkadotNodeKeyFile variable is set
-      // And service directory exists use node key file
-      if (!isEmptyString(config.polkadotNodeKeyFile) && fs.existsSync('/service')) {
-        await this.copyFilesToServiceDirectory();
-        commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + config.polkadotNodeKeyFile);
+      // Prepare service before start
+      if (!this.prepared) {
+        await this.prepareService();
       }
-
-      // Adding reserved nodes
-      if (!isEmptyString(config.polkadotReservedNodes)) {
-        commonPolkadotOptions.push(...formatReservedNodesList(config.polkadotReservedNodes));
-      }
-
-      // Adding telemetry Url
-      if (!isEmptyString(config.polkadotTelemetryUrl)) {
-        if (config.polkadotTelemetryUrl === '--no-telemetry') {
-          commonPolkadotOptions.push('--no-telemetry');
-        } else {
-          commonPolkadotOptions.push(...['--telemetry-url', config.polkadotTelemetryUrl]);
-        }
-      }
-
-      // Setting network mode variable if polkadot must be launched in VPN network
-      let networkMode = '';
-      if (config.polkadotLaunchInVpn !== undefined && config.polkadotLaunchInVpn === 'true') {
-        networkMode = `container:${os.hostname()}`;
-        console.log(`Container network mode: ${networkMode}...`);
-      }
-
-      // Get service volume from orchestrator and give this volume to polkadot container
-      const orchestratorServiceVolume = await this.docker.getMountThatContains(os.hostname(), 'service');
-      let polkadotVolume;
-      if (orchestratorServiceVolume) {
-        polkadotVolume = orchestratorServiceVolume.Name;
-      } else {
-        polkadotVolume = config.polkadotPrefix + 'polkadot-volume';
-      }
-      console.log(`Polkadot will use volume '${polkadotVolume}'...`);
 
       // Launch service in specific mode
       let containerName = '';
@@ -443,10 +461,10 @@ class Polkadot {
           config.polkadotPrefix + 'polkadot-validator',
           config.polkadotPrefix + 'polkadot-sync',
           config.polkadotImage,
-          ['--name', `${config.polkadotName}-active`, ...commonPolkadotOptions, '--validator', '--reserved-only']
+          ['--name', `${config.polkadotName}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only']
           , '/polkadot',
-          polkadotVolume,
-          networkMode
+          this.polkadotVolume,
+          this.networkMode
         );
         containerName = config.polkadotPrefix + 'polkadot-validator';
       } else if (mode === 'passive') {
@@ -455,10 +473,10 @@ class Polkadot {
           config.polkadotPrefix + 'polkadot-validator',
           config.polkadotPrefix + 'polkadot-sync',
           config.polkadotImage,
-          ['--name', `${config.polkadotName}-passive`, ...commonPolkadotOptions, '--sentry'],
+          ['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions, '--sentry'],
           '/polkadot',
-          polkadotVolume,
-          networkMode
+          this.polkadotVolume,
+          this.networkMode
         );
         containerName = config.polkadotPrefix + 'polkadot-sync';
       } else {
