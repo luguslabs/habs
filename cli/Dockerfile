@@ -1,11 +1,10 @@
 #Create subkey bin
 FROM rust:buster as builder-subkey
-# Update rust
-RUN rustup update nightly
-RUN rustup update stable
-RUN rustup target add wasm32-unknown-unknown --toolchain nightly
 # Install subkey tool
-RUN cargo install --force --git https://github.com/paritytech/substrate subkey
+RUN rustup install stable
+RUN rustup update nightly
+RUN rustup target add wasm32-unknown-unknown --toolchain nightly
+RUN cargo +stable install --force --git https://github.com/paritytech/substrate subkey
 
 FROM node:10-buster
 

@@ -15,7 +15,8 @@ RUN ./target/release/archipel build-spec --chain template --raw > archipelTempla
 ###########################
 # Build subkey tool step
 ###########################
-RUN cargo install --force --git https://github.com/paritytech/substrate subkey
+RUN rustup install stable
+RUN cargo +stable install --force --git https://github.com/paritytech/substrate subkey
 
 ###########################
 # Archipel UI build step
