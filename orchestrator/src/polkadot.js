@@ -484,6 +484,7 @@ class Polkadot {
       } else {
         console.log('Cleaning up was already started...');
       }
+      this.cleaningUp = false;
     } catch (error) {
       debug('cleanUp', error);
       console.error(error);

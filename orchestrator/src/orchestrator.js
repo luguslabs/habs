@@ -46,8 +46,7 @@ class Orchestrator {
       // Check if orchestration is enabled
       console.log('Checking if orchestration is enabled...');
       if (!this.orchestrationEnabled) {
-        console.log('Orchestration is disabled. Enforcing \'passive\' service mode...');
-        this.serviceStart('passive');
+        console.log('Orchestration is disabled...');
         return;
       }
 
