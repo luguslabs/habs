@@ -219,6 +219,16 @@ class Chain {
     }
   }
 
+  async getPeeId () {
+    try {
+      const networkState = await this.api.rpc.system.networkState();
+      return networkState.peerId.toString();
+    } catch (error) {
+      debug('getPeeId', error);
+      throw error;
+    }
+  }
+
   // Show chain node info
   async chainNodeInfo () {
     try {

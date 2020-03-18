@@ -363,8 +363,15 @@ class Polkadot {
     }
   }
 
-  async serviceStartedMode () {
-
+  // Check launched container
+  async checkLaunchedContainer () {
+    if (await this.docker.isContainerRunningByName(config.polkadotPrefix + 'polkadot-validator')) {
+      return 'active';
+    }
+    if (await this.docker.isContainerRunningByName(config.polkadotPrefix + 'polkadot-sync')) {
+      return 'passive';
+    }
+    return 'none';
   }
 
   // Polkadot start function

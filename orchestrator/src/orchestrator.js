@@ -29,6 +29,7 @@ class Orchestrator {
     this.chain = chain;
     // Create service instance
     this.service = Orchestrator.createServiceInstance(service);
+    this.serviceName = service;
     this.metrics = metrics;
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
@@ -147,7 +148,7 @@ class Orchestrator {
       debug('orchestrateService', `Current Leader is: ${currentLeader}`);
       console.log('Other node is leader...');
 
-      const otherLeaderActionResult = await this.otherLeaderAction(currentLeader, nodeKey);
+      const otherLeaderActionResult = await this.otherLeaderAction(currentLeader);
       return otherLeaderActionResult;
     } catch (error) {
       debug('leadershipManagement', error);
@@ -156,7 +157,7 @@ class Orchestrator {
   }
 
   // Act if other node is leader
-  async otherLeaderAction (currentLeader, nodeKey) {
+  async otherLeaderAction (currentLeader) {
     try {
       // Get leader metrics known
       const leaderMetrics = this.metrics.getMetrics(currentLeader);
@@ -228,6 +229,12 @@ class Orchestrator {
       debug('serviceCleanUp', error);
       console.error(error);
     }
+  }
+
+  // Get Orchestrator address
+  async getOrchestratorAddress() {
+    const key = await getKeysFromSeed(this.mnemonic);
+    return key.address;
   }
 }
 

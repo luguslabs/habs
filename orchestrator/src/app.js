@@ -9,6 +9,9 @@ const {
   checkVariable
 } = require('./utils');
 const { Orchestrator } = require('./orchestrator');
+const {
+  initApi
+} = require('./api');
 
 // Import env variables from .env file
 dotenv.config();
@@ -94,6 +97,13 @@ async function main () {
 
     // Attach service cleanup to exit signals
     catchExitSignals(orchestrator.serviceCleanUp.bind(orchestrator));
+
+    // Init api
+    initApi(orchestrator);
+
+    // Printing end message
+    console.log('Orchestrator was successfully launched...');
+
   } catch (error) {
     debug('main', error);
     console.error(error);

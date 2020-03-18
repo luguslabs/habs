@@ -40,6 +40,18 @@ class Metrics {
     return false;
   }
 
+  getAllMetrics () {
+    const result = new Array();
+    this.metrics.forEach((value, key) => {
+      result.push({
+        wallet: key,
+        metrics: value.metrics,
+        timestamp: value.timestamp
+      });
+    });
+    return result;
+  }
+
   // Get metrics of a node
   getMetrics (wallet) {
     return this.metrics.get(wallet);
