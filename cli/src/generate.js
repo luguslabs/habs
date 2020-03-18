@@ -3,6 +3,7 @@ const path = require('path');
 const inquirer = require('inquirer');
 const Spinner = require('clui').Spinner;
 const net = require('net');
+const isValidDomain = require('is-valid-domain');
 const {
   loadJSONFile,
   createArchive,
@@ -64,8 +65,8 @@ const validatePublicIps = ips => {
   }
   // Check if every ip address in list is valid
   externalIPAddresses.forEach(element => {
-    if (!net.isIP(element)) {
-      throw Error(`Public ip list has an invalid IP address (${element}).`);
+   if (!net.isIP(element) && !isValidDomain(element)) {
+      throw Error(`Public ip list has an invalid IP address or DNS domain (${element}).`);
     }
   });
 };
