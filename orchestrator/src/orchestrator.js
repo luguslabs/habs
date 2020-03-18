@@ -22,7 +22,7 @@ class Orchestrator {
     }
   }
 
-  constructor (chain, service, metrics, mnemonic, aliveTime, suspendService) {
+  constructor (chain, service, metrics, mnemonic, aliveTime) {
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
@@ -33,7 +33,8 @@ class Orchestrator {
     this.metrics = metrics;
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
-    this.suspendService = suspendService.includes('true');
+    this.orchestrationEnabled = true;
+    this.metricSendEnabled = true;
     this.mode = 'passive';
   }
 
@@ -42,19 +43,19 @@ class Orchestrator {
     try {
       console.log('Orchestrating service...');
 
+      // Check if orchestration is enabled
+      console.log('Checking if orchestration is enabled...');
+      if (!this.orchestrationEnabled) {
+        console.log('Orchestration is disabled. Enforcing \'passive\' service mode...');
+        this.serviceStart('passive');
+        return;
+      }
+
       // If node state permits to send transactions
       console.log('Checking if Archipel chain node can receive transactions...');
       const sendTransaction = await this.chain.canSendTransactions();
       if (!sendTransaction) {
         console.log('Archipel chain node can\'t receive transactions. Enforcing \'passive\' service mode...');
-        this.serviceStart('passive');
-        return;
-      }
-
-      // Check if service was not suspended
-      console.log('Checking if service was not suspended...');
-      if (this.suspendService) {
-        console.log('ARCHIPEL_SUSPEND_SERVICE is set to true. Enforcing \'passive\' service mode...');
         this.serviceStart('passive');
         return;
       }
@@ -80,7 +81,7 @@ class Orchestrator {
         this.serviceStart('passive');
         return;
       }
-      
+
       // Check node leadership
       console.log('Checking node leadership...');
       const leadership = await this.leadershipManagement(nodeKey);
@@ -227,7 +228,7 @@ class Orchestrator {
   }
 
   // Get Orchestrator address
-  async getOrchestratorAddress() {
+  async getOrchestratorAddress () {
     const key = await getKeysFromSeed(this.mnemonic);
     return key.address;
   }

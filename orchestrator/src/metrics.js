@@ -16,15 +16,6 @@ class Metrics {
     this.metrics.set(wallet, nodeMetrics);
   }
 
-  // Show all metrics from Map
-  showMetrics () {
-    debug('showMetrics', '--------- Stored metrics ---------');
-    this.metrics.forEach((value, key) => {
-      debug('showMetrics', `${key} - [${value.metrics}] (${new Date(parseInt(value.timestamp)).toString()}`);
-    });
-    debug('showMetrics', '----------------------------------');
-  }
-
   // If any node in Map is alive
   anyOneAlive (excludeNode, aliveTime) {
     const nowTime = new Date().getTime();
@@ -40,8 +31,9 @@ class Metrics {
     return false;
   }
 
+  // Get all metrics from metric map
   getAllMetrics () {
-    const result = new Array();
+    const result = [];
     this.metrics.forEach((value, key) => {
       result.push({
         wallet: key,

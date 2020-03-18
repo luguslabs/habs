@@ -268,7 +268,6 @@ class Polkadot {
   // - add metrics "averageUploadPerSec"
   async isServiceReadyToStart (mode) {
     try {
-
       // By default we will check sync container
       let containerName = config.polkadotPrefix + 'polkadot-sync';
 

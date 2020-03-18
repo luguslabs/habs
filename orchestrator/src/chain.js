@@ -219,6 +219,7 @@ class Chain {
     }
   }
 
+  // Get peer id from chain
   async getPeeId () {
     try {
       const networkState = await this.api.rpc.system.networkState();
@@ -226,24 +227,6 @@ class Chain {
     } catch (error) {
       debug('getPeeId', error);
       throw error;
-    }
-  }
-
-  // Show chain node info
-  async chainNodeInfo () {
-    try {
-      // Get network state and system health
-      const networkState = await this.api.rpc.system.networkState();
-      const health = await this.api.rpc.system.health();
-
-      console.log('--------------- Chain node network state and health ----------------');
-      console.log(`Peer ID: ${networkState.peerId}`);
-      console.log(`Peer number: ${health.peers}`);
-      console.log(`Is syncing?: ${health.isSyncing}`);
-      console.log('--------------------------------------------------------------------');
-    } catch (error) {
-      debug('chainNodeInfo', error);
-      console.error(error);
     }
   }
 

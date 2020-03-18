@@ -19,8 +19,7 @@ const {
   NODE_WS,
   MNEMONIC,
   ALIVE_TIME,
-  SERVICE,
-  SUSPEND_SERVICE
+  SERVICE
 } = process.env;
 
 // Check if all necessary env vars were set
@@ -51,7 +50,7 @@ async function main () {
     const metrics = new Metrics();
 
     // Create orchestrator instance
-    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME, SUSPEND_SERVICE);
+    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME);
 
     // Start service in passive mode
     console.log('Starting service in passive mode...');
@@ -63,20 +62,13 @@ async function main () {
     // Add metrics and orchestrate every 10 seconds
     setIntervalAsync(async () => {
       try {
-        await chain.addMetrics(42, MNEMONIC);
+        // If metric send is enabled sending metrics
+        if (orchestrator.metricSendEnabled) {
+          await chain.addMetrics(42, MNEMONIC);
+        }
+
+        // Orchestrating service
         await orchestrator.orchestrateService();
-      } catch (error) {
-        console.error(error);
-      }
-    }, 10000);
-
-    // Show metrics
-    setInterval(() => { metrics.showMetrics(); }, 10000);
-
-    // Show chain node info
-    setIntervalAsync(async () => {
-      try {
-        await chain.chainNodeInfo();
       } catch (error) {
         console.error(error);
       }
@@ -103,7 +95,6 @@ async function main () {
 
     // Printing end message
     console.log('Orchestrator was successfully launched...');
-
   } catch (error) {
     debug('main', error);
     console.error(error);
