@@ -50,6 +50,19 @@ cd ./orchestrator
 docker build -t luguslabs/archipel-orchestrator .
 ```
 
+## API
+| Path | Method | Description | Example |
+|----------|-------------|-------------|--------|
+| / | GET | Get realtime Archipel orchestrator info | curl -s http://172.28.42.2:3000 |
+| /metrics/disable | GET | Disable metrics send to Archipel chain | curl -s http://172.28.42.2:3000/metrics/disable |
+| /metrics/enable | GET | Enable metrics send to Archipel chain | curl -s http://172.28.42.2:3000/metrics/disable |
+| /orchestration/disable | GET | Disable orchestration process <br> **WARNING! RISK!** Service container will remain in the same state all the time! | curl -s http://172.28.42.2:3000/orchestration/disable |
+| /orchestration/enable | GET | Enable orchestration process | curl -s http://172.28.42.2:3000/orchestration/enable |
+| /service/stop | GET | Stop and remove service container | curl -s http://172.28.42.2:3000/service/stop |
+| /service/start | POST | Start service container in specific mode. <br> **Fields:** - mode ('active' or 'passive') <br> **Warning!** The service will be relaunched by orchestrator if it is enabled. | curl --data "mode=passive" http://172.28.42.2:3000/service/start |
+
+* **Warning!** Don't expose Archipel Orchestrator API publicly! There is no authentication!
+
 ## Note 
 
 Please use **eslint** before every commit.
