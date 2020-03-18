@@ -75,11 +75,11 @@ WORKDIR /root/
 ####################################
 # import scripts and supervisord conf  
 ####################################
-COPY ./deployer/archipel-with-wireguard/start-chain.sh /usr/local/bin/
-COPY ./deployer/archipel-with-wireguard/start-orchestrator.sh /usr/local/bin/
-COPY ./deployer/archipel-with-wireguard/start-wireguard.sh /usr/local/bin/
-COPY ./deployer/archipel-with-wireguard/start-ui.sh /usr/local/bin/
-COPY ./deployer/archipel-with-wireguard/supervisord.conf /etc/supervisord/
+COPY ./deployer/archipel/start-chain.sh /usr/local/bin/
+COPY ./deployer/archipel/start-orchestrator.sh /usr/local/bin/
+COPY ./deployer/archipel/start-wireguard.sh /usr/local/bin/
+COPY ./deployer/archipel/start-ui.sh /usr/local/bin/
+COPY ./deployer/archipel/supervisord.conf /etc/supervisord/
 
 RUN chmod +x /usr/local/bin/start-chain.sh
 RUN chmod +x /usr/local/bin/start-orchestrator.sh

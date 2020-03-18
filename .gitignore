@@ -1,4 +1,4 @@
 .env
 .vscode
 subkey
-deployer/archipel-with-wireguard/Dockerfile-fix
+deployer/archipel/Dockerfile-fix

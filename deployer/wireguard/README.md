@@ -21,7 +21,7 @@ sudo apt install -y linux-headers-cloud-amd64 linux-headers-amd64 wireguard-dkms
 
 ### Launching Archipel with WireGuard
 
-Dockerfile Archipel with wireguard [here]( https://github.com/luguslabs/archipel/tree/master/deployer/archipel-with-wireguard)
+Dockerfile Archipel with wireguard [here]( https://github.com/luguslabs/archipel/tree/master/deployer/archipel)
 
 #### Example
 ##### docker-compose.yml

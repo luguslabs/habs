@@ -186,13 +186,13 @@ docker volume create archipel
 docker volume create archipel_service
 
 # Launch docker container
-docker run -d --name "archipel-with-wireguard" \
+docker run -d --name "archipel" \
   --cap-add net_admin --cap-add sys_module \
   -p 51820:51820 \
   -v archipel:/root/chain/data \
   -v archipel_service:/service \
   --env-file .env \
-  luguslabs/archipel-with-wireguard:latest
+  luguslabs/archipel:latest
 ```
 
 
@@ -204,7 +204,7 @@ docker volume create archipel
 docker volume create archipel_service
 
 # Launch docker container
-docker run -d --name "archipel-with-wireguard" \
+docker run -d --name "archipel" \
   --cap-add net_admin --cap-add sys_module \
   -p 51820:51820 \
   -v /var/run/docker.sock:/var/run/docker.sock \
@@ -213,7 +213,7 @@ docker run -d --name "archipel-with-wireguard" \
   -v ./archipel-config.zip:/config/archipel-config.zip \
   -e CONFIG_FILE='true' \
   -e NODE_ID=1 \
-  luguslabs/archipel-with-wireguard:latest
+  luguslabs/archipel:latest
 ```
 
 #### Example docker-compose.yml
@@ -221,7 +221,7 @@ docker run -d --name "archipel-with-wireguard" \
 version: '3.4'
 services:
   archipel:
-    image: luguslabs/archipel-with-wireguard:latest
+    image: luguslabs/archipel:latest
     volumes:
       - 'archipel:/root/chain/data'
       - 'archipel_service:/service'
