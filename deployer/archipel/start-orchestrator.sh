@@ -64,8 +64,10 @@ export NODE_ENV=production
 export NODE_WS="ws://127.0.0.1:9944"
 export MNEMONIC="$ARCHIPEL_KEY_SEED"
 export ALIVE_TIME=60000
-echo "sleep 5 sec to wait archipel node started and ws endpoint ready..."
+export SUSPEND_SERVICE="$ARCHIPEL_SUSPEND_SERVICE"
+
+# Launching orchestrator
+echo "Waiting 5 seconds for Archipel Node to start..."
 sleep 5
-echo "Launch orchestrator"
-# Launch orchestrator
+echo "Launching orchestrator..."
 exec node src/app.js

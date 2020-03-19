@@ -106,6 +106,9 @@ class Orchestrator {
       const setLeader = await this.chain.setLeader(nodeKey, this.mnemonic); ;
       if (setLeader) {
         console.log('The leadership was taken successfully...');
+        // We will wait 10 seconds to be sure that every Archipel node received leader update info
+        console.log('Waiting 10 seconds to be sure that every node received leader update...');
+        await new Promise(resolve => setTimeout(resolve, 10000));
         return true;
       } else {
         console.log('Failed to take leadership. Possibly other node already took leadership...');

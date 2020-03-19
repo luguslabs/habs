@@ -19,7 +19,8 @@ const {
   NODE_WS,
   MNEMONIC,
   ALIVE_TIME,
-  SERVICE
+  SERVICE,
+  SUSPEND_SERVICE
 } = process.env;
 
 // Check if all necessary env vars were set
@@ -52,6 +53,12 @@ async function main () {
     // Create orchestrator instance
     const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME);
 
+    // If orchestrator is launched in suspend service mode disabling metrics send and orchestration
+    if (SUSPEND_SERVICE.includes('true')) {
+      orchestrator.metricSendEnabled = false;
+      orchestrator.orchestrationEnabled = false;
+    }
+
     // Start service in passive mode
     console.log('Starting service in passive mode...');
     await orchestrator.serviceStart('passive');
@@ -65,6 +72,8 @@ async function main () {
         // If metric send is enabled sending metrics
         if (orchestrator.metricSendEnabled) {
           await chain.addMetrics(42, MNEMONIC);
+        } else {
+          console.log('Metrics send is disabled...');
         }
 
         // Orchestrating service
