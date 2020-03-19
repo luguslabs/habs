@@ -29,7 +29,8 @@ To achieve the high availability of services, we are adding a service layer (Arc
 | Component | Description |
 | --- | --- |
 | [Chain](chain/) | Chain component is responsible for Archipel state synchronization between participants |
-| [Orchestator](orchestrator/) | Orchestrator is the decision-making component in Archipel federation |
+| [Orchestrator](orchestrator/) | Orchestrator is the decision-making component in Archipel federation |
+| [CLI](cli/) | CLI is a component that generates configuration and bootstraps an Archipel federation |
 | [UI](ui/) | UI is the Archipel chain state visualization component |
 | [Deployer](deployer/) | Archipel End-To-End tests, build scripts and deploy tools |
 | [DAppNodePackage](https://github.com/luguslabs/DAppNodePackage-archipel) | DAppNode package wrapping Archipel |
@@ -41,7 +42,7 @@ To federate several nodes and have a shared state to elect leader, we created a 
 
 We created a Substrate runtime that collects all nodes metrics and sets federation leader. This helps Archipel orchestrator to select the best leader appropriately in the federation. We call this specific blockchain the Archipel Substrate Chain or Archipel Chain. 
 
-All nodes inside a federation, run Archipel Chain. In the current implementation, an Archipel must be composed of 3 nodes. That means that to operate, you have to set up 3 nodes. Try to set up nodes in different locations using different ISPs.
+All nodes inside a federation, run Archipel Chain. In the current implementation, an Archipel must be composed of 3 nodes. That means that to operate, you have to set up 3 nodes. Try to set up nodes in different locations.
 
 The idea is that in Archipel federation, all participants are trusted. They can be friends or family or other trusted social links. That allows us to have a fast chain consensus. 
 
@@ -93,6 +94,7 @@ Please refer to the README instructions in the sub-repositories for more informa
 
 - [chain/README.md](chain/README.md)
 - [orchestrator/README.md](orchestrator/README.md)
+- [cli/README.md](cli/README.md)
 - [deployer/README.md](deployer/README.md)
 - [ui/README.md](ui/README.md)
 
@@ -100,60 +102,13 @@ Additional documentation
  - [Documentation](doc/README.md)
 
 ## Running with Docker
-### Archipel (Validator Archipel Chain Node + Orchestrator)
-```
-# Create an .env file
-cat <<EOF >.env
-ARCHIPEL_NODE_ALIAS=archipel1
-ARCHIPEL_KEY_SEED=mushroom ladder ...
-ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=
-POLKADOT_NAME=test-name
-POLKADOT_PREFIX=node-
-SERVICE=polkadot
-POLKADOT_IMAGE=parity/polkadot:latest
-POLKADOT_KEY_GRAN=april shift ...
-POLKADOT_KEY_BABE=region run ...
-POLKADOT_KEY_IMON=screen sustain ...
-POLKADOT_KEY_PARA=produce hover ...
-POLKADOT_KEY_AUDI=oak tail ...
-ARCHIPEL_AUTHORITIES_SR25519_LIST=5FmqMTG...
-ARCHIPEL_AUTHORITIES_ED25519_LIST=5FbQNUq...
-EOF
+### Archipel Node 
 
-# Creating docker volumes
-docker volume create archipel
-docker volume create archipel_service
+It includes:
+- Archipel Chain Node
+- Archipel Orchestrator
+- WireGuard VPN
 
-# Launch docker container
-docker run -d --name "archipel1" \
-  -p 30333:30333 \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v archipel:/root/chain/data \
-  -v archipel_service:/service \
-  --env-file .env \
-  luguslabs/archipel:latest
-```
-
-### Archipel Node (Non-Validator Archipel Chain Node)
-```
-# Create an .env file
-cat <<EOF >.env
-ARCHIPEL_AUTHORITIES_SR25519_LIST=5FmqMTG...
-ARCHIPEL_AUTHORITIES_ED25519_LIST=5FbQNUq...
-ARCHIPEL_NODE_ALIAS=archipel-node
-ARCHIPEL_CHAIN_ADDITIONAL_PARAMS=
-EOF
-
-# Launch docker container
-docker run -d --name "archipel-node" \
-  -p 9944:9944 \
-  -v /root/chain/data \
-  --env-file .env \
-  luguslabs/archipel-node:latest
-```
-
-
-### Archipel with WireGuard VPN
 ```
 # Create an .env file
 cat <<EOF >.env
@@ -195,10 +150,12 @@ docker run -d --name "archipel" \
   luguslabs/archipel:latest
 ```
 
+### Archipel Node with Config File
 
-### Archipel with WireGuard VPN with Config File
+Firstly you must generate a configuration file using [Archipel CLI](cli/).
+The configuration file will include all necessary elements to bootstrap an Archipel federation.
+
 ```bash
-# Generate archipel-config.zip file
 # Creating docker volumes
 docker volume create archipel
 docker volume create archipel_service
@@ -240,10 +197,7 @@ volumes:
   archipel:
   archipel_service:
 ```
-* Set CONFIG_FILE_PASSWORD if config file was generated with password.
-* Warning! You must set good Node ID.
-
-### 
+* **Warning!** You must set your Node ID and CONFIG_FILE_PASSWORD.
 
 ### Environment Variables
 
