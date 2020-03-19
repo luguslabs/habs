@@ -21,9 +21,9 @@ yarn install
 # Clone the repository
 git clone https://github.com/luguslabs/archipel.git
 cd ./ui
-docker build --build-arg PROVIDER_SOCKET=ws://127.0.0.1 -t luguslabs/archipel-ui .
+docker build --build-arg API_URL=http://127.0.0.1 -t luguslabs/archipel-ui .
 ```
-* **PROVIDER_SOCKET** - Archipel node provider Websocket.
+* **API_URL** - Archipel api endpoint.
 
 ## Usage
 
@@ -61,8 +61,8 @@ and finally environment variables, with precedence.
 Some environment variables are read and integrated in the template `config` object,
 including:
 
-* `REACT_APP_PROVIDER_SOCKET` overriding `config[PROVIDER_SOCKET]`
-* `REACT_APP_DEVELOPMENT_KEYRING` overriding `config[DEVELOPMENT_KEYRING]`
+* `REACT_APP_API_URL` overriding `config[API_URL]`
+* `REACT_APP_API_PORT` overriding `config[API_PORT]`
 
 ## References
 * [Based on Substrate Front End Template](https://github.com/substrate-developer-hub/substrate-front-end-template)

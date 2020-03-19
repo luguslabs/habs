@@ -1,85 +1,167 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Grid, Icon } from 'semantic-ui-react';
+import React from 'react';
+import { Table, Grid, Icon, Button , Dimmer, Loader } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago'
-
-import { useSubstrate } from './substrate-lib';
+import config from './config';
+import useSWR, { mutate } from 'swr'
+import fetch from './libs/fetch'
 
 function Main (props) {
-  const { api } = useSubstrate();
-  const [currentLeader, setCurrentLeader] = useState();
+  const url = config.API_URL;
+  const port = config.API_PORT;
 
-  const [accountsCount, setAccountsCount] = useState(0);
-
-  const [accounts, setAccounts] = useState([]);
-
-  const [metrics, setmetrics] = useState([]);
-
-  const [heartbeats, setHeartbeats] = useState([]);
-
-  useEffect(() => {
-    let unsubscribe;
-    api.query.archipelModule.leader(newLeader => {
-      if (!newLeader.isEmpty) {
-        setCurrentLeader(newLeader.toString());
-      } else {
-        setCurrentLeader('None');
-      }
-    }).then(unsub => {
-      unsubscribe = unsub;
-    })
-      .catch(console.error);
-
-    return () => unsubscribe && unsubscribe();
-  }, [api.query.archipelModule]);
-
-  useEffect(() => {
-    let unsubscribeAccountCount;
-    let unsubscribeAccounts;
-    let unsubscribeMetrics;
-    let unsubscribeHeartbeats;
-    api.query.archipelModule.accountsCount(count => {
-      if (!count.isEmpty) {
-        api.query.archipelModule.accounts.multi([...Array(count.toNumber()).keys()], accounts => {
-          if (!accounts.isEmpty) {
-            //valorize metrics
-            api.query.archipelModule.metrics.multi(accounts, metrics => {
-              setmetrics(metrics.map(metric => metric.toNumber()));
-            }).then(unsub => {
-              unsubscribeMetrics = unsub;
-            })
-            .catch(console.error);
-            //valorize heartbeats
-            api.query.archipelModule.heartbeats.multi(accounts, heartbeats => {
-              setHeartbeats(heartbeats.map(heartbeat => heartbeat.toNumber()));
-            }).then(unsub => {
-              unsubscribeHeartbeats = unsub;
-            })
-            .catch(console.error);
-            //valorize accounts 
-            setAccounts(accounts.map(account => account.toString()));
-          }
-        }).then(unsub => {
-          unsubscribeAccounts = unsub;
-        })
-          .catch(console.error);
-        setAccountsCount(count.toNumber());
-      }
-    }).then(unsub => {
-      unsubscribeAccountCount = unsub;
-    })
-      .catch(console.error);
-
-    return () => unsubscribeAccountCount && unsubscribeAccountCount() &&
-      unsubscribeAccounts && unsubscribeAccounts() &&
-      unsubscribeMetrics && unsubscribeMetrics() &&
-      unsubscribeHeartbeats && unsubscribeHeartbeats();;
-  }, [api.query.archipelModule]);
-
+  const loader = text => (
+    <Dimmer active>
+      <Loader size='small'>{text}</Loader>
+    </Dimmer>
+  );
+  const { data, revalidate } = useSWR(url+":"+port, fetch, {
+    // revalidate the data per second
+    refreshInterval: 1000
+  })
   return (
     <Grid.Column>
-      <h1>Archipel Leader</h1>
-      {currentLeader}
-      <h1>Archipel has {accountsCount} Nodes</h1>
+        {data?"":loader}
+        <h1>Archipel</h1>
+        <Table celled striped size='small'>
+        <Table.Body>
+          <Table.Row key="1">
+            <Table.Cell>API Status</Table.Cell>
+            <Table.Cell>{data?data.status:""}</Table.Cell>
+            <Table.Cell></Table.Cell>
+          </Table.Row>
+          <Table.Row key="2">
+            <Table.Cell>Orchestration Status</Table.Cell>
+            <Table.Cell>{data?JSON.stringify(data.orchestrationEnabled):""}</Table.Cell>
+            <Table.Cell>
+            {data?
+                   <Button onClick={async () => {
+                      let action =data.orchestrationEnabled?'/orchestration/disable':'/orchestration/enable';
+                      await fetch(encodeURI(url+':'+port+action));
+                      revalidate();
+                      }}>
+                      {data.orchestrationEnabled?"Disable Orchestration":"Enable Orchestration"}
+                    </Button>
+            :null}  
+            </Table.Cell>
+          </Table.Row>
+          <Table.Row key="3">
+            <Table.Cell>Metric Status</Table.Cell>
+            <Table.Cell>{data?JSON.stringify(data.metricSendEnabled):""}</Table.Cell>
+            <Table.Cell>
+            {data?
+                   <Button onClick={async () => {
+                      let action =data.metricSendEnabled?'/metrics/disable':'/metrics/enable';
+                      await fetch(encodeURI(url+':'+port+action));
+                      revalidate();
+                      }}>
+                      {data.metricSendEnabled?"Disable Metrics":"Enable Metrics"}
+                    </Button>
+            :null}  
+            </Table.Cell>
+          </Table.Row>   
+          <Table.Row key="4">
+            <Table.Cell>Archipel chain Connected</Table.Cell>
+            <Table.Cell>{data?JSON.stringify(data.isConnected):""}</Table.Cell>
+            <Table.Cell></Table.Cell>
+          </Table.Row>
+          <Table.Row key="5">
+            <Table.Cell>Archipel Leader Node Address</Table.Cell>
+            <Table.Cell>{data?data.leader:""}</Table.Cell>
+            <Table.Cell></Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+      <h1>Archipel Node</h1>
+      <Table celled striped size='small'>
+        <Table.Body>
+          <Table.Row key="1">
+            <Table.Cell>Archipel Node Address</Table.Cell>
+            <Table.Cell>{data?data.orchestratorAddress:""}</Table.Cell>
+          </Table.Row>
+          <Table.Row key="2">
+            <Table.Cell>Archipel Peer Id</Table.Cell>
+            <Table.Cell>{data?data.peerId:""}</Table.Cell>
+          </Table.Row>
+          <Table.Row key="3">
+            <Table.Cell>Archipel Synch State</Table.Cell>
+            <Table.Cell>{data?JSON.stringify(data.synchState):""}</Table.Cell>
+          </Table.Row>
+          <Table.Row key="4">
+            <Table.Cell>Archipel Peer Number</Table.Cell>
+            <Table.Cell>{data?data.peerNumber:""}</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+      <h1>Service Node</h1>
+      <Table celled striped size='small'>
+        <Table.Body>
+          <Table.Row key="1">
+            <Table.Cell>Service</Table.Cell>
+            <Table.Cell>{data?data.service:""}</Table.Cell>
+            <Table.Cell></Table.Cell>
+          </Table.Row>
+          <Table.Row key="2">
+            <Table.Cell>Service Ready To Operate</Table.Cell>
+            <Table.Cell>{data?JSON.stringify(data.isServiceReadyToStart):""}</Table.Cell>
+            <Table.Cell></Table.Cell>
+          </Table.Row>
+          <Table.Row key="3">
+            <Table.Cell>Current Service Mode</Table.Cell>
+            <Table.Cell>{data?data.serviceMode:""}</Table.Cell>
+            <Table.Cell></Table.Cell>
+          </Table.Row>
+          <Table.Row key="4">
+            <Table.Cell>Service Container Status</Table.Cell>
+            <Table.Cell>{data?data.serviceContainer:""}</Table.Cell>
+            <Table.Cell>
+            {(data && (data.serviceContainer === 'active' ||data.serviceContainer === 'passive'))?
+                   <Button onClick={async () => {
+                      let action ='/service/stop';
+                      await fetch(encodeURI(url+':'+port+action));
+                      revalidate();
+                      }}>
+                      Stop Container
+                    </Button>
+            :null}  
+            {(data && data.serviceContainer === 'none')?
+                  <div>
+                   <Button onClick={async () => {
+                      let action = '/service/start';
+                      let mode = '{"mode":"active"}';
+                      await mutate(encodeURI(url+':'+port+action), await fetch(encodeURI(url+':'+port+action), {
+                        method: 'POST',
+                        headers: {
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(mode)
+                      }))
+                      revalidate();
+                      }}>
+                      Start Active Container
+                    </Button>
+                    <Button onClick={async () => {
+                      let action = '/service/start';
+                      let mode = '{"mode":"passive"}';
+                      await mutate(encodeURI(url+':'+port+action), await fetch(encodeURI(url+':'+port+action), {
+                        method: 'POST',
+                        headers: {
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(mode)
+                      }))
+                      revalidate();
+                      }}>
+                      Start Passive Container
+                    </Button>
+                    </div>
+            :null} 
+            </Table.Cell>
+          </Table.Row> 
+        </Table.Body>
+      </Table>
+      <h1>Archipel Metrics</h1>
       <Table celled striped size='small'>
         <Table.Header>
         <Table.Row>
@@ -89,16 +171,16 @@ function Main (props) {
           <Table.HeaderCell>Heartbeats</Table.HeaderCell>
         </Table.Row>
         </Table.Header>
-        <Table.Body>{accounts.map((account, index) =>
-          <Table.Row key={account}>
-            <Table.Cell>{account === currentLeader ? <Icon name='chess king' /> : ''}</Table.Cell>
-            <Table.Cell>{account}</Table.Cell>
-            <Table.Cell>{metrics[index]}</Table.Cell>
+        <Table.Body>{data?data.metrics.map((metric, index) =>
+          <Table.Row key={metric.wallet}>
+            <Table.Cell>{metric.wallet === data.leader ? <Icon name='chess king' /> : ''}</Table.Cell>
+            <Table.Cell>{metric.wallet}</Table.Cell>
+            <Table.Cell>{metric.metrics}</Table.Cell>
             <Table.Cell>
-            <TimeAgo date={heartbeats[index]} />
+            <TimeAgo date={parseInt(metric.timestamp)} />
             </Table.Cell>
           </Table.Row>
-        )}
+        ):null}
         </Table.Body>
       </Table>
     </Grid.Column>
@@ -106,7 +188,5 @@ function Main (props) {
 }
 
 export default function ArchipelModule (props) {
-  const { api } = useSubstrate();
-  return (api.query.system && api.query.archipelModule && api.query.archipelModule.leader
-    ? <Main {...props} /> : null);
+  return (<Main {...props} />);
 }
