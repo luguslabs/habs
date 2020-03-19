@@ -171,12 +171,11 @@ class Polkadot {
     // Common PolkadotOptions
     this.commonPolkadotOptions = [];
 
-    // Network mode init 
+    // Network mode init
     this.networkMode = '';
 
     // Service prepared
     this.prepared = false;
-
   }
 
   // Importing a key in keystore
@@ -388,7 +387,6 @@ class Polkadot {
 
   // Prepare service before launch
   async prepareService () {
-
     // Common polkadot options
     this.commonPolkadotOptions = [
       '--pruning=archive',
@@ -447,7 +445,6 @@ class Polkadot {
   // Polkadot start function
   async start (mode) {
     try {
-
       // Prepare service before start
       if (!this.prepared) {
         await this.prepareService();
