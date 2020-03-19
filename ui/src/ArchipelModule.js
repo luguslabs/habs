@@ -2,8 +2,9 @@ import React from 'react';
 import { Table, Grid, Icon, Button , Dimmer, Loader } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago'
 import config from './config';
-import useSWR, { mutate } from 'swr'
-import fetch from './libs/fetch'
+import useSWR, { mutate } from 'swr';
+import useAxios from 'axios-hooks';
+import fetch from './libs/fetch';
 
 function Main (props) {
   const url = config.API_URL;
@@ -17,10 +18,22 @@ function Main (props) {
   const { data, revalidate } = useSWR(url+":"+port, fetch, {
     // revalidate the data per second
     refreshInterval: 1000
-  })
+  });
+
+  const [ 
+    { data: postData, loading: postLoading, error: postError },
+    executeServiceStart
+  ] = useAxios(
+    {
+      url: url+":"+port+'/service/start',
+      method: 'POST'
+    },
+    { manual: true }
+  );
+  if (!data) return loader;
   return (
     <Grid.Column>
-        {data?"":loader}
+
         <h1>Archipel</h1>
         <Table celled striped size='small'>
         <Table.Body>
@@ -123,40 +136,27 @@ function Main (props) {
                       Stop Container
                     </Button>
             :null}  
-            {(data && data.serviceContainer === 'none')?
+            {(data && !postLoading && data.serviceContainer === 'none')?
                   <div>
                    <Button onClick={async () => {
-                      let action = '/service/start';
-                      let mode = '{"mode":"active"}';
-                      await mutate(encodeURI(url+':'+port+action), await fetch(encodeURI(url+':'+port+action), {
-                        method: 'POST',
-                        headers: {
-                          'Accept': 'application/json',
-                          'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(mode)
-                      }))
+                      await executeServiceStart({
+                        data: {"mode":"active"}
+                      })
                       revalidate();
                       }}>
                       Start Active Container
                     </Button>
                     <Button onClick={async () => {
-                      let action = '/service/start';
-                      let mode = '{"mode":"passive"}';
-                      await mutate(encodeURI(url+':'+port+action), await fetch(encodeURI(url+':'+port+action), {
-                        method: 'POST',
-                        headers: {
-                          'Accept': 'application/json',
-                          'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(mode)
-                      }))
+                      await executeServiceStart({
+                        data: {"mode":"passive"}
+                      })
                       revalidate();
                       }}>
                       Start Passive Container
                     </Button>
                     </div>
             :null} 
+            {postLoading?"Starting container...":null}
             </Table.Cell>
           </Table.Row> 
         </Table.Body>
