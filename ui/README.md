@@ -49,6 +49,25 @@ docker run -it -p 8080:80 luguslabs/archipel-ui
 ```
 * After run you can access the Archipel UI at http://localhost:8080.
 
+## Publish on IPFS
+
+- connect to your dappnode wifi ( to target IPFS )
+- launch :
+```bash
+npm run ipfs-publish
+```
+
+Expected result :
+
+```bash
+To point an .eth domain to this website, use this hash as value:
+
+   QmZMUfKEsXAR8goa8LnJDDSkGqPpLaNkzdRd6k4d357Fed
+
+To preview you website immediately go to:
+
+   http://my.ipfs.dnp.dappnode.eth:8080/ipfs/QmZMUfKEsXAR8goa8LnJDDSkGqPpLaNkzdRd6k4d357Fed
+```
 
 ## Configuration
 

@@ -26,7 +26,9 @@
     "eslint-plugin-only-warn": "^1.0.1",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "gh-pages": "^2.1.1"
+    "gh-pages": "^2.1.1",
+    "ipfs": "^0.41.2",
+    "ipfs-http-client": "^42.0.0"
   },
   "scripts": {
     "start": "PORT=8000 react-scripts start",
@@ -37,7 +39,8 @@
     "lint:ci": "eslint src/** --max-warnings=0",
     "lint:fix": "eslint --fix src/**",
     "predeploy": "yarn build",
-    "deploy": "gh-pages -d build -m '[ci skip] Updates'"
+    "deploy": "gh-pages -d build -m '[ci skip] Updates'",
+    "ipfs-publish": "cp -f ./src/config/production.json ./src/config/production.sav && cp -f ./src/config/test.json ./src/config/production.json && react-scripts build && rm build/static/js/*.map && rm build/static/css/*.map && node ./ipfsDwebUploader build/ && cp -f ./src/config/production.sav ./src/config/production.json"
   },
   "eslintConfig": {
     "extends": [
@@ -67,7 +70,7 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "/",
+  "homepage": "./",
   "bugs": {
     "url": "https://github.com/luguslabs/archipel.git/issues"
   },
