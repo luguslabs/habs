@@ -1,4 +1,4 @@
 {
   "API_URL": "__PRODUCTION_API_URL__",
-  "API_PORT" : 3000
+  "API_PORT" : "__PRODUCTION_API_PORT__"
 }

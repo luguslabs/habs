@@ -1,8 +1,9 @@
 # Stage 1 - the build process
 FROM node:10 as build-deps
-ARG PROVIDER_SOCKET
-ENV REACT_APP_PROVIDER_SOCKET=${PROVIDER_SOCKET}
-
+ARG API_URL
+ENV REACT_APP_API_URL=${API_URL}
+ARG API_PORT
+ENV REACT_APP_API_URL=${API_PORT}
 WORKDIR /usr/src/app
 COPY package.json yarn.lock ./
 RUN yarn install

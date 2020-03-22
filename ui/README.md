@@ -21,9 +21,12 @@ yarn install
 # Clone the repository
 git clone https://github.com/luguslabs/archipel.git
 cd ./ui
-docker build --build-arg API_URL=http://127.0.0.1 -t luguslabs/archipel-ui .
+docker build --build-arg API_URL=http://127.0.0.1 --build-arg API_PORT=3000 -t luguslabs/archipel-ui .
 ```
-* **API_URL** - Archipel api endpoint.
+Build for test :
+```bash
+docker build --build-arg API_URL=http://127.0.0.1 --build-arg API_PORT=3000 -t luguslabs/archipel-ui:test .
+```
 
 ## Usage
 
