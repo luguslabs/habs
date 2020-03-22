@@ -66,6 +66,16 @@ export MNEMONIC="$ARCHIPEL_KEY_SEED"
 export ALIVE_TIME=60000
 export SUSPEND_SERVICE="$ARCHIPEL_SUSPEND_SERVICE"
 
+
+# Generate env file in shared volume for Archipel UI to auto-detect the local API endpoint
+ARCHIPEL_CONTAINER_IP=$(awk 'END{print $1}' /etc/hosts)
+echo "Generate env file /config/archipel-ui.env in shared volume for Archipel UI to auto-detect the local API endpoint"
+echo 'export REACT_APP_API_URL=http://'$ARCHIPEL_CONTAINER_IP''
+echo 'export REACT_APP_API_PORT=3000'
+mkdir -p /config
+echo 'export REACT_APP_API_URL=http://'$ARCHIPEL_CONTAINER_IP'' > /config/archipel-ui.env
+echo 'export REACT_APP_API_PORT=3000' >> /config/archipel-ui.env
+
 # Launching orchestrator
 echo "Waiting 5 seconds for Archipel Node to start..."
 sleep 5

@@ -9,19 +9,18 @@ import {
   Loader
 } from "semantic-ui-react";
 import TimeAgo from "react-timeago";
-import config from "./config";
 import useSWR, { mutate } from "swr";
 import useAxios from "axios-hooks";
 import fetch from "./libs/fetch";
 import { useForm, Controller, ErrorMessage } from "react-hook-form";
 
 function Main(props) {
-  const defaultUrl = config.API_URL;
-  const defaulPort = config.API_PORT;
+  const defaultUrl = props.defaultUrl;
+  const defaulPort = props.defaulPort;
   const URL_REGEXP = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/i;
   const PORT_REGEXP = /^\d+$/i;
-  const [url, setUrl] = useState(config.API_URL);
-  const [port, setPort] = useState(config.API_PORT);
+  const [url, setUrl] = useState(defaultUrl);
+  const [port, setPort] = useState(defaulPort);
   //fetch API with useSWR
   const { data, revalidate, error: fetchError } = useSWR(
     url + ":" + port,
