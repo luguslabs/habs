@@ -21,11 +21,7 @@ yarn install
 # Clone the repository
 git clone https://github.com/luguslabs/archipel.git
 cd ./ui
-docker build --build-arg API_URL=http://127.0.0.1 --build-arg API_PORT=3000 -t luguslabs/archipel-ui .
-```
-Build for test :
-```bash
-docker build --build-arg API_URL=http://127.0.0.1 --build-arg API_PORT=3000 -t luguslabs/archipel-ui:test .
+docker build -t luguslabs/archipel-ui .
 ```
 
 ## Usage
@@ -47,6 +43,11 @@ and open `build/index.html` in your favorite browser.
 ```bash
 docker run -it -p 8080:80 luguslabs/archipel-ui
 ```
+You can set REACT_APP_API_URL env at runtime with :
+```bash
+docker run -it -p 8080:80 --env REACT_APP_API_URL=http://127.0.1.1:3000 luguslabs/archipel-ui
+```
+
 * After run you can access the Archipel UI at http://localhost:8080.
 
 ## Publish on IPFS
@@ -54,7 +55,8 @@ docker run -it -p 8080:80 luguslabs/archipel-ui
 - connect to your dappnode wifi ( to target IPFS )
 - launch :
 ```bash
-npm run ipfs-publish
+npm install
+npm run publish
 ```
 
 Expected result :
@@ -84,7 +86,6 @@ Some environment variables are read and integrated in the template `config` obje
 including:
 
 * `REACT_APP_API_URL` overriding `config[API_URL]`
-* `REACT_APP_API_PORT` overriding `config[API_PORT]`
 
 ## References
 * [Based on Substrate Front End Template](https://github.com/substrate-developer-hub/substrate-front-end-template)

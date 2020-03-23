@@ -40,7 +40,7 @@
     "lint:fix": "eslint --fix src/**",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build -m '[ci skip] Updates'",
-    "ipfs-publish": "cp -f ./src/config/production.json ./src/config/production.sav && cp -f ./src/config/test.json ./src/config/production.json && react-scripts build && rm build/static/js/*.map && rm build/static/css/*.map && node ./ipfsDwebUploader build/ && cp -f ./src/config/production.sav ./src/config/production.json"
+    "publish": "react-scripts build && rm build/static/js/*.map && rm build/static/css/*.map && node ./ipfsDwebUploader build/"
   },
   "eslintConfig": {
     "extends": [
