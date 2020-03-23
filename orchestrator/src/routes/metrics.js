@@ -3,8 +3,8 @@ const router = express.Router();
 
 // Disable metrics send
 const disableMetrics = orchestrator => {
-  if (orchestrator.metricSendEnabled) {
-    orchestrator.metricSendEnabled = false;
+  if (orchestrator.chain.metricSendEnabled) {
+    orchestrator.chain.metricSendEnabled = false;
     console.log('[API] Metrics send was disabled...');
     return true;
   }
@@ -13,8 +13,8 @@ const disableMetrics = orchestrator => {
 
 // Enable metrics send
 const enableMetrics = orchestrator => {
-  if (!orchestrator.metricSendEnabled) {
-    orchestrator.metricSendEnabled = true;
+  if (!orchestrator.chain.metricSendEnabled) {
+    orchestrator.chain.metricSendEnabled = true;
     console.log('[API] Metrics send was enabled...');
     return true;
   }

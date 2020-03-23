@@ -6,6 +6,7 @@ const { getKeysFromSeed } = require('./utils');
 class Chain {
   constructor (wsProvider) {
     this.wsProvider = wsProvider;
+    this.metricSendEnabled = true;
   }
 
   async connect () {
@@ -43,10 +44,15 @@ class Chain {
           // If change leader event received
           if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewLeader') {
             debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
-            // If anyone other god leadership
+            // If anyone other took leadership
             if (event.data[0].toString() !== keys.address.toString()) {
               console.log('Forcing service in passive mode...');
               orchestrator.serviceStart('passive');
+              // Checking if metric send was disabled and enabling it
+              if (!this.metricSendEnabled) {
+                console.log('Metric send was disabled. Enabling it...');
+                this.metricSendEnabled = true;
+              }
             }
           }
           // Add metrics if Metrics updated event was received
@@ -84,6 +90,13 @@ class Chain {
   // Send metrics
   async addMetrics (metrics, mnemonic) {
     try {
+      // Checking if metrics send is enabled
+      console.log('Checking if metrics send is enabled...');
+      if (!this.metricSendEnabled) {
+        console.log('Metrics send is disabled...');
+        return;
+      }
+
       // If node state permits to send transactions
       const sendTransaction = await this.canSendTransactions();
 

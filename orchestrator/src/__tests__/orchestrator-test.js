@@ -58,7 +58,9 @@ beforeAll(async () => {
 afterAll(async () => {
   await orchestrator.serviceCleanUp();
 
-  await chain.disconnect();
+  if (chain) {
+    await chain.disconnect();
+  }
 
   // Removing test chain
   console.log('Removing test chain...');
@@ -487,4 +489,78 @@ test('Other node is leader, someone is online and no metrics about leader. Thres
   expect(containerInspect.State.Running).toBe(true);
 
   await orchestrator.serviceCleanUp();
+});
+
+test('Testing leader with service not ready. Threshold test.', async () => { 
+  await orchestrator.serviceStart('passive');
+  const metrics = new Metrics();
+
+  const keys1 = await getKeysFromSeed(mnemonic1);
+  const keys2 = await getKeysFromSeed(mnemonic2);
+  const keys3 = await getKeysFromSeed(mnemonic3);
+  let leader = await chain.getLeader();
+  expect(leader.toString()).toBe(keys1.address);
+  expect(orchestrator.chain.metricSendEnabled).toBe(true);
+
+  const nowTime = new Date().getTime();
+  metrics.addMetrics(keys1.address.toString(), '42', nowTime);
+  metrics.addMetrics(keys2.address.toString(), '42', nowTime);
+  metrics.addMetrics(keys3.address.toString(), '42', nowTime);
+
+  orchestrator.noReadyThreshold = 3;
+  orchestrator.metrics = metrics;
+  orchestrator.mnemonic = mnemonic1;
+
+  await orchestrator.orchestrateService();
+
+  let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+  let container = await docker.getContainer(containerName);
+  let containerInspect = await container.inspect();
+  expect(containerInspect.State.Running).toBe(true);
+
+  orchestrator.isServiceReadyToStart = () => false;
+
+  await orchestrator.orchestrateService();
+
+  containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+  container = await docker.getContainer(containerName);
+  containerInspect = await container.inspect();
+  expect(containerInspect.State.Running).toBe(true);
+
+  await orchestrator.orchestrateService();
+
+  containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+  container = await docker.getContainer(containerName);
+  containerInspect = await container.inspect();
+  expect(containerInspect.State.Running).toBe(true);
+
+  await orchestrator.orchestrateService();
+
+  containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+  container = await docker.getContainer(containerName);
+  containerInspect = await container.inspect();
+  expect(containerInspect.State.Running).toBe(true);
+
+  await orchestrator.orchestrateService();
+
+  containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+  container = await docker.getContainer(containerName);
+  containerInspect = await container.inspect();
+  expect(containerInspect.State.Running).toBe(true);
+
+  expect(orchestrator.chain.metricSendEnabled).toBe(false);
+
+  await orchestrator.orchestrateService();
+
+  containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+  container = await docker.getContainer(containerName);
+  containerInspect = await container.inspect();
+  expect(containerInspect.State.Running).toBe(true);
+
+  expect(orchestrator.chain.metricSendEnabled).toBe(false);
+
+  orchestrator.isServiceReadyToStart = () => true;
+
+  await orchestrator.serviceCleanUp();
+
 });

@@ -27,6 +27,9 @@ class Orchestrator {
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
     this.chain = chain;
+    // Service not ready and node is in active mode
+    this.noReadyCount = 0;
+    this.noReadyThreshold = 30; // ~ 300 seconds
     // Create service instance
     this.service = Orchestrator.createServiceInstance(service);
     this.serviceName = service;
@@ -34,7 +37,6 @@ class Orchestrator {
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
     this.orchestrationEnabled = true;
-    this.metricSendEnabled = true;
     this.mode = 'passive';
   }
 
@@ -55,7 +57,7 @@ class Orchestrator {
       const sendTransaction = await this.chain.canSendTransactions();
       if (!sendTransaction) {
         console.log('Archipel chain node can\'t receive transactions. Enforcing \'passive\' service mode...');
-        this.serviceStart('passive');
+        await this.serviceStart('passive');
         return;
       }
 
@@ -68,16 +70,16 @@ class Orchestrator {
       console.log('Checking is anyone in federation is alive...');
       if (!this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
         console.log('Seems that no one is alive. Enforcing \'passive\' service mode...');
-        this.serviceStart('passive');
+        await this.serviceStart('passive');
         return;
       }
 
       // Check service readiness only if in passive mode
       console.log('Checking if service is ready to start...');
-      const serviceReady = await this.isServiceReadyToStart(this.mode);
+      const serviceReady = await this.serviceReadinessManagement();
       if (!serviceReady) {
         console.log('Service is not ready. Enforcing \'passive\' service mode...');
-        this.serviceStart('passive');
+        await this.serviceStart('passive');
         return;
       }
 
@@ -87,7 +89,7 @@ class Orchestrator {
 
       if (!leadership) {
         console.log('The current node is not leader. Enforcing \'passive\' service mode...');
-        this.serviceStart('passive');
+        await this.serviceStart('passive');
         return;
       }
 
@@ -118,6 +120,27 @@ class Orchestrator {
       debug('becomeLeader', error);
       throw error;
     }
+  }
+
+  // Service readiness management
+  async serviceReadinessManagement () {
+    const serviceReady = await this.isServiceReadyToStart(this.mode);
+
+    // If service is not ready and current node is leader
+    if (!serviceReady && this.mode === 'active') {
+      if (this.noReadyCount < this.noReadyThreshold) {
+        console.log(`Service is not ready but current node is leader. Waiting for ${this.noReadyThreshold - this.noReadyCount} orchestrations...`);
+        this.noReadyCount++;
+        return true;
+      } else {
+        console.log(`Service is not ready for ${this.noReadyThreshold} orchestrations. Disabling metrics send and enforcing passive mode...`);
+        this.chain.metricSendEnabled = false;
+        return false;
+      }
+    }
+
+    this.noReadyCount = 0;
+    return serviceReady;
   }
 
   // Manage leadership
