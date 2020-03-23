@@ -16,28 +16,21 @@ import { useForm, Controller, ErrorMessage } from "react-hook-form";
 
 function Main(props) {
   const defaultUrl = props.defaultUrl;
-  const defaulPort = props.defaulPort;
   const URL_REGEXP = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/i;
-  const PORT_REGEXP = /^\d+$/i;
   const [url, setUrl] = useState(defaultUrl);
-  const [port, setPort] = useState(defaulPort);
   //fetch API with useSWR
-  const { data, revalidate, error: fetchError } = useSWR(
-    url + ":" + port,
-    fetch,
-    {
-      // revalidate the data per second
-      refreshInterval: 1000,
-      onError: () => {}
-    }
-  );
+  const { data, revalidate, error: fetchError } = useSWR(url, fetch, {
+    // revalidate the data per second
+    refreshInterval: 1000,
+    onError: () => {}
+  });
   //post API with axios
   const [
     { data: postData, loading: postLoading, error: postError },
     executeServiceStart
   ] = useAxios(
     {
-      url: url + ":" + port + "/service/start",
+      url: url + "/service/start",
       method: "POST"
     },
     { manual: true }
@@ -49,9 +42,6 @@ function Main(props) {
     if (data) {
       if (data.urlInput) {
         setUrl(data.urlInput);
-      }
-      if (data.portInput) {
-        setPort(data.portInput);
       }
     }
   };
@@ -85,41 +75,18 @@ function Main(props) {
               </Table.Cell>
             </Table.Row>
             <Table.Row key="2">
-              <Table.Cell>API Endpoint PORT</Table.Cell>
-              <Table.Cell>
-                <Form.Field>
-                  <Controller
-                    as={Input}
-                    name="portInput"
-                    rules={{ required: true, pattern: PORT_REGEXP }}
-                    control={control}
-                    defaultValue={defaulPort}
-                  />
-                  <ErrorMessage
-                    errors={formErrors}
-                    name="portInput"
-                    message="Wrong Port format"
-                  />
-                </Form.Field>
-              </Table.Cell>
-              <Table.Cell>
-                <Button>Apply new Port</Button>
-              </Table.Cell>
-            </Table.Row>
-            <Table.Row key="3">
               <Table.Cell>API Status</Table.Cell>
               <Table.Cell>
                 {data ? data.status : null}
                 {fetchError
-                  ? "Endpoint:" + url + ":" + port + " " + fetchError.toString()
+                  ? "Endpoint:" + url + " " + fetchError.toString()
                   : null}
               </Table.Cell>
               <Table.Cell>
                 <Button
                   onClick={async () => {
                     reset({
-                      urlInput: defaultUrl,
-                      portInput: defaulPort
+                      urlInput: defaultUrl
                     });
                   }}
                 >
@@ -145,7 +112,7 @@ function Main(props) {
                     let action = data.orchestrationEnabled
                       ? "/orchestration/disable"
                       : "/orchestration/enable";
-                    await fetch(encodeURI(url + ":" + port + action));
+                    await fetch(encodeURI(url + action));
                     revalidate();
                   }}
                 >
@@ -168,7 +135,7 @@ function Main(props) {
                     let action = data.metricSendEnabled
                       ? "/metrics/disable"
                       : "/metrics/enable";
-                    await fetch(encodeURI(url + ":" + port + action));
+                    await fetch(encodeURI(url + action));
                     revalidate();
                   }}
                 >
@@ -246,7 +213,7 @@ function Main(props) {
                 <Button
                   onClick={async () => {
                     let action = "/service/stop";
-                    await fetch(encodeURI(url + ":" + port + action));
+                    await fetch(encodeURI(url + action));
                     revalidate();
                   }}
                 >

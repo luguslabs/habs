@@ -7,26 +7,14 @@ import ArchipelModule from "./ArchipelModule";
 function Main() {
   const contextRef = createRef();
 
-  const defaultUrl =
-    process.env.NODE_ENV === "production"
-      ? config.API_URL
-      : process.env.REACT_APP_API_URL
-      ? process.env.REACT_APP_API_URL
-      : config.API_URL;
-
-  const defaulPort =
-    process.env.NODE_ENV === "production"
-      ? config.API_PORT
-      : process.env.REACT_APP_API_PORT
-      ? process.env.REACT_APP_API_PORT
-      : config.API_PORT;
+  const defaultUrl = config.API_URL;
 
   return (
     <div ref={contextRef}>
       <Container>
         <Grid stackable columns="equal">
           <Grid.Row>
-            <ArchipelModule defaultUrl={defaultUrl} defaulPort={defaulPort} />
+            <ArchipelModule defaultUrl={defaultUrl} />
           </Grid.Row>
         </Grid>
       </Container>

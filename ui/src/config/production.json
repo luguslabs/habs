@@ -1,4 +1,3 @@
 {
-  "API_URL": "__PRODUCTION_API_URL__",
-  "API_PORT" : "__PRODUCTION_API_PORT__"
+  "API_URL": "http://127.0.0.1:3000"
 }
