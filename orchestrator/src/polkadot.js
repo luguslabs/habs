@@ -419,10 +419,13 @@ class Polkadot {
       }
     }
 
-    // Setting network mode variable if polkadot must be launched in VPN network
-    this.networkMode = `container:${os.hostname()}`;
-    console.log(`Container network mode: ${this.networkMode}...`);
-  
+    // This variable will be set only in testing suite
+    if (process.env.TESTING === undefined) {
+      // Setting network mode
+      this.networkMode = `container:${os.hostname()}`;
+      console.log(`Container network mode: ${this.networkMode}...`);
+    }
+
     // Get service volume from orchestrator and give this volume to polkadot container
     const orchestratorServiceVolume = await this.docker.getMountThatContains(os.hostname(), 'service');
     if (orchestratorServiceVolume) {

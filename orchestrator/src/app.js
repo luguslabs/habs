@@ -55,7 +55,7 @@ async function main () {
 
     // If orchestrator is launched in suspend service mode disabling metrics send and orchestration
     if (SUSPEND_SERVICE.includes('true')) {
-      orchestrator.metricSendEnabled = false;
+      orchestrator.chain.metricSendEnabled = false;
       orchestrator.orchestrationEnabled = false;
     }
 
@@ -70,12 +70,7 @@ async function main () {
     setIntervalAsync(async () => {
       try {
         // If metric send is enabled sending metrics
-        if (orchestrator.metricSendEnabled) {
-          await chain.addMetrics(42, MNEMONIC);
-        } else {
-          console.log('Metrics send is disabled...');
-        }
-
+        await chain.addMetrics(42, MNEMONIC);
         // Orchestrating service
         await orchestrator.orchestrateService();
       } catch (error) {
