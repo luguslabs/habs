@@ -39,7 +39,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await chain.disconnect();
+  if (chain) {
+    await chain.disconnect();
+  }
   // Removing test chain
   console.log('Removing test chain...');
   const commandToExec = 'cd ../deployer/test/chain && ./remove.sh';
@@ -53,11 +55,6 @@ test('Test add metrics and get metrics methods', async () => {
   const keys = await getKeysFromSeed(mnemonic1);
   const metrics = await chain.getMetrics(keys.address.toString());
   expect(metrics.toString()).toBe('42');
-});
-
-test('Get peers number', async () => {
-  const peers = await chain.getPeerNumber();
-  expect(peers).toBe(2);
 });
 
 test('Set and get leader test - no leader set', async () => {
