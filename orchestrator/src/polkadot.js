@@ -32,7 +32,6 @@ class Polkadot {
       config.polkadotKeyAudi = process.env.POLKADOT_KEY_AUDI;
       config.polkadotReservedNodes = process.env.POLKADOT_RESERVED_NODES;
       config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
-      config.polkadotLaunchInVpn = process.env.POLKADOT_LAUNCH_IN_VPN;
       config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
@@ -109,10 +108,6 @@ class Polkadot {
         if ('service' in configFromFile && 'reservedPeersList' in configFromFile.service) {
           config.polkadotReservedNodes = configFromFile.service.reservedPeersList;
         }
-      }
-
-      if (isEmptyString(config.polkadotLaunchInVpn)) {
-        config.polkadotLaunchInVpn = 'true';
       }
 
       if (isEmptyString(config.polkadotNodeKeyFile)) {
@@ -425,11 +420,9 @@ class Polkadot {
     }
 
     // Setting network mode variable if polkadot must be launched in VPN network
-    if (config.polkadotLaunchInVpn !== undefined && config.polkadotLaunchInVpn === 'true') {
-      this.networkMode = `container:${os.hostname()}`;
-      console.log(`Container network mode: ${this.networkMode}...`);
-    }
-
+    this.networkMode = `container:${os.hostname()}`;
+    console.log(`Container network mode: ${this.networkMode}...`);
+  
     // Get service volume from orchestrator and give this volume to polkadot container
     const orchestratorServiceVolume = await this.docker.getMountThatContains(os.hostname(), 'service');
     if (orchestratorServiceVolume) {
