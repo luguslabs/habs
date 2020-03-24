@@ -41,7 +41,7 @@ RUN echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.li
 RUN	apt-get -y update && \
 	apt-get install -y --no-install-recommends \
 		libssl-dev curl supervisor jq build-essential \
-		wireguard-tools iptables net-tools procps python && \
+		wireguard-tools iptables net-tools procps && \
 	echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections && \
     apt install -y resolvconf && \
     apt clean

@@ -1,5 +1,5 @@
 #!/bin/bash
-docker rm -f archipel-ui
+docker rm -f archipel{1,2,3}-ui
 
 docker stop archipel{1,2,3,-node}
 docker rm archipel{1,2,3,-node}
