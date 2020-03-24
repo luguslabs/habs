@@ -128,6 +128,7 @@ class Orchestrator {
 
     // If service is not ready and current node is leader
     if (!serviceReady && this.mode === 'active') {
+
       // Waiting for this.noReadyThreshold orchestrations
       if (this.noReadyCount < this.noReadyThreshold) {
         console.log(`Service is not ready but current node is leader. Waiting for ${this.noReadyThreshold - this.noReadyCount} orchestrations...`);
@@ -170,6 +171,12 @@ class Orchestrator {
       // If this node is current leader
       if (currentLeader === nodeKey) {
         console.log('Current node is leader...');
+        // If service was not ready for noReadyThreshold at active node the metric send will be disabled
+        // If service will become ready before other node took leadership we must activate metrics send
+        if (!this.chain.metricSendEnabled) {
+          console.log('Metric send was disabled. Enabling it...');
+          this.chain.metricSendEnabled = true;
+        }
         return true;
       }
 
