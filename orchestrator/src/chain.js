@@ -48,7 +48,9 @@ class Chain {
             if (event.data[0].toString() !== keys.address.toString()) {
               console.log('Forcing service in passive mode...');
               orchestrator.serviceStart('passive');
-              // Checking if metric send was disabled and enabling it
+
+              // If service was not ready for noReadyThreshold at active node the metric send will be disabled
+              // The fact that other node took leadership will activate metric send
               if (!this.metricSendEnabled) {
                 console.log('Metric send was disabled. Enabling it...');
                 this.metricSendEnabled = true;

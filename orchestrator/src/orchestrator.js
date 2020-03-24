@@ -128,10 +128,13 @@ class Orchestrator {
 
     // If service is not ready and current node is leader
     if (!serviceReady && this.mode === 'active') {
+      // Waiting for this.noReadyThreshold orchestrations
       if (this.noReadyCount < this.noReadyThreshold) {
         console.log(`Service is not ready but current node is leader. Waiting for ${this.noReadyThreshold - this.noReadyCount} orchestrations...`);
         this.noReadyCount++;
         return true;
+      // If service is not ready after noReadyThreshold enforcing passive mode
+      // And disabling metrics send
       } else {
         console.log(`Service is not ready for ${this.noReadyThreshold} orchestrations. Disabling metrics send and enforcing passive mode...`);
         this.chain.metricSendEnabled = false;
@@ -139,7 +142,12 @@ class Orchestrator {
       }
     }
 
-    this.noReadyCount = 0;
+    // Reset noReady counter
+    if (this.noReadyCount !== 0) {
+      this.noReadyCount = 0;
+    }
+
+    // Return isServiceReadyToStart result
     return serviceReady;
   }
 
