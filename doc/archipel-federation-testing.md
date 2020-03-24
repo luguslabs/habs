@@ -10,21 +10,19 @@
 ## Step 1: Bootstrap a federation of 3 nodes
 
 What will be launched:
-- 3 Archipel nodes (Archipel Substrate Validator Node + Orchestrator)
-- 3 Polkadot KUSAMA Nodes
+- **3 Archipel nodes** (Archipel Substrate Validator Node + Orchestrator)
+- **3 Polkadot KUSAMA Nodes**
   - 1 Validator Node
   - 2 Sentry Nodes
-- 3 Archipel UI instances (1 per Archipel Node)
+- **3 Archipel UI instances** (1 per Archipel Node)
 
-* Connection between Archipel nodes and Polkadot KUSAMA nodes are secured by **WireGuard VPN**.
+Connection between Archipel nodes and Polkadot KUSAMA nodes are secured by **WireGuard VPN**!
 
-**Process**
-
-1.1 Clone Archipel Repository
+### 1.1 Clone Archipel Repository
 ```bash
 git clone https://github.com/luguslabs/archipel.git
 ```
-1.2 Launch federation
+### 1.2 Launch federation
 ```bash
 cd archipel/deployer/test 
 ./launch.sh
@@ -32,7 +30,7 @@ cd archipel/deployer/test
 
 ## Step 2: Check if federation was launched
 
-2.1 Check Archipel UI
+### 2.1 Check Archipel UI
 
 The execution of **[launch.sh](../deployer/test/launch.sh)** script will generate 3 URLs for UI of each Archipel node.
 
@@ -40,7 +38,6 @@ The execution of **[launch.sh](../deployer/test/launch.sh)** script will generat
  <img src=./images/archipel-launch-ui.png width = 536>
 </p>
 
-You can access to each Archipel UI by following links.
 | UI | Link |
 | -- | ---- |
 | **Archipel 1 UI** | http://172.28.42.5/ |
@@ -49,10 +46,10 @@ You can access to each Archipel UI by following links.
 
 Archipel UI will show you the full state of the Archipel Federation.
 
-Archipel UI gives you ability to manipulate orchestrator:
- * disable/enable orchestration
- * disable/enable metrics send 
- * stop/start service container
+It also gives you ability to manipulate orchestrator:
+ * **disable/enable orchestration**
+ * **disable/enable metrics send**
+ * **stop/start service container**
 
 If you don't see any metrics or master elected, please wait a little bit!
 
@@ -60,7 +57,7 @@ If you don't see any metrics or master elected, please wait a little bit!
 
 PUT IMAGE
 
-2.2 Check containers launched
+### 2.2 Check containers launched
 ```bash
 docker ps
 ```
@@ -70,13 +67,13 @@ docker ps
 </p>
 
 You must see multiple containers launched:
-- 3 Archipel nodes: archipel1, archipel2, archipel3
-- 3 Archipel UI instances: archipel1-ui, archipel2-ui, archipel3-ui
-- 3 Polkadot KUSAMA nodes
+- **3 Archipel nodes**: archipel1, archipel2, archipel3
+- **3 Archipel UI instances**: archipel1-ui, archipel2-ui, archipel3-ui
+- **3 Polkadot KUSAMA nodes**
   - 1 Validator Node: node1-polkadot-validator
   - 2 Sentry Nodes: node2-polkadot-sync, node3-polkadot-sync
 
-2.3 Check Polkadot Kusama Telemetry
+### 2.3 Check Polkadot Kusama Telemetry
 https://telemetry.polkadot.io/#/Kusama%20CC3
 
 - You must see 3 archipel nodes running
@@ -85,8 +82,6 @@ https://telemetry.polkadot.io/#/Kusama%20CC3
   - archipel-validator3-{active or passive}
 - Active node = Validator Node
 - Passive node = Sentry Node
-
-**Example**
 
 <p align="center">
  <img src=./images/archipel-testing-telemetry-1.png width = 1000>
@@ -97,7 +92,7 @@ https://telemetry.polkadot.io/#/Kusama%20CC3
 
 ## Step 3: Simulating active node failure
 
-3.1 Stop active node 
+### 3.1 Stop active node 
 ```bash
 ./stop-archipel.sh {node_number} 
 ```
@@ -111,7 +106,7 @@ If Node 1 is active:
 ```
 - Stop node script will stop the Archipel Node.
 
-3.2 Check if the active node was stopped
+### 3.2 Check if the active node was stopped
 
 ```bash
 docker ps
@@ -121,27 +116,27 @@ docker ps
  <img src=./images/archipel-testing-docker-ps-2.png width = 1000>
 </p>
 
-3.3 Wait for Archipel Orchestration (Generally takes 1 minute)
+### 3.3 Wait for Archipel Orchestration (Generally takes about 1 minute)
 
-Track orchestration :
-- Archipel UI
+### 3.4 Track orchestration
+
+**Archipel UI**
 
 | UI | Link |
 | -- | ---- |
 | **Archipel 1 UI** | http://172.28.42.5/ |
 | **Archipel 2 UI** | http://172.28.42.6/ |
 | **Archipel 3 UI** | http://172.28.42.7/ |
-- Telemetry
-https://telemetry.polkadot.io/#/Kusama%20CC3
-- docker ps
-
-**Example**
-
-**Archipel UI**
 
 PUT IMAGE
 
-**Docker**
+**Telemetry**
+
+https://telemetry.polkadot.io/#/Kusama%20CC3
+<p align="center">
+ <img src=./images/archipel-testing-telemetry-2.png width = 1000>
+</p>
+
 ```bash
 docker ps
 ```
@@ -150,18 +145,13 @@ docker ps
  <img src=./images/archipel-testing-docker-ps-3.png width = 1000>
 </p>
 
-**Telemetry**
-<p align="center">
- <img src=./images/archipel-testing-telemetry-2.png width = 1000>
-</p>
-
 - Node 1 was stopped in step 3.1
 - After orchestration, the new leader was elected (Node 2)
 - The node 2 was relaunched in active mode (Validator)
 
-Step 4: Relaunch node
+## Step 4: Relaunch node
 
-4.1 Relaunch old active node
+### 4.1 Relaunch old active node
 ```bash
 ./restart-archipel.sh {node_number}
 ```
@@ -174,7 +164,7 @@ Node 1 was active and was stopped so restarting it
 ./restart-archipel.sh 1
 ```
 
-4.2 Track old active node state
+### 4.2 Track old active node state
 
 **Docker**
 
