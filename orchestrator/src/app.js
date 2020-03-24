@@ -55,7 +55,7 @@ async function main () {
 
     // If orchestrator is launched in suspend service mode disabling metrics send and orchestration
     if (SUSPEND_SERVICE.includes('true')) {
-      orchestrator.chain.metricSendEnabled = false;
+      orchestrator.chain.metricSendEnabledAdmin = false;
       orchestrator.orchestrationEnabled = false;
     }
 

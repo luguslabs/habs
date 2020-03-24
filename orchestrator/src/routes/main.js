@@ -29,6 +29,7 @@ const getOrchestratorInfo = async orchestrator => {
     isServiceReadyToStart: isServiceReadyToStart,
     serviceMode: orchestrator.mode,
     serviceContainer: launchedContainer,
+    metricSendEnabledAdmin: orchestrator.chain.metricSendEnabledAdmin,
     metricSendEnabled: orchestrator.chain.metricSendEnabled,
     metrics: metrics
   };

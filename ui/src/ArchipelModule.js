@@ -122,22 +122,22 @@ function Main(props) {
             </Table.Cell>
           </Table.Row>
           <Table.Row key="2">
-            <Table.Cell>Metric Status</Table.Cell>
+            <Table.Cell>Metric Status Admin</Table.Cell>
             <Table.Cell>
-              {data ? JSON.stringify(data.metricSendEnabled) : ""}
+              {data ? JSON.stringify(data.metricSendEnabledAdmin) : ""}
             </Table.Cell>
             <Table.Cell>
               {data ? (
                 <Button
                   onClick={async () => {
-                    let action = data.metricSendEnabled
+                    let action = data.metricSendEnabledAdmin
                       ? "/metrics/disable"
                       : "/metrics/enable";
                     await fetch(encodeURI(url + action));
                     revalidate();
                   }}
                 >
-                  {data.metricSendEnabled
+                  {data.metricSendEnabledAdmin
                     ? "Disable Metrics"
                     : "Enable Metrics"}
                 </Button>
@@ -154,6 +154,11 @@ function Main(props) {
           <Table.Row key="4">
             <Table.Cell>Archipel Leader Node Address</Table.Cell>
             <Table.Cell>{data ? data.leader : ""}</Table.Cell>
+            <Table.Cell></Table.Cell>
+          </Table.Row>
+          <Table.Row key="5">
+            <Table.Cell>Metric Status Logic</Table.Cell>
+            <Table.Cell>{data ? JSON.stringify(data.metricSendEnabled) : ""}</Table.Cell>
             <Table.Cell></Table.Cell>
           </Table.Row>
         </Table.Body>

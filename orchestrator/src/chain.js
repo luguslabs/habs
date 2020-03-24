@@ -7,6 +7,7 @@ class Chain {
   constructor (wsProvider) {
     this.wsProvider = wsProvider;
     this.metricSendEnabled = true;
+    this.metricSendEnabledAdmin = true;
   }
 
   async connect () {
@@ -87,7 +88,7 @@ class Chain {
     try {
       // Checking if metrics send is enabled
       console.log('Checking if metrics send is enabled...');
-      if (!this.metricSendEnabled) {
+      if (!this.metricSendEnabled || !this.metricSendEnabledAdmin) {
         console.log('Metrics send is disabled...');
         return;
       }
