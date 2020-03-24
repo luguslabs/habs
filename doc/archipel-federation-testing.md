@@ -4,19 +4,19 @@
 
 - Linux or macOS machine
 - Docker installed
-- Ports available
-  - 8080 for Archipel UI
-  - 9944 for Archipel Chain Node WS Endpoint
-
+- Wireguard Kernel modules installed 
+  - https://www.wireguard.com/install/
 
 ## Step 1: Bootstrap a federation of 3 nodes
 
 What will be launched:
-- 3 Archipel Validator Nodes with Orchestrators
-- 1 Archipel Non-Validator Node
-- Archipel UI
-- Orchestrators will launch
-  - 3 Polkadot Kusama Nodes
+- 3 Archipel nodes (Archipel Substrate Validator Node + Orchestrator)
+- 3 Polkadot KUSAMA Nodes
+  - 1 Validator Node
+  - 2 Sentry Nodes
+- 3 Archipel UI instances (1 per Archipel Node)
+
+* Connection between Archipel nodes and Polkadot KUSAMA nodes are secured by **WireGuard VPN**.
 
 **Process**
 
@@ -34,18 +34,31 @@ cd archipel/deployer/test
 
 2.1 Check Archipel UI
 
-Archipel UI will show you the state of the Archipel Federation.
-You must see 3 Archipel Nodes with their addresses. In addition, you must see the federation leader.
+The execution of **[launch.sh](../deployer/test/launch.sh)** script will generate 3 URLs for UI of each Archipel node.
 
-http://localhost:8080
+<p align="center">
+ <img src=./images/archipel-launch-ui.png width = 536>
+</p>
 
-If you don’t see any nodes or master elected, please wait a little bit!
+You can access to each Archipel UI by following links.
+| UI | Link |
+| -- | ---- |
+| **Archipel 1 UI** | http://172.28.42.5/ |
+| **Archipel 2 UI** | http://172.28.42.6/ |
+| **Archipel 3 UI** | http://172.28.42.7/ |
+
+Archipel UI will show you the full state of the Archipel Federation.
+
+Archipel UI gives you ability to manipulate orchestrator:
+ * disable/enable orchestration
+ * disable/enable metrics send 
+ * stop/start service container
+
+If you don't see any metrics or master elected, please wait a little bit!
 
 **Example**
 
-<p align="center">
- <img src=./images/archipel-testing-ui-1.png width = 1000>
-</p>
+PUT IMAGE
 
 2.2 Check containers launched
 ```bash
@@ -57,10 +70,11 @@ docker ps
 </p>
 
 You must see multiple containers launched:
-- 3 Archipel validator nodes: archipel1, archipel2, archipel3
-- 1 Archipel non validator node: archipel-node
-- 1 Archipel UI container: archipel-ui
-- 3 Polkadot Kusama nodes
+- 3 Archipel nodes: archipel1, archipel2, archipel3
+- 3 Archipel UI instances: archipel1-ui, archipel2-ui, archipel3-ui
+- 3 Polkadot KUSAMA nodes
+  - 1 Validator Node: node1-polkadot-validator
+  - 2 Sentry Nodes: node2-polkadot-sync, node3-polkadot-sync
 
 2.3 Check Polkadot Kusama Telemetry
 https://telemetry.polkadot.io/#/Kusama%20CC3
@@ -69,8 +83,8 @@ https://telemetry.polkadot.io/#/Kusama%20CC3
   - archipel-validator1-{active or passive}
   - archipel-validator2-{active or passive}
   - archipel-validator3-{active or passive}
-- Active node = validator node
-- Passive node = sync only node
+- Active node = Validator Node
+- Passive node = Sentry Node
 
 **Example**
 
@@ -78,8 +92,8 @@ https://telemetry.polkadot.io/#/Kusama%20CC3
  <img src=./images/archipel-testing-telemetry-1.png width = 1000>
 </p>
 
-- Here node 1 was elected as leader, so it is active = launched as validator
-- Nodes 2 and 3 are in passive mode = launched as non-validator for sync only
+- Here node 1 was elected as leader, so it is active = launched as Validator
+- Nodes 2 and 3 are in passive mode = launched as Sentry Node
 
 ## Step 3: Simulating active node failure
 
@@ -107,11 +121,16 @@ docker ps
  <img src=./images/archipel-testing-docker-ps-2.png width = 1000>
 </p>
 
-3.3 Wait for Archipel Orchestration (Generally takes 1-2 mins)
+3.3 Wait for Archipel Orchestration (Generally takes 1 minute)
 
 Track orchestration :
 - Archipel UI
-http://localhost:8080
+
+| UI | Link |
+| -- | ---- |
+| **Archipel 1 UI** | http://172.28.42.5/ |
+| **Archipel 2 UI** | http://172.28.42.6/ |
+| **Archipel 3 UI** | http://172.28.42.7/ |
 - Telemetry
 https://telemetry.polkadot.io/#/Kusama%20CC3
 - docker ps
@@ -119,9 +138,8 @@ https://telemetry.polkadot.io/#/Kusama%20CC3
 **Example**
 
 **Archipel UI**
-<p align="center">
- <img src=./images/archipel-testing-ui-2.png width = 1000>
-</p>
+
+PUT IMAGE
 
 **Docker**
 ```bash
@@ -129,7 +147,7 @@ docker ps
 ```
 
 <p align="center">
- <img src=./images/archipel-testing-docker-ps-2.png width = 1000>
+ <img src=./images/archipel-testing-docker-ps-3.png width = 1000>
 </p>
 
 **Telemetry**
@@ -138,8 +156,8 @@ docker ps
 </p>
 
 - Node 1 was stopped in step 3.1
-- After orchestration, the new leader was elected (Node 3)
-- The node 3 was relaunched in active mode (validator)
+- After orchestration, the new leader was elected (Node 2)
+- The node 2 was relaunched in active mode (Validator)
 
 Step 4: Relaunch node
 
@@ -158,9 +176,6 @@ Node 1 was active and was stopped so restarting it
 
 4.2 Track old active node state
 
-- Telemetry
-https://telemetry.polkadot.io/#/Kusama%20CC3
-
 **Docker**
 
 ```bash
@@ -168,7 +183,7 @@ docker ps
 ```
 
 <p align="center">
- <img src=./images/archipel-testing-docker-ps-3.png width = 1000>
+ <img src=./images/archipel-testing-docker-ps-4.png width = 1000>
 </p>
 
 **Telemetry**
@@ -188,6 +203,6 @@ The old active node was restarted in passive mode.
 ## Play: Feel free to play with Archipel!
 **Warning!** Archipel must have minimum **2 nodes** alive to have an active service (validator) running! 
 - If you stop 2 nodes the third node will remain in passive mode! 
-- If you stop 2 passive nodes, the active node will also go in passive mode!
+- If you stop 2 passive nodes, the active node will switch in passive mode!
 
-We are considering that if 1 node is alone in Archipel Federation(with no peers), there is a problem, so it should not continue to validate.
+We are considering that if 1 node is alone in Archipel Federation, there is a problem, so it should not continue to validate.
