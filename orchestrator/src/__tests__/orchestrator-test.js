@@ -491,7 +491,7 @@ test('Other node is leader, someone is online and no metrics about leader. Thres
   await orchestrator.serviceCleanUp();
 });
 
-test('Testing leader with service not ready. Threshold test.', async () => { 
+test('Testing serviceReadinessManagement.', async () => { 
   await orchestrator.serviceStart('passive');
   const metrics = new Metrics();
 
@@ -560,6 +560,24 @@ test('Testing leader with service not ready. Threshold test.', async () => {
   expect(orchestrator.chain.metricSendEnabled).toBe(false);
 
   orchestrator.isServiceReadyToStart = () => true;
+
+  await orchestrator.orchestrateService();
+
+  containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+  container = await docker.getContainer(containerName);
+  containerInspect = await container.inspect();
+  expect(containerInspect.State.Running).toBe(true);
+
+  expect(orchestrator.chain.metricSendEnabled).toBe(true);
+
+  await orchestrator.orchestrateService();
+
+  containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+  container = await docker.getContainer(containerName);
+  containerInspect = await container.inspect();
+  expect(containerInspect.State.Running).toBe(true);
+
+  expect(orchestrator.chain.metricSendEnabled).toBe(true);
 
   await orchestrator.serviceCleanUp();
 
