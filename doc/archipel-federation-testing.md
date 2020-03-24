@@ -53,10 +53,6 @@ It also gives you ability to manipulate orchestrator:
 
 If you don't see any metrics or master elected, please wait a little bit!
 
-**Example**
-
-PUT IMAGE
-
 ### 2.2 Check containers launched
 ```bash
 docker ps
@@ -127,8 +123,6 @@ docker ps
 | **Archipel 1 UI** | http://172.28.42.5/ |
 | **Archipel 2 UI** | http://172.28.42.6/ |
 | **Archipel 3 UI** | http://172.28.42.7/ |
-
-PUT IMAGE
 
 **Telemetry**
 
