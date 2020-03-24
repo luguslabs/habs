@@ -1,10 +1,24 @@
 import React, { useState } from "react";
-import { Table, Grid, Icon, Button, Form, Input } from "semantic-ui-react";
+import {
+  Table,
+  Grid,
+  Icon,
+  Button,
+  Form,
+  Input,
+  Header,
+  Segment,
+  Statistic,
+  Progress,
+  Message,
+  Radio,
+  Label
+} from "semantic-ui-react";
 import TimeAgo from "react-timeago";
 import useSWR from "swr";
 import useAxios from "axios-hooks";
 import fetch from "./libs/fetch";
-import { useForm, Controller, ErrorMessage } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useLocalStorage } from "@rehooks/local-storage";
 
 function Main(props) {
@@ -32,7 +46,6 @@ function Main(props) {
   );
   // Form with useForm
   const { handleSubmit, control, reset, errors: formErrors } = useForm();
-
   const onSubmit = data => {
     if (data) {
       if (data.urlInput) {
@@ -41,250 +54,359 @@ function Main(props) {
       }
     }
   };
-
   return (
-    <Grid.Column>
-      <h1>API Config</h1>
-      <Form onSubmit={handleSubmit(onSubmit)}>
-        <Table celled striped size="small">
-          <Table.Body>
-            <Table.Row key="1">
-              <Table.Cell>API Endpoint URL</Table.Cell>
-              <Table.Cell>
-                <Form.Field>
-                  <Controller
-                    as={Input}
-                    name="urlInput"
-                    rules={{ required: true, pattern: URL_REGEXP }}
-                    control={control}
-                    defaultValue={url}
-                  />
-                  <ErrorMessage
-                    errors={formErrors}
-                    name="urlInput"
-                    message="Wrong URL format"
-                  />
-                </Form.Field>
-              </Table.Cell>
-              <Table.Cell>
-                <Button>Apply new URL</Button>
-              </Table.Cell>
-            </Table.Row>
-            <Table.Row key="2">
-              <Table.Cell>API Status</Table.Cell>
-              <Table.Cell>
-                {data ? data.status : null}
-                {fetchError
-                  ? "Endpoint:" + url + " " + fetchError.toString()
-                  : null}
-              </Table.Cell>
-              <Table.Cell>
-                <Button
-                  onClick={async () => {
-                    clearUrlStorage();
-                    reset({
-                      urlInput: defaultUrl
-                    });
-                    setUrl(defaultUrl);
-                  }}
-                >
-                  Reset Default Endpoint
-                </Button>
-              </Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
-      </Form>
-      <h1>Archipel</h1>
-      <Table celled striped size="small">
-        <Table.Body>
-          <Table.Row key="1">
-            <Table.Cell>Orchestration Status</Table.Cell>
-            <Table.Cell>
-              {data ? JSON.stringify(data.orchestrationEnabled) : ""}
-            </Table.Cell>
-            <Table.Cell>
-              {data ? (
-                <Button
-                  onClick={async () => {
-                    let action = data.orchestrationEnabled
-                      ? "/orchestration/disable"
-                      : "/orchestration/enable";
-                    await fetch(encodeURI(url + action));
-                    revalidate();
-                  }}
-                >
-                  {data.orchestrationEnabled
-                    ? "Disable Orchestration"
-                    : "Enable Orchestration"}
-                </Button>
-              ) : null}
-            </Table.Cell>
-          </Table.Row>
-          <Table.Row key="2">
-            <Table.Cell>Metric Status Admin</Table.Cell>
-            <Table.Cell>
-              {data ? JSON.stringify(data.metricSendEnabledAdmin) : ""}
-            </Table.Cell>
-            <Table.Cell>
-              {data ? (
-                <Button
-                  onClick={async () => {
-                    let action = data.metricSendEnabledAdmin
-                      ? "/metrics/disable"
-                      : "/metrics/enable";
-                    await fetch(encodeURI(url + action));
-                    revalidate();
-                  }}
-                >
-                  {data.metricSendEnabledAdmin
-                    ? "Disable Metrics"
-                    : "Enable Metrics"}
-                </Button>
-              ) : null}
-            </Table.Cell>
-          </Table.Row>
-          <Table.Row key="3">
-            <Table.Cell>Archipel chain Connected</Table.Cell>
-            <Table.Cell>
-              {data ? JSON.stringify(data.isConnected) : ""}
-            </Table.Cell>
-            <Table.Cell></Table.Cell>
-          </Table.Row>
-          <Table.Row key="4">
-            <Table.Cell>Archipel Leader Node Address</Table.Cell>
-            <Table.Cell>{data ? data.leader : ""}</Table.Cell>
-            <Table.Cell></Table.Cell>
-          </Table.Row>
-          <Table.Row key="5">
-            <Table.Cell>Metric Status Logic</Table.Cell>
-            <Table.Cell>{data ? JSON.stringify(data.metricSendEnabled) : ""}</Table.Cell>
-            <Table.Cell></Table.Cell>
-          </Table.Row>
-        </Table.Body>
-      </Table>
-      <h1>Archipel Node</h1>
-      <Table celled striped size="small">
-        <Table.Body>
-          <Table.Row key="1">
-            <Table.Cell>Archipel Node Address</Table.Cell>
-            <Table.Cell>{data ? data.orchestratorAddress : ""}</Table.Cell>
-          </Table.Row>
-          <Table.Row key="2">
-            <Table.Cell>Archipel Peer Id</Table.Cell>
-            <Table.Cell>{data ? data.peerId : ""}</Table.Cell>
-          </Table.Row>
-          <Table.Row key="3">
-            <Table.Cell>Archipel Synch State</Table.Cell>
-            <Table.Cell>
-              {data ? JSON.stringify(data.synchState) : ""}
-            </Table.Cell>
-          </Table.Row>
-          <Table.Row key="4">
-            <Table.Cell>Archipel Peer Number</Table.Cell>
-            <Table.Cell>{data ? data.peerNumber : ""}</Table.Cell>
-          </Table.Row>
-        </Table.Body>
-      </Table>
-      <h1>Service Node</h1>
-      <Table celled striped size="small">
-        <Table.Body>
-          <Table.Row key="1">
-            <Table.Cell>Service</Table.Cell>
-            <Table.Cell>{data ? data.service : ""}</Table.Cell>
-            <Table.Cell></Table.Cell>
-          </Table.Row>
-          <Table.Row key="2">
-            <Table.Cell>Service Ready To Operate</Table.Cell>
-            <Table.Cell>
-              {data ? JSON.stringify(data.isServiceReadyToStart) : ""}
-            </Table.Cell>
-            <Table.Cell></Table.Cell>
-          </Table.Row>
-          <Table.Row key="3">
-            <Table.Cell>Current Service Mode</Table.Cell>
-            <Table.Cell>{data ? data.serviceMode : ""}</Table.Cell>
-            <Table.Cell></Table.Cell>
-          </Table.Row>
-          <Table.Row key="4">
-            <Table.Cell>Service Container Status</Table.Cell>
-            <Table.Cell>{data ? data.serviceContainer : ""}</Table.Cell>
-            <Table.Cell>
-              {data &&
-              (data.serviceContainer === "active" ||
-                data.serviceContainer === "passive") ? (
-                <Button
-                  onClick={async () => {
-                    let action = "/service/stop";
-                    await fetch(encodeURI(url + action));
-                    revalidate();
-                  }}
-                >
-                  Stop Container
-                </Button>
-              ) : null}
-              {data && !postLoading && data.serviceContainer === "none" ? (
-                <div>
-                  <Button
-                    onClick={async () => {
-                      await executeServiceStart({
-                        data: { mode: "active" }
-                      });
-                      revalidate();
-                    }}
-                  >
-                    Start Active Container
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      await executeServiceStart({
-                        data: { mode: "passive" }
-                      });
-                      revalidate();
-                    }}
-                  >
-                    Start Passive Container
-                  </Button>
-                </div>
-              ) : null}
-              {postLoading ? "Starting container..." : null}
-              {postError ? postError.toString() : null}
-            </Table.Cell>
-          </Table.Row>
-        </Table.Body>
-      </Table>
-      <h1>Archipel Metrics</h1>
-      <Table celled striped size="small">
-        <Table.Header>
-          <Table.Row>
-            <Table.HeaderCell>Leader</Table.HeaderCell>
-            <Table.HeaderCell>Node</Table.HeaderCell>
-            <Table.HeaderCell>Metrics</Table.HeaderCell>
-            <Table.HeaderCell>Heartbeats</Table.HeaderCell>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {data
-            ? data.metrics.map((metric, index) => (
-                <Table.Row key={metric.wallet}>
-                  <Table.Cell>
-                    {metric.wallet === data.leader ? (
-                      <Icon name="chess king" />
+    <div>
+      <Grid columns={1} container stackable>
+        <Grid.Row>
+          <Grid.Column></Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column>
+            <Header as="h2">
+              <Icon name="sitemap" />
+              <Header.Content>Archipel Dashboard</Header.Content>
+            </Header>
+          </Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column>
+            <Segment>
+              <Grid>
+                <Grid.Row>
+                  <Grid.Column className="height wide">
+                    <Form error onSubmit={handleSubmit(onSubmit)}>
+                      <Form.Group>
+                        <Form.Field inline>
+                          <Label pointing="right">API Endpoint</Label>
+                          <Controller
+                            as={Input}
+                            name="urlInput"
+                            rules={{ required: true, pattern: URL_REGEXP }}
+                            control={control}
+                            defaultValue={url}
+                          />
+                        </Form.Field>
+                        <Form.Button content="Apply" />
+                        <Form.Button
+                          content="Reset "
+                          onClick={async () => {
+                            clearUrlStorage();
+                            reset({
+                              urlInput: defaultUrl
+                            });
+                            setUrl(defaultUrl);
+                          }}
+                        />
+                      </Form.Group>
+                      {formErrors.urlInput || fetchError ? (
+                        <Message
+                          error
+                          content={
+                            formErrors.urlInput
+                              ? "Wrong URL format"
+                              : fetchError.toString()
+                          }
+                        />
+                      ) : null}
+                    </Form>
+                  </Grid.Column>
+                  <Grid.Column className="height wide"></Grid.Column>
+                </Grid.Row>
+              </Grid>
+              {data && data.status === "200" ? (
+                <Progress
+                  active
+                  color="green"
+                  percent={100}
+                  attached="bottom"
+                />
+              ) : (
+                <Progress color="red" percent={100} attached="bottom" />
+              )}
+            </Segment>
+          </Grid.Column>
+        </Grid.Row>
+        {data
+          ? data.metrics.map((metric, index) => (
+              <Grid.Row>
+                <Grid.Column>
+                  <Segment raised>
+                    <Grid columns={4}>
+                      <Grid.Row>
+                        <Grid.Column className="one wide">
+                          {data.orchestratorAddress === metric.wallet ? (
+                            <Label color="green" ribbon>
+                              <Icon name="disk" />
+                              Connected
+                            </Label>
+                          ) : null}
+                        </Grid.Column>
+                        <Grid.Column className="seven wide center aligned">
+                          <Statistic vertical size="small">
+                            <Statistic.Value>
+                              {metric.wallet === data.leader
+                                ? "Active "
+                                : "Passive "}
+                              Node {index + 1}
+                            </Statistic.Value>
+                            <Statistic.Label>{metric.wallet}</Statistic.Label>
+                          </Statistic>
+                        </Grid.Column>
+                        <Grid.Column className="seven wide center aligned">
+                          <Statistic vertical size="small">
+                            <Statistic.Value>
+                              <Icon name="heartbeat" />{" "}
+                              <TimeAgo date={parseInt(metric.timestamp)} />
+                            </Statistic.Value>
+                            <Statistic.Label>Heartbeat</Statistic.Label>
+                          </Statistic>
+                        </Grid.Column>
+                        <Grid.Column className="one wide">
+                          {metric.wallet === data.leader ? (
+                            <Label color="orange" ribbon="right">
+                              <Icon name="winner" />
+                            </Label>
+                          ) : (
+                            <Label color="grey" ribbon="right">
+                              <Icon name="bed" />
+                            </Label>
+                          )}
+                        </Grid.Column>
+                      </Grid.Row>
+                    </Grid>
+                  </Segment>
+                </Grid.Column>
+              </Grid.Row>
+            ))
+          : null}
+        <Grid.Row>
+          <Grid.Column>
+            <Table celled fixed>
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>
+                    {data ? (
+                      <Label color="green" ribbon>
+                        <Icon name="disk" />
+                        Archipel Node Administration
+                      </Label>
                     ) : (
-                      ""
+                      "Archipel Node Administration"
                     )}
-                  </Table.Cell>
-                  <Table.Cell>{metric.wallet}</Table.Cell>
-                  <Table.Cell>{metric.metrics}</Table.Cell>
+                  </Table.HeaderCell>
+                  <Table.HeaderCell></Table.HeaderCell>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                <Table.Row>
+                  <Table.Cell>Orchestrator</Table.Cell>
                   <Table.Cell>
-                    <TimeAgo date={parseInt(metric.timestamp)} />
+                    {data ? (
+                      <Radio
+                        onClick={async () => {
+                          const action =
+                            JSON.stringify(data.orchestrationEnabled) === "true"
+                              ? "/orchestration/disable"
+                              : "/orchestration/enable";
+                          await fetch(encodeURI(url + action));
+                          revalidate();
+                        }}
+                        toggle
+                        checked={
+                          JSON.stringify(data.orchestrationEnabled) === "true"
+                        }
+                      />
+                    ) : null}
                   </Table.Cell>
                 </Table.Row>
-              ))
-            : null}
-        </Table.Body>
-      </Table>
-    </Grid.Column>
+                <Table.Row>
+                  <Table.Cell>Heartbeat Ping</Table.Cell>
+                  <Table.Cell>
+                    {data ? (
+                      <Radio
+                        onClick={async () => {
+                          const action =
+                            JSON.stringify(data.metricSendEnabledAdmin) ===
+                            "true"
+                              ? "/metrics/disable"
+                              : "/metrics/enable";
+                          await fetch(encodeURI(url + action));
+                          revalidate();
+                        }}
+                        toggle
+                        checked={
+                          JSON.stringify(data.metricSendEnabledAdmin) === "true"
+                        }
+                      />
+                    ) : null}
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row key="5">
+                  <Table.Cell>Heartbeat Status</Table.Cell>
+                  <Table.Cell>
+                    {data ? (
+                      JSON.stringify(data.metricSendEnabled) === "true" ? (
+                        <Icon name="checkmark" />
+                      ) : (
+                        <Icon name="close" />
+                      )
+                    ) : null}
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Archipel chain Connected</Table.Cell>
+                  <Table.Cell>
+                    {data ? (
+                      JSON.stringify(data.isConnected) === "true" ? (
+                        <Icon name="checkmark" />
+                      ) : (
+                        <Icon name="close" />
+                      )
+                    ) : null}
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Archipel Leader Node Address</Table.Cell>
+                  <Table.Cell>{data ? data.leader : ""}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Archipel Node Address</Table.Cell>
+                  <Table.Cell>
+                    {data ? data.orchestratorAddress : ""}
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Archipel Peer Id</Table.Cell>
+                  <Table.Cell>{data ? data.peerId : ""}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Archipel Synch State</Table.Cell>
+                  <Table.Cell>
+                    {data ? (
+                      JSON.stringify(data.synchState) === "true" ? (
+                        <Icon name="checkmark" />
+                      ) : (
+                        <Icon name="sync" />
+                      )
+                    ) : null}
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Archipel Peer Number</Table.Cell>
+                  <Table.Cell>{data ? data.peerNumber : ""}</Table.Cell>
+                </Table.Row>
+              </Table.Body>
+            </Table>
+          </Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column>
+            <Table celled fixed>
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>
+                    Service Node Administration
+                  </Table.HeaderCell>
+                  <Table.HeaderCell>
+                    {data &&
+                    (data.serviceContainer === "active" ||
+                      data.serviceContainer === "passive") ? (
+                      <Button
+                        onClick={async () => {
+                          let action = "/service/stop";
+                          await fetch(encodeURI(url + action));
+                          revalidate();
+                        }}
+                      >
+                        Stop Service Container
+                      </Button>
+                    ) : null}
+                    {data &&
+                    !postLoading &&
+                    data.serviceContainer === "none" ? (
+                      <div>
+                        <Button
+                          onClick={async () => {
+                            await executeServiceStart({
+                              data: { mode: "active" }
+                            });
+                            revalidate();
+                          }}
+                        >
+                          Start Active Service Container
+                        </Button>
+                        <Button
+                          onClick={async () => {
+                            await executeServiceStart({
+                              data: { mode: "passive" }
+                            });
+                            revalidate();
+                          }}
+                        >
+                          Start Passive Service Container
+                        </Button>
+                      </div>
+                    ) : null}
+                    {postLoading ? "Starting container..." : null}
+                    {postError ? postError.toString() : null}
+                  </Table.HeaderCell>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                <Table.Row>
+                  <Table.Cell>Service</Table.Cell>
+                  <Table.Cell>{data ? data.service : ""}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Service Ready To Operate</Table.Cell>
+                  <Table.Cell>
+                    {data ? (
+                      JSON.stringify(data.isServiceReadyToStart) === "true" ? (
+                        <Icon name="checkmark" />
+                      ) : (
+                        <Icon name="close" />
+                      )
+                    ) : null}
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Current Service Mode</Table.Cell>
+                  <Table.Cell>
+                    {data && data.serviceMode === "passive" ? (
+                      <Icon name="bed" />
+                    ) : null}
+                    {data && data.serviceMode === "active" ? (
+                      <Icon name="winner" />
+                    ) : null}
+                    {data && data.serviceMode === "none" ? (
+                      <Icon name="close" />
+                    ) : null}
+                    {data && data.serviceMode ? data.serviceMode : null}
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Service Container Status</Table.Cell>
+                  <Table.Cell>
+                    {data && data.serviceContainer === "passive" ? (
+                      <Icon name="bed" />
+                    ) : null}
+                    {data && data.serviceContainer === "active" ? (
+                      <Icon name="winner" />
+                    ) : null}
+                    {data && data.serviceContainer === "none" ? (
+                      <Icon name="close" />
+                    ) : null}
+                    {data && data.serviceContainer
+                      ? data.serviceContainer
+                      : null}
+                  </Table.Cell>
+                </Table.Row>
+              </Table.Body>
+            </Table>
+          </Grid.Column>
+        </Grid.Row>
+      </Grid>
+    </div>
   );
 }
 
