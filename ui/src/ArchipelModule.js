@@ -1,23 +1,18 @@
 import React, { useState } from "react";
-import {
-  Table,
-  Grid,
-  Icon,
-  Button,
-  Form,
-  Input,
-  Loader
-} from "semantic-ui-react";
+import { Table, Grid, Icon, Button, Form, Input } from "semantic-ui-react";
 import TimeAgo from "react-timeago";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import useAxios from "axios-hooks";
 import fetch from "./libs/fetch";
 import { useForm, Controller, ErrorMessage } from "react-hook-form";
+import { useLocalStorage } from "@rehooks/local-storage";
 
 function Main(props) {
   const defaultUrl = props.defaultUrl;
   const URL_REGEXP = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/i;
-  const [url, setUrl] = useState(defaultUrl);
+  const [urlSorage, setUrlStorage, clearUrlStorage] = useLocalStorage("url");
+  const [url, setUrl] = useState(urlSorage ? urlSorage : defaultUrl);
+
   //fetch API with useSWR
   const { data, revalidate, error: fetchError } = useSWR(url, fetch, {
     // revalidate the data per second
@@ -26,7 +21,7 @@ function Main(props) {
   });
   //post API with axios
   const [
-    { data: postData, loading: postLoading, error: postError },
+    { loading: postLoading, error: postError },
     executeServiceStart
   ] = useAxios(
     {
@@ -42,6 +37,7 @@ function Main(props) {
     if (data) {
       if (data.urlInput) {
         setUrl(data.urlInput);
+        setUrlStorage(data.urlInput);
       }
     }
   };
@@ -61,7 +57,7 @@ function Main(props) {
                     name="urlInput"
                     rules={{ required: true, pattern: URL_REGEXP }}
                     control={control}
-                    defaultValue={defaultUrl}
+                    defaultValue={url}
                   />
                   <ErrorMessage
                     errors={formErrors}
@@ -85,9 +81,11 @@ function Main(props) {
               <Table.Cell>
                 <Button
                   onClick={async () => {
+                    clearUrlStorage();
                     reset({
                       urlInput: defaultUrl
                     });
+                    setUrl(defaultUrl);
                   }}
                 >
                   Reset Default Endpoint
@@ -245,6 +243,7 @@ function Main(props) {
                 </div>
               ) : null}
               {postLoading ? "Starting container..." : null}
+              {postError ? postError.toString() : null}
             </Table.Cell>
           </Table.Row>
         </Table.Body>
