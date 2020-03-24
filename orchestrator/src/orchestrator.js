@@ -143,6 +143,12 @@ class Orchestrator {
       }
     }
 
+    // If service is ready and metrics send is disabled we can activate metrics send
+    if (serviceReady && !this.chain.metricSendEnabled) {
+      console.log('Service is ready and metric send was disabled. Enabling it...');
+      this.chain.metricSendEnabled = true;
+    }
+
     // Reset noReady counter
     if (this.noReadyCount !== 0) {
       this.noReadyCount = 0;
@@ -171,12 +177,6 @@ class Orchestrator {
       // If this node is current leader
       if (currentLeader === nodeKey) {
         console.log('Current node is leader...');
-        // If service was not ready for noReadyThreshold at active node the metric send will be disabled
-        // If service will become ready before other node took leadership we must activate metrics send
-        if (!this.chain.metricSendEnabled) {
-          console.log('Metric send was disabled. Enabling it...');
-          this.chain.metricSendEnabled = true;
-        }
         return true;
       }
 
