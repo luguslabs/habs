@@ -57,7 +57,7 @@ class Polkadot {
       // Checking if value was not already set by env vars
       if (isEmptyString(config.polkadotName)) {
         if ('name' in configFromFile) {
-          config.polkadotName = `${configFromFile.name}-${process.env.NODE_ID}`;
+          config.polkadotName = `${configFromFile.name}-node-${process.env.NODE_ID}`;
         }
       }
 

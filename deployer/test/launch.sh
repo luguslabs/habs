@@ -119,7 +119,7 @@ POLKADOT_TELEMETRY_URL=
 
 launch_archipel "archipel1" \
                 "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
-                "archipel-validator1" \
+                "test-archipel-node-1" \
                 "node1-" \
                 "" \
                 "$NODE1_IP" \
@@ -136,7 +136,7 @@ launch_archipel "archipel1" \
 
 launch_archipel "archipel2" \
                 "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
-                "archipel-validator2" \
+                "test-archipel-node-2" \
                 "node2-" \
                 "" \
                 "$NODE2_IP" \
@@ -153,7 +153,7 @@ launch_archipel "archipel2" \
 
 launch_archipel "archipel3" \
                 "borrow initial guard hunt corn trust student opera now economy thumb argue" \
-                "archipel-validator3" \
+                "test-archipel-node-3" \
                 "node3-" \
                 "" \
                 "$NODE3_IP" \

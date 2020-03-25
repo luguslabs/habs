@@ -103,7 +103,7 @@ const generateConfig = async () => {
     const externalIPAddresses = configData.publicIps.split(',');
 
     // Add name to config
-    config.name = configData.name;
+    config.name = configData.name.toLowerCase().replace(/\s/g, '-');
 
     // Add node number to config
     config.nodesNumber = externalIPAddresses.length;
