@@ -14,7 +14,7 @@ What will be launched:
 - **3 Polkadot KUSAMA Nodes**
   - 1 Validator Node
   - 2 Sentry Nodes
-- **3 Archipel UI instances** (1 per Archipel Node)
+- **Archipel UI instance**
 
 Connection between Archipel nodes and Polkadot KUSAMA nodes are secured by **WireGuard VPN**!
 
@@ -32,17 +32,18 @@ cd archipel/deployer/test
 
 ### 2.1 Check Archipel UI
 
-The execution of **[launch.sh](../deployer/test/launch.sh)** script will generate 3 URLs for UI of each Archipel node.
+The execution of **[launch.sh](../deployer/test/launch.sh)** script will generate the URL for Archipel UI.
 
 <p align="center">
- <img src=./images/archipel-launch-ui.png width = 536>
+ <img src=./images/archipel-launch-ui.png width = 465>
 </p>
 
-| UI | Link |
-| -- | ---- |
-| **Archipel 1 UI** | http://172.28.42.5/ |
-| **Archipel 2 UI** | http://172.28.42.6/ |
-| **Archipel 3 UI** | http://172.28.42.7/ |
+Archipel UI will be available at http://172.28.42.5/
+
+
+<p align="center">
+ <img src=./images/archipel-ui-1.png width = 1000>
+</p>
 
 Archipel UI will show you the full state of the Archipel Federation.
 
@@ -52,6 +53,20 @@ It also gives you ability to manipulate orchestrator:
  * **stop/start service container**
 
 If you don't see any metrics or master elected, please wait a little bit!
+
+By default the Archipel UI uses Archipel Node 1 API endpoint. You can change API endpoint in order to see other nodes state.
+
+| Node | Endpoint |
+| ---- | -------- |
+| Node 1 | http://172.28.42.2:3000 |
+| Node 2 | http://172.28.42.3:3000 |
+| Node 3 | http://172.28.42.4:3000 |
+
+**Example** 
+
+<p align="center">
+ <img src=./images/archipel-ui-2.png width = 1000>
+</p>
 
 ### 2.2 Check containers launched
 ```bash
@@ -64,7 +79,7 @@ docker ps
 
 You must see multiple containers launched:
 - **3 Archipel nodes**: archipel1, archipel2, archipel3
-- **3 Archipel UI instances**: archipel1-ui, archipel2-ui, archipel3-ui
+- **Archipel UI**: archipel-ui
 - **3 Polkadot KUSAMA nodes**
   - 1 Validator Node: node1-polkadot-validator
   - 2 Sentry Nodes: node2-polkadot-sync, node3-polkadot-sync
@@ -73,9 +88,9 @@ You must see multiple containers launched:
 https://telemetry.polkadot.io/#/Kusama%20CC3
 
 - You must see 3 archipel nodes running
-  - archipel-validator1-{active or passive}
-  - archipel-validator2-{active or passive}
-  - archipel-validator3-{active or passive}
+  - test-archipel-node-1-{active or passive}
+  - test-archipel-node-2-{active or passive}
+  - test-archipel-node-3-{active or passive}
 - Active node = Validator Node
 - Passive node = Sentry Node
 
@@ -118,11 +133,14 @@ docker ps
 
 **Archipel UI**
 
-| UI | Link |
-| -- | ---- |
-| **Archipel 1 UI** | http://172.28.42.5/ |
-| **Archipel 2 UI** | http://172.28.42.6/ |
-| **Archipel 3 UI** | http://172.28.42.7/ |
+**Archipel UI**: http://172.28.42.5/
+
+The Node 1 API endpoint is not available cause we stopped it. So you must change the API endpoint. 
+You can use: **http://172.28.42.3:3000**
+
+<p align="center">
+ <img src=./images/archipel-ui-3.png width = 1000>
+</p>
 
 **Telemetry**
 
