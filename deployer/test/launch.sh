@@ -170,36 +170,18 @@ launch_archipel "archipel3" \
 
 echo "Launching UI..."
 
-ARCHIPEL1_UI_ADDR="172.28.42.5"
-ARCHIPEL2_UI_ADDR="172.28.42.6"
-ARCHIPEL3_UI_ADDR="172.28.42.7"
+ARCHIPEL_UI_IP="172.28.42.5"
 
-echo "Launching Archipel 1 UI..."
-docker run -d --name "archipel1-ui" \
+echo "Launching Archipel UI..."
+docker run -d --name "archipel-ui" \
            --network archipel \
-           --ip "$ARCHIPEL1_UI_ADDR" \
+           --ip "$ARCHIPEL_UI_IP" \
            --env REACT_APP_API_URL="http://$NODE1_IP:3000" \
            luguslabs/archipel-ui:$ARCHIPEL_VERSION
 
-echo "Launching Archipel 2 UI..."
-docker run -d --name "archipel2-ui" \
-           --network archipel \
-           --ip "$ARCHIPEL2_UI_ADDR" \
-           --env REACT_APP_API_URL="http://$NODE2_IP:3000" \
-           luguslabs/archipel-ui:$ARCHIPEL_VERSION
-
-echo "Launching Archipel 3 UI..."
-docker run -d --name "archipel3-ui" \
-           --network archipel \
-           --ip "$ARCHIPEL3_UI_ADDR" \
-           --env REACT_APP_API_URL="http://$NODE3_IP:3000" \
-           luguslabs/archipel-ui:$ARCHIPEL_VERSION
-
 echo "-------------------- [ARCHIPEL UI] ---------------------"
-echo "Archipel 1 UI is avaliable at http://$ARCHIPEL1_UI_ADDR/"
-echo "Archipel 2 UI is avaliable at http://$ARCHIPEL2_UI_ADDR/"
-echo "Archipel 3 UI is avaliable at http://$ARCHIPEL3_UI_ADDR/"
+echo "Archipel UI is avaliable at http://$ARCHIPEL_UI_IP/"
 echo "--------------------------------------------------------"
 
-echo "Archipel was created."
+echo "Archipel was launched..."
 docker ps
