@@ -133,7 +133,7 @@ docker ps
 
 **Archipel UI**
 
-**Archipel UI**: http://172.28.42.5/
+Available at: http://172.28.42.5/
 
 The Node 1 API endpoint is not available cause we stopped it. So you must change the API endpoint. 
 You can use: **http://172.28.42.3:3000**
