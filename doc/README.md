@@ -8,7 +8,7 @@
 * [Polkadot Keys Initialization](https://github.com/luguslabs/archipel/blob/master/doc/polkadot-keys-initialization.md)
 
 ### Testing
-* [Archipel Feredation Testing](https://github.com/luguslabs/archipel/blob/master/doc/archipel-federation-testing.md)
+* [Archipel Federation Testing](https://github.com/luguslabs/archipel/blob/master/doc/archipel-federation-testing.md)
 * [Archipel Test Results](https://github.com/luguslabs/archipel/blob/master/doc/archipel-test-results.md)
 
 ### Deployment
