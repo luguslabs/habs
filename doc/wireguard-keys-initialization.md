@@ -1,6 +1,10 @@
 # Wiregrade Keys initialization 
 
-The Archipel chain and services use a secure VPN [Wireguard](https://www.wireguard.com/). It a pre-requiste keys generation.
+**Wireguard keys are now automatically generate by [archipel CLI](https://github.com/luguslabs/archipel/tree/master/cli). You do not need anymmore to generate them manually.
+They are all generate with archipel CLI.
+The following doc explaining how to generate them and how Wireguard keys works is on educational purpose only for curious developers.**
+
+The Archipel chain and services use a secure VPN [Wireguard](https://www.wireguard.com/).
 
 
 ## Subkey Tool
