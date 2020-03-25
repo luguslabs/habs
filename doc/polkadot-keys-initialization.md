@@ -1,24 +1,24 @@
-# Polkadot Keys initialization 
+# Polkadot Keys initialization
 
 The bootstrap of an Archipel chain needs a pre-requiste keys generation.
-Those keys will be use for the node identities in the federation and use for authoring blocks and chain consensus, transactions propagation of runtime functions calls. Moreover, in addition to [Archipel keys](https://github.com/luguslabs/archipel/blob/master/doc/archipel-keys-initialization.md#archipel-keys), you need to create keys for your external service. For the first supported external service polkadot, you have to generate [Polkadot keys](#polkadot-keys) for the validator service to operate properly.
+Those keys will be used for the node identities in the federation and use for authoring blocks and chain consensus, transaction propagation of runtime functions calls. Moreover, in addition to [Archipel keys](https://github.com/luguslabs/archipel/blob/master/doc/archipel-keys-initialization.md#archipel-keys), you need to create keys for your external service. For the first supported external service polkadot, you have to generate [Polkadot keys](#polkadot-keys) for the validator service to operate properly.
 
 
 ## Subkey Tool
 
-Archipel and polkadot use [Substrate](https://substrate.dev/) framework. This framwork has utility tool to generate keys. You will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check subkey installation and options available :
+Archipel and polkadot use [Substrate](https://substrate.dev/) framework. This framwork has a utility tool to generate keys. You will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check subkey installation and options available :
 
 ```bash
 subkey --version
 subkey --help
 ```
-Create a specific folder and generate key on a secure device with all securities regarding privates keys generation in crypto in general (internet cut-off etc ...). 
+Create a specific folder and generate thoses keys on a secure device with all securities regarding privates keys generation in crypto in general (internet cut-off etc ...).
 
 ## Polkadot keys
 
 Start by understanding the key concept of polkadot keys by reading the [official documentation here](https://wiki.polkadot.network/docs/en/learn-keys).
 
-In this doc, we will only concentrate one the creation of the 5 sessions keys. Because this is what is necessary to operate the validator node that running on the DAppNode. Thoses sessions keys must be set in the [ Archipel environement variables](https://github.com/luguslabs/archipel#environment-variables). All others keys requirement explained in the offical Polkadot doc must be respected and done for those who want to [run a validator on kusama](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama).
+In this doc, we will only concentrate on the creation of the 5 sessions keys. Because this is what is necessary to operate the validator node that running on the DAppNode. Thoses sessions keys must be valorize when you generate your archipel ZIP config file with [archipel CLI](https://github.com/luguslabs/archipel/tree/master/cli). Indeed, you must edit the [archipel.json file](https://github.com/luguslabs/archipel/tree/master/cli#archipeljson) with the accurate sessions keys of your validator you want to operate. All others keys requirement explained in the offical Polkadot doc must be respected and done for those who want to [run a validator on kusama](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama).
 
 All 3 DappNodes form the archipel will share the same 5 sessions keys.
 
@@ -31,10 +31,10 @@ This orchestrator programm will insert at start thoses 5 sessions keys into the 
 It simulates what the rotateKeys function call do. Instead of one rpc call of **rotate_keys**, it calls 5 times insertKey rpc call. But the end result is the same.
 You can see how to call and details of rotate_keys function [here](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama#generating-the-session-keys)
 
-RotateKeys function call generate 5 sessions keys. 
+RotateKeys function call generate 5 sessions keys.
 
 5 keys are generated in the keystore by rotate_keys rpc call.
-In the keystore path, key file name is formated like this :  
+In the keystore path, key file name is formatted like this :  
 
 stringToHex("keyType")+<Public key>
 
@@ -45,7 +45,7 @@ For the 5 keys generated in the keystore, file **prefix** are :
 - stringToHex("para")=70617261
 - stringToHex("audi")=61756469
 
-The file itself contains the 12 seed words secret. 
+The file itself contains the 12 seed words secret.
 
 To find the accurate Public key ( using subkey tool for instance ) here keyType mapping:
 
@@ -60,7 +60,7 @@ RotateKeys function call return an aggregate key of all 5 public Keys. Here the 
 "sr25519 **babe** Public Key" +
 "sr25519 **imon** Public Key" +
 "sr25519 **para** Public Key" +
-"sr25519 **audi** Public Key" 
+"sr25519 **audi** Public Key"
 
 then, this full aggregate key must submit on chain before beeing able to validate on the network as explained [here](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama#submitting-the-setkeys-transaction)
 
@@ -69,48 +69,48 @@ then, this full aggregate key must submit on chain before beeing able to validat
 
 #### Polkadot Step by step session keys creation
 
-- Gran session key 
+- Gran session key
 ```bash
-subkey -n kusama --ed25519 generate > kusama-session-gran-ed25519.keys 
+subkey -n kusama --ed25519 generate > kusama-session-gran-ed25519.keys
 cat kusama-session-gran-ed25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-gran.seed
 ```
 
-- Babe session key 
+- Babe session key
 ```bash
-subkey -n kusama --sr25519 generate > kusama-session-babe-sr25519.keys 
+subkey -n kusama --sr25519 generate > kusama-session-babe-sr25519.keys
 cat kusama-session-babe-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-babe.seed
 ```
 
-- Imon session key 
+- Imon session key
 ```bash
-subkey -n kusama --sr25519 generate > kusama-session-imon-sr25519.keys 
+subkey -n kusama --sr25519 generate > kusama-session-imon-sr25519.keys
 cat kusama-session-imon-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-imon.seed
 ```
 
-- Para session key 
+- Para session key
 ```bash
-subkey -n kusama --sr25519 generate > kusama-session-para-sr25519.keys 
+subkey -n kusama --sr25519 generate > kusama-session-para-sr25519.keys
 cat kusama-session-para-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-para.seed
 ```
 
-- Audi session key 
+- Audi session key
 ```bash
-subkey -n kusama --sr25519 generate > kusama-session-audi-sr25519.keys 
+subkey -n kusama --sr25519 generate > kusama-session-audi-sr25519.keys
 cat kusama-session-audi-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-audi.seed
 ```
 
 #### Polkadot Full steps session keys creation
 
 ```bash
-subkey -n kusama --ed25519 generate > kusama-session-gran-ed25519.keys 
+subkey -n kusama --ed25519 generate > kusama-session-gran-ed25519.keys
 cat kusama-session-gran-ed25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-gran.seed
-subkey -n kusama --sr25519 generate > kusama-session-babe-sr25519.keys 
+subkey -n kusama --sr25519 generate > kusama-session-babe-sr25519.keys
 cat kusama-session-babe-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-babe.seed
-subkey -n kusama --sr25519 generate > kusama-session-imon-sr25519.keys 
+subkey -n kusama --sr25519 generate > kusama-session-imon-sr25519.keys
 cat kusama-session-imon-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-imon.seed
-subkey -n kusama --sr25519 generate > kusama-session-para-sr25519.keys 
+subkey -n kusama --sr25519 generate > kusama-session-para-sr25519.keys
 cat kusama-session-para-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-para.seed
-subkey -n kusama --sr25519 generate > kusama-session-audi-sr25519.keys 
+subkey -n kusama --sr25519 generate > kusama-session-audi-sr25519.keys
 cat kusama-session-audi-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-audi.seed
 ```
 
@@ -131,7 +131,7 @@ As explained aboven the format generated by `rotate_key` is :
 "sr25519 **babe** Public Key" +
 "sr25519 **imon** Public Key" +
 "sr25519 **para** Public Key" +
-"sr25519 **audi** Public Key" 
+"sr25519 **audi** Public Key"
 
 You need to send this information on chain to be able to validate. you can read more on [submitting-the-setkeys-transaction doc](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama#submitting-the-setkeys-transaction).
 Here how to extract the value from env varibale :
