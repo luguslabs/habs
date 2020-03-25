@@ -2,13 +2,23 @@ const debug = require('debug')('metrics');
 
 // Metrics class to simplify metrics management
 class Metrics {
-  constructor () {
+  constructor (nodes) {
     this.metrics = new Map();
+    this.nodes = nodes;
   }
 
   // Add metrics into Map
   addMetrics (wallet, metrics, timestamp) {
+    let name = '';
+
+    // Get node name from nodes array
+    const node = this.nodes.find(element => element.wallet === wallet);
+    if (node !== undefined) {
+      name = node.name;
+    }
+
     var nodeMetrics = {
+      name,
       metrics,
       timestamp
     };
@@ -37,14 +47,15 @@ class Metrics {
     this.metrics.forEach((value, key) => {
       result.push({
         wallet: key,
+        name: value.name,
         metrics: value.metrics,
         timestamp: value.timestamp
       });
     });
-    
-    // Return sorted result by wallet
+
+    // Return sorted result by node name
     return result.sort((el1, el2) => {
-      return el1.wallet.toString().localeCompare(el2.wallet.toString());
+      return el1.name.toString().localeCompare(el2.name.toString());
     });
   }
 

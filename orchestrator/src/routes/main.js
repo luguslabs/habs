@@ -19,6 +19,7 @@ const getOrchestratorInfo = async orchestrator => {
   const result = {
     status: '200',
     orchestratorAddress: orchestratorAddress,
+    archipelName: orchestrator.archipelName,
     isConnected: isConnected,
     peerId: peerId,
     peerNumber: peerNumber,

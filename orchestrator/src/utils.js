@@ -64,6 +64,20 @@ const formatReservedNodesList = (inputList) => {
   }, []);
 };
 
+const constructNodesList = (nodesWallets, archipelName) => {
+  const result = [];
+  if (!isEmptyString(nodesWallets) && !isEmptyString(archipelName)) {
+    const nodesWalletsList = nodesWallets.toString().split(',');
+    nodesWalletsList.forEach((value, index) => {
+      result.push({
+        wallet: value,
+        name: `${archipelName.toString()}-NODE-${index + 1}`
+      });
+    });
+  }
+  return result;
+};
+
 module.exports = {
   getKeysFromSeed,
   streamToString,
@@ -71,5 +85,6 @@ module.exports = {
   isEmptyString,
   readToObj,
   checkVariable,
-  formatReservedNodesList
+  formatReservedNodesList,
+  constructNodesList
 };

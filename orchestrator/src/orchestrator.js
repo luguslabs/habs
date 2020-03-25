@@ -22,7 +22,7 @@ class Orchestrator {
     }
   }
 
-  constructor (chain, service, metrics, mnemonic, aliveTime) {
+  constructor (chain, service, metrics, mnemonic, aliveTime, archipelName) {
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
@@ -38,6 +38,7 @@ class Orchestrator {
     this.aliveTime = aliveTime;
     this.orchestrationEnabled = true;
     this.mode = 'passive';
+    this.archipelName = archipelName;
   }
 
   // Orchestrate service
@@ -128,7 +129,6 @@ class Orchestrator {
 
     // If service is not ready and current node is leader
     if (!serviceReady && this.mode === 'active') {
-
       // Waiting for this.noReadyThreshold orchestrations
       if (this.noReadyCount < this.noReadyThreshold) {
         console.log(`Service is not ready but current node is leader. Waiting for ${this.noReadyThreshold - this.noReadyCount} orchestrations...`);

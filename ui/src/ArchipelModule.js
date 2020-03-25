@@ -64,7 +64,7 @@ function Main(props) {
           <Grid.Column>
             <Header as="h2">
               <Icon name="sitemap" />
-              <Header.Content>Archipel Dashboard</Header.Content>
+              <Header.Content>Archipel Dashboard{data ? ` - ${data.archipelName}` : ''}</Header.Content>
             </Header>
           </Grid.Column>
         </Grid.Row>
@@ -137,17 +137,14 @@ function Main(props) {
                           {data.orchestratorAddress === metric.wallet ? (
                             <Label color="green" ribbon>
                               <Icon name="disk" />
-                              Connected
+                              Current Node
                             </Label>
                           ) : null}
                         </Grid.Column>
                         <Grid.Column className="six wide center aligned">
                           <Statistic vertical size="tiny">
                             <Statistic.Value>
-                              {metric.wallet === data.leader
-                                ? "Active "
-                                : "Passive "}
-                              Node
+                              {metric.name ? metric.name : ''}
                             </Statistic.Value>
                             <Statistic.Label>{metric.wallet}</Statistic.Label>
                           </Statistic>
