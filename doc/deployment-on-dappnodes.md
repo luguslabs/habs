@@ -120,6 +120,20 @@ You can go now to the logs tab of the package to check logs start and retrieve y
   http://my.dappnode/#/packages/archipel-ui.public.dappnode.eth/logs
 
 
+## Check Archipel Node Status
+
+- You can check [Archipel DAppnodePackage logs](#check-archipel-dappnode-package-logs)
+- Access [Archipel UI](https://github.com/luguslabs/archipel/tree/master/ui). More details in [UI README](https://github.com/luguslabs/archipel/tree/master/ui#archipel-ui)
+- Access [ public Polkadot Telemetry](https://telemetry.polkadot.io/) or [Private Substrate Telemetry](https://github.com/luguslabs/DAppNodePackage-substrate-telemetry) deploy by yourself.
+
+## Restart a Archipel Package Node
+
+- Connect to you DAppNode interface: http://my.dappnode/
+- Go to package tab http://my.dappnode/#/packages
+- Click on Archipel Package  
+- Click on Controls tab:http://my.dappnode/#/packages/archipel.public.dappnode.eth/controls
+- click restart.
+
 ## Overwrite default Archipel DAppNode Package Config
 
 To show how to overwrite a config variable, we will take the example of the `POLKADOT_TELEMETRY_URL` env variable. By default, this env variable is empty, so you must see your node in the official telemetry URL : telemetry.polkadot.io/ when the orchestrator starts the Polkadot service.
@@ -130,19 +144,5 @@ If you set up a private telemetry instance, you may prefer to target this one. T
 
 Often, the only variables from the full [env list here](https://github.com/luguslabs/DAppNodePackage-archipel#without-config-file) you need to update are:  `POLKADOT_TELEMETRY_URL` and `ARCHIPEL_TELEMETRY_URL`.
 
-
-## Restart a Archipel Package Node
-
-- Connect to you DAppNode interface: http://my.dappnode/
-- Go to package tab http://my.dappnode/#/packages
-- Click on Archipel Package  
-- Click on Controls tab:http://my.dappnode/#/packages/archipel.public.dappnode.eth/controls
-- click restart.
-
-## Check Archipel Node Status
-
-- You can check [Archipel DAppnodePackage logs](#check-archipel-dappnode-package-logs)
-- Access [Archipel UI](https://github.com/luguslabs/archipel/tree/master/ui)
-- Access [ public Polkadot Telemetry](https://telemetry.polkadot.io/) or [Private Substrate Telemetry](https://github.com/luguslabs/DAppNodePackage-substrate-telemetry) deploy by yourself.
 
 
