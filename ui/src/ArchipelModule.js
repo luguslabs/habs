@@ -147,7 +147,7 @@ function Main(props) {
                               {metric.wallet === data.leader
                                 ? "Active "
                                 : "Passive "}
-                              Node {index + 1}
+                              Node
                             </Statistic.Value>
                             <Statistic.Label>{metric.wallet}</Statistic.Label>
                           </Statistic>
@@ -158,7 +158,7 @@ function Main(props) {
                               <Icon name="heartbeat" />{" "}
                               <TimeAgo date={parseInt(metric.timestamp)} />
                             </Statistic.Value>
-                            <Statistic.Label>Heartbeat</Statistic.Label>
+                            <Statistic.Label>Last Heartbeat</Statistic.Label>
                           </Statistic>
                         </Grid.Column>
                         <Grid.Column className="two wide">
@@ -188,10 +188,10 @@ function Main(props) {
                     {data ? (
                       <Label color="green" ribbon>
                         <Icon name="disk" />
-                        Archipel Node Administration
+                        Node Administration
                       </Label>
                     ) : (
-                      "Archipel Node Administration"
+                      "Node Administration"
                     )}
                   </Table.HeaderCell>
                   <Table.HeaderCell></Table.HeaderCell>
@@ -199,7 +199,7 @@ function Main(props) {
               </Table.Header>
               <Table.Body>
                 <Table.Row>
-                  <Table.Cell>Orchestrator</Table.Cell>
+                  <Table.Cell>Orchestration</Table.Cell>
                   <Table.Cell>
                     {data ? (
                       <Radio
@@ -220,7 +220,7 @@ function Main(props) {
                   </Table.Cell>
                 </Table.Row>
                 <Table.Row>
-                  <Table.Cell>Heartbeat Ping</Table.Cell>
+                  <Table.Cell>Heartbeat Send</Table.Cell>
                   <Table.Cell>
                     {data ? (
                       <Radio
@@ -242,7 +242,7 @@ function Main(props) {
                   </Table.Cell>
                 </Table.Row>
                 <Table.Row key="5">
-                  <Table.Cell>Heartbeat Status</Table.Cell>
+                  <Table.Cell>Heartbeat By Algorithm</Table.Cell>
                   <Table.Cell>
                     {data ? (
                       JSON.stringify(data.metricSendEnabled) === "true" ? (
@@ -254,7 +254,17 @@ function Main(props) {
                   </Table.Cell>
                 </Table.Row>
                 <Table.Row>
-                  <Table.Cell>Archipel chain Connected</Table.Cell>
+                  <Table.Cell>Current Node Address</Table.Cell>
+                  <Table.Cell>
+                    {data ? data.orchestratorAddress : ""}
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Leader Node Address</Table.Cell>
+                  <Table.Cell>{data ? data.leader : ""}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Connected To Chain</Table.Cell>
                   <Table.Cell>
                     {data ? (
                       JSON.stringify(data.isConnected) === "true" ? (
@@ -266,24 +276,10 @@ function Main(props) {
                   </Table.Cell>
                 </Table.Row>
                 <Table.Row>
-                  <Table.Cell>Archipel Leader Node Address</Table.Cell>
-                  <Table.Cell>{data ? data.leader : ""}</Table.Cell>
-                </Table.Row>
-                <Table.Row>
-                  <Table.Cell>Archipel Node Address</Table.Cell>
-                  <Table.Cell>
-                    {data ? data.orchestratorAddress : ""}
-                  </Table.Cell>
-                </Table.Row>
-                <Table.Row>
-                  <Table.Cell>Archipel Peer Id</Table.Cell>
-                  <Table.Cell>{data ? data.peerId : ""}</Table.Cell>
-                </Table.Row>
-                <Table.Row>
-                  <Table.Cell>Archipel Synch State</Table.Cell>
+                  <Table.Cell>Synch State</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      JSON.stringify(data.synchState) === "true" ? (
+                      JSON.stringify(data.synchState) === "false" ? (
                         <Icon name="checkmark" />
                       ) : (
                         <Icon name="sync" />
@@ -292,7 +288,11 @@ function Main(props) {
                   </Table.Cell>
                 </Table.Row>
                 <Table.Row>
-                  <Table.Cell>Archipel Peer Number</Table.Cell>
+                  <Table.Cell>Peer Id</Table.Cell>
+                  <Table.Cell>{data ? data.peerId : ""}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>Peer Number</Table.Cell>
                   <Table.Cell>{data ? data.peerNumber : ""}</Table.Cell>
                 </Table.Row>
               </Table.Body>
@@ -305,7 +305,14 @@ function Main(props) {
               <Table.Header>
                 <Table.Row>
                   <Table.HeaderCell>
-                    Service Node Administration
+                  {data ? (
+                      <Label color="green" ribbon>
+                        <Icon name="disk" />
+                        Service Administration
+                      </Label>
+                    ) : (
+                      "Service Administration"
+                    )}
                   </Table.HeaderCell>
                   <Table.HeaderCell>
                     {data &&
