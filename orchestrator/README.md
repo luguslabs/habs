@@ -16,6 +16,8 @@ MNEMONIC='mushroom ladder...'
 ALIVE_TIME=60000
 SERVICE='polkadot'
 SUSPEND_SERVICE=false
+NODES_WALLETS='5FLaEvGea8M8qExr3owNQ...,5ETsP7Fd8wVVkHLM...,5HHW1oLjpJ3jrD86EG8PWw1peWWFbz...'
+ARCHIPEL_NAME='archipel-test'
 
 # Polkadot Validator Variables
 POLKADOT_NAME='validator1'

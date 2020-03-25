@@ -45,16 +45,30 @@ if [ ! -z "$CONFIG_FILE" ]; then
     fi
 
     #set variables from config file
+    #get ARCHIPEL_KEY_SEED
     if [ -z "$ARCHIPEL_KEY_SEED" ]; then
         ARCHIPEL_KEY_SEED=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].seed" | sed 's/\"//g')
         #check result and if config was extracted successfully
         check_cmd $? 'retrieve ARCHIPEL_KEY_SEED'
         check_result "$ARCHIPEL_KEY_SEED" 'ARCHIPEL_KEY_SEED'
     fi
+    #get SERVICE
     if [ -z "$SERVICE" ]; then
         export SERVICE=$(cat /config/config.json | jq ".service.name" | sed 's/\"//g')
         check_cmd $? 'retrieve SERVICE'
         check_result "$SERVICE" 'SERVICE'
+    fi
+    #get ARCHIPEL_AUTHORITIES_SR25519_LIST
+    if [ -z "$ARCHIPEL_AUTHORITIES_SR25519_LIST" ]; then
+        ARCHIPEL_AUTHORITIES_SR25519_LIST=$(cat /config/config.json | jq ".archipelSr25519List" | sed 's/\"//g')
+        check_cmd $? 'retrieve ARCHIPEL_AUTHORITIES_SR25519_LIST'
+        check_result $ARCHIPEL_AUTHORITIES_SR25519_LIST 'ARCHIPEL_AUTHORITIES_SR25519_LIST'
+    fi
+    #get ARCHIPEL_NAME
+    if [ -z "$ARCHIPEL_NAME" ]; then
+        ARCHIPEL_NAME=$(cat /config/config.json | jq ".name" | sed 's/\"//g')
+        check_cmd $? 'retrieve ARCHIPEL_NAME'
+        check_result $ARCHIPEL_NAME 'ARCHIPEL_NAME'
     fi
 
 fi
@@ -63,9 +77,10 @@ fi
 export NODE_ENV=production
 export NODE_WS="ws://127.0.0.1:9944"
 export MNEMONIC="$ARCHIPEL_KEY_SEED"
+export NODES_WALLETS="$ARCHIPEL_AUTHORITIES_SR25519_LIST"
+export ARCHIPEL_NAME="$ARCHIPEL_NAME"
 export ALIVE_TIME=60000
 export SUSPEND_SERVICE="$ARCHIPEL_SUSPEND_SERVICE"
-
 
 # Generate env file in shared volume for Archipel UI to auto-detect the local API endpoint
 ARCHIPEL_CONTAINER_IP=$(awk 'END{print $1}' /etc/hosts)

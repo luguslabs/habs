@@ -6,7 +6,8 @@ const { Chain } = require('./chain');
 const { Metrics } = require('./metrics');
 const {
   catchExitSignals,
-  checkVariable
+  checkVariable,
+  constructNodesList
 } = require('./utils');
 const { Orchestrator } = require('./orchestrator');
 const {
@@ -20,7 +21,9 @@ const {
   MNEMONIC,
   ALIVE_TIME,
   SERVICE,
-  SUSPEND_SERVICE
+  SUSPEND_SERVICE,
+  NODES_WALLETS,
+  ARCHIPEL_NAME
 } = process.env;
 
 // Check if all necessary env vars were set
@@ -30,6 +33,8 @@ const checkEnvVars = () => {
     checkVariable(MNEMONIC, 'MNEMONIC');
     checkVariable(ALIVE_TIME, 'ALIVE_TIME');
     checkVariable(SERVICE, 'SERVICE');
+    checkVariable(ARCHIPEL_NAME, 'ARCHIPEL_NAME');
+    checkVariable(NODES_WALLETS, 'NODES_WALLETS');
   } catch (error) {
     debug('checkEnvVars', error);
     throw error;
@@ -47,11 +52,14 @@ async function main () {
     const chain = new Chain(NODE_WS);
     await chain.connect();
 
+    // Construct nodes list
+    const nodes = constructNodesList(NODES_WALLETS, ARCHIPEL_NAME);
+
     // Create Metrics instance
-    const metrics = new Metrics();
+    const metrics = new Metrics(nodes);
 
     // Create orchestrator instance
-    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME);
+    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME, ARCHIPEL_NAME);
 
     // If orchestrator is launched in suspend service mode disabling metrics send and orchestration
     if (SUSPEND_SERVICE.includes('true')) {
