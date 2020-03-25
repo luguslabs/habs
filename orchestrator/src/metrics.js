@@ -41,7 +41,11 @@ class Metrics {
         timestamp: value.timestamp
       });
     });
-    return result;
+    
+    // Return sorted result by wallet
+    return result.sort((el1, el2) => {
+      return el1.wallet.toString().localeCompare(el2.wallet.toString());
+    });
   }
 
   // Get metrics of a node
