@@ -86,7 +86,7 @@ If you do not want to wait to be synch you can still install with direct IPFS li
   <img src=./images/deployment-on-dappnodes-install.png width = 800>
 </p>
 
-- You must upload the ZIP config. ZIP from the [Prerequiste config](#Prerequiste) step.
+- You must upload the ZIP config. ZIP from the [Prerequiste config](#prerequisite) step.
 - You must valorize 2 [Environment Variables](https://github.com/luguslabs/DAppNodePackage-archipel#with-config-file) :
   - `CONFIG_FILE_PASSWORD` : if zip config has been crypted.
   - `NODE_ID`: select archipel instance  you want to launch : 1 or 2 or 3 :
