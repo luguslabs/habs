@@ -133,7 +133,7 @@ function Main(props) {
                   <Segment raised>
                     <Grid columns={4}>
                       <Grid.Row>
-                        <Grid.Column className="one wide">
+                        <Grid.Column className="two wide">
                           {data.orchestratorAddress === metric.wallet ? (
                             <Label color="green" ribbon>
                               <Icon name="disk" />
@@ -141,8 +141,8 @@ function Main(props) {
                             </Label>
                           ) : null}
                         </Grid.Column>
-                        <Grid.Column className="seven wide center aligned">
-                          <Statistic vertical size="small">
+                        <Grid.Column className="six wide center aligned">
+                          <Statistic vertical size="tiny">
                             <Statistic.Value>
                               {metric.wallet === data.leader
                                 ? "Active "
@@ -152,8 +152,8 @@ function Main(props) {
                             <Statistic.Label>{metric.wallet}</Statistic.Label>
                           </Statistic>
                         </Grid.Column>
-                        <Grid.Column className="seven wide center aligned">
-                          <Statistic vertical size="small">
+                        <Grid.Column className="six wide center aligned">
+                          <Statistic vertical size="tiny">
                             <Statistic.Value>
                               <Icon name="heartbeat" />{" "}
                               <TimeAgo date={parseInt(metric.timestamp)} />
@@ -161,14 +161,14 @@ function Main(props) {
                             <Statistic.Label>Heartbeat</Statistic.Label>
                           </Statistic>
                         </Grid.Column>
-                        <Grid.Column className="one wide">
+                        <Grid.Column className="two wide">
                           {metric.wallet === data.leader ? (
-                            <Label color="orange" ribbon="right">
-                              <Icon name="winner" />
+                            <Label color="orange" ribbon="right" size="large">
+                              <Icon name="winner" /> Active
                             </Label>
                           ) : (
-                            <Label color="grey" ribbon="right">
-                              <Icon name="bed" />
+                            <Label color="grey" ribbon="right" size="large">
+                              <Icon name="bed" /> Passive
                             </Label>
                           )}
                         </Grid.Column>
