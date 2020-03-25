@@ -1,9 +1,9 @@
 # Archipel Keys initialization 
 
 
-**Archipel keys are now automatically generate by [archipel CLI](https://github.com/luguslabs/archipel/tree/master/cli). You do not need anymmore to generate them mannualy.
+**Archipel keys are now automatically generate by [archipel CLI](https://github.com/luguslabs/archipel/tree/master/cli). You do not need anymmore to generate them manually.
 They are all generate with archipel CLI.
-The following doc explaining how to generate env variable and Archipel keys work s is only on educational purpose for curious developers.**
+The following doc explaining how to generate them and how Archipel keys works is on educational purpose only for curious developers.**
 
 By archipel keys, we means all keys needed for node identities in the federation and use for authoring blocks and chain consensus, transactions propagation of runtime functions calls. 
 The only keys that you need to generate are for your external service. For the first supported external service polkadot, you have to generate [Polkadot sessions keys](https://github.com/luguslabs/archipel/blob/master/doc/polkadot-keys-initialization.md#polkadot-keys) for the validator service to operate properly.
