@@ -58,6 +58,14 @@ CONFIG_FILE_PASSWORD='your_password'
   * **WARNING!!!** Each node must have unique NODE_ID! If not Archipel federation will not boot or will be broken.
 * **CONFIG_FILE_PASSWORD** must contain password provided to **Archipel CLI** in **Step 2**.
 
+**Environment variables**
+
+| Variable | Description | Values |
+|----------|-------------|--------|
+| `CONFIG_FILE` | Try to load configuration from configuration archive or not. | boolean |
+| `CONFIG_FILE_PASSWORD` | Configuration archive can be protected by a password. | string |
+| `NODE_ID` | Every configuration archive contains configuration of multiple nodes.<br> You must select node number. | integer |
+
 ### Step 5: Boot and enjoy
 
 #### On each machine
@@ -115,3 +123,57 @@ docker-compose up -d
 - Check if one of nodes is in active mode
 
 **Congratulations! Your first Archipel federation is working!**
+
+# For Ninjas - Archipel Deployment without config file
+
+## Process
+```
+# Create an .env file
+cat <<EOF >.env
+ARCHIPEL_NODE_ALIAS=archipel1
+ARCHIPEL_LISTEN_PORT=30334 
+ARCHIPEL_KEY_SEED=mushroom ladder ...
+ARCHIPEL_NODE_KEY_FILE=
+ARCHIPEL_RESERVED_PEERS=
+ARCHIPEL_SUSPEND_SERVICE=false
+ARCHIPEL_NAME=test-archipel
+ARCHIPEL_AUTHORITIES_SR25519_LIST=5FmqMTG...
+ARCHIPEL_AUTHORITIES_ED25519_LIST=5FbQNUq...
+SERVICE=polkadot
+POLKADOT_NAME=test-name
+POLKADOT_PREFIX=node-
+POLKADOT_IMAGE=parity/polkadot:latest
+POLKADOT_KEY_GRAN=april shift ...
+POLKADOT_KEY_BABE=region run ...
+POLKADOT_KEY_IMON=screen sustain ...
+POLKADOT_KEY_PARA=produce hover ...
+POLKADOT_KEY_AUDI=oak tail ...
+POLKADOT_RESERVED_NODES=
+POLKADOT_TELEMETRY_URL=
+POLKADOT_NODE_KEY_FILE=
+POLKADOT_SIMULATE_SYNCH=true
+# WireGuard config
+WIREGUARD_PRIVATE_KEY=SJWzBT8....
+WIREGUARD_ADDRESS=10.0.1.1/32
+WIREGUARD_LISTEN_PORT=51820
+WIREGUARD_PEERS_PUB_ADDR=9dcIYKj...,xg3wSS+...,gMjvfQGXWYJ...
+WIREGUARD_PEERS_ALLOWED_IP=10.0.1.1/32,10.0.1.2/32,10.0.1.3/32
+WIREGUARD_PEERS_EXTERNAL_ADDR=<public_ip>:51820,<public_ip>:51820,<public_ip>:51820
+EOF
+
+# Creating docker volumes
+docker volume create archipel
+docker volume create archipel_service
+
+# Launch docker container
+docker run -d --name "archipel" \
+  --cap-add net_admin --cap-add sys_module \
+  -p 51820:51820 \
+  -v archipel:/root/chain/data \
+  -v archipel_service:/service \
+  --env-file .env \
+  luguslabs/archipel:latest
+```
+
+## Environment Variables Information
+- [DAppNode Package Archipel Environment Variables](https://github.com/luguslabs/DAppNodePackage-archipel#without-config-file)
