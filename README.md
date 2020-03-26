@@ -89,7 +89,7 @@ Archipel CLI is a component that generates configuration and bootstraps an Archi
 
 The Archipel UI visualizes the federation state.
 
-- [Archipel UI]((https://github.com/luguslabs/archipel/tree/master/ui))
+- [Archipel UI](https://github.com/luguslabs/archipel/tree/master/ui)
 
 ## DAppNode Package
 
