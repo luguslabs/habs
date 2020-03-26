@@ -259,10 +259,15 @@ then
 fi
 
 ARCHIPEL_TELEMETRY_URL_CMD="--no-telemetry"
-if [ ! -z "$ARCHIPEL_TELEMETRY_URL" ]
+if [ ! -z "$ARCHIPEL_TELEMETRY_URL" ] && [ ! "--no-telemetry" == "$ARCHIPEL_TELEMETRY_URL" ]
 then
-      ARCHIPEL_TELEMETRY_URL_CMD="--telemetry-url $ARCHIPEL_TELEMETRY_URL"
+      ARCHIPEL_TELEMETRY_URL_CMD=""
+      for ITEM in $(echo $ARCHIPEL_TELEMETRY_URL |  tr "," " ")
+      do
+            ARCHIPEL_TELEMETRY_URL_CMD="$ARCHIPEL_TELEMETRY_URL_CMD --telemetry-url $ITEM"
+      done
 fi
+echo "ARCHIPEL_TELEMETRY_URL_CMD: $ARCHIPEL_TELEMETRY_URL_CMD"
 
 # generate raw spec file 
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json
