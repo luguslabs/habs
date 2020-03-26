@@ -56,9 +56,9 @@ const checkVariable = (value, name) => {
   }
 };
 
-const formatReservedNodesList = (inputList) => {
+const formatOptionList = (option, inputList) => {
   return inputList.split(',').reduce((resultArray, item) => {
-    resultArray.push('--reserved-nodes');
+    resultArray.push(option);
     resultArray.push(item);
     return resultArray;
   }, []);
@@ -85,6 +85,6 @@ module.exports = {
   isEmptyString,
   readToObj,
   checkVariable,
-  formatReservedNodesList,
+  formatOptionList,
   constructNodesList
 };

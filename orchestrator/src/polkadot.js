@@ -11,7 +11,7 @@ const {
   isEmptyString,
   readToObj,
   checkVariable,
-  formatReservedNodesList
+  formatOptionList
 } = require('./utils');
 
 const config = {};
@@ -407,7 +407,7 @@ class Polkadot {
 
     // Adding reserved nodes
     if (!isEmptyString(config.polkadotReservedNodes)) {
-      this.commonPolkadotOptions.push(...formatReservedNodesList(config.polkadotReservedNodes));
+      this.commonPolkadotOptions.push(...formatOptionList('--reserved-nodes', config.polkadotReservedNodes));
     }
 
     // Adding telemetry Url
@@ -415,7 +415,7 @@ class Polkadot {
       if (config.polkadotTelemetryUrl === '--no-telemetry') {
         this.commonPolkadotOptions.push('--no-telemetry');
       } else {
-        this.commonPolkadotOptions.push(...['--telemetry-url', config.polkadotTelemetryUrl]);
+        this.commonPolkadotOptions.push(...formatOptionList('--telemetry-url', config.polkadotTelemetryUrl));
       }
     }
 

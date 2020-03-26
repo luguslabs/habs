@@ -5,7 +5,7 @@ const router = express.Router();
 // Disable orchestration function
 const disableOrchestration = async orchestrator => {
   if (orchestrator.orchestrationEnabled) {
-    console.log('[API] Disabling orchestration...')
+    console.log('[API] Disabling orchestration...');
     orchestrator.orchestrationEnabled = false;
     console.log('[API] Waiting 5 sec to be sure that last orchestration cycle ended...');
     await new Promise(resolve => setTimeout(resolve, 5000));
