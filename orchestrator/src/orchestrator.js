@@ -84,6 +84,13 @@ class Orchestrator {
         return;
       }
 
+      // If metrics are disabled enforcing passive service mode
+      if (!this.chain.metricSendEnabled || !this.chain.metricSendEnabledAdmin) {
+        console.log('Metric send is disabled. Enforcing passive service mode...');
+        await this.serviceStart('passive');
+        return;
+      }
+
       // Check node leadership
       console.log('Checking node leadership...');
       const leadership = await this.leadershipManagement(nodeKey);
