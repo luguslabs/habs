@@ -63,12 +63,14 @@ In some hardware, you have to deactivate secure boot in BIOS for wireguard to wo
   - For security reason, we advise to deactivate UPnP IGD service.
   - Add your dappnode equipment to a fix DHCP address.
   - In NAT/PAT tab, open UDP wireguard port 51820 on your equipment.
+  
 | Service | Port | Type |
-|---|---|---|---|
+|---------|------|------|
 | WIREGUARD | 51820 | UDP | 
-  - For information you need thoses others port open in order for your DAppNode to operate properly. If you use DAppNode device VPN feature, you will need to open also the 1194 UDP port.
+  - For information you need thoses others port to be open in order for your DAppNode to operate properly. If you use DAppNode device VPN feature, you will need to open also the 1194 UDP port.
+  
 | Service | Port | Type |
-|---|---|---|---|
+|---------|------|------|
 | VPN | 1194 | UDP | 
 | ETH | 30303 | UDP |
 | ETH | 30303 | TCP |  
