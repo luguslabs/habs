@@ -11,7 +11,8 @@ const {
   isEmptyString,
   readToObj,
   checkVariable,
-  formatOptionList
+  formatOptionList,
+  formatOptionCmds
 } = require('./utils');
 
 const config = {};
@@ -33,6 +34,7 @@ class Polkadot {
       config.polkadotReservedNodes = process.env.POLKADOT_RESERVED_NODES;
       config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
       config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
+      config.polkadotAdditionalOptions = process.env.POLKADOT_ADDITIONAL_OPTIONS;
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
       config.polkadotRpcPort = '9993';
@@ -387,16 +389,16 @@ class Polkadot {
       '--pruning=archive',
       '--wasm-execution',
       'Compiled',
-      '--grandpa-pause',
-      '0',
-      '0',
-      '--db-cache',
-      '512',
       '--rpc-cors',
       'http://localhost',
       '--rpc-port',
       config.polkadotRpcPort
     ];
+
+    // Adding additional Polkadot Option Commands
+    if (!isEmptyString(config.polkadotAdditionalOptions)) {
+      this.commonPolkadotOptions.push(...formatOptionCmds(config.polkadotAdditionalOptions));
+    }
 
     // If polkadotNodeKeyFile variable is set
     // And service directory exists use node key file
