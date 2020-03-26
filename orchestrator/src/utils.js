@@ -64,6 +64,16 @@ const formatOptionList = (option, inputList) => {
   }, []);
 };
 
+const formatOptionCmds = inputCmds => {
+  if(inputCmds.split(' ').length == 1){
+    return [inputCmds];
+  }
+  return inputCmds.split(' ').reduce((resultArray, item) => {
+    resultArray.push(item);
+    return resultArray;
+  }, []);
+};
+
 const constructNodesList = (nodesWallets, archipelName) => {
   const result = [];
   if (!isEmptyString(nodesWallets) && !isEmptyString(archipelName)) {
@@ -86,5 +96,6 @@ module.exports = {
   readToObj,
   checkVariable,
   formatOptionList,
+  formatOptionCmds,
   constructNodesList
 };
