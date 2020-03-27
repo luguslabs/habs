@@ -2,7 +2,7 @@ const debug = require('debug')('metrics');
 
 // Metrics class to simplify metrics management
 class Metrics {
-  constructor (nodes) {
+  constructor (nodes = []) {
     this.metrics = new Map();
     this.nodes = nodes;
   }
