@@ -38,7 +38,7 @@ The execution of **[launch.sh](../deployer/test/launch.sh)** script will generat
  <img src=./images/archipel-launch-ui.png width = 465>
 </p>
 
-Archipel UI will be available at http://172.28.42.5/
+Archipel UI will be available at http://172.28.42.5/ on container and http://localhost:3000 on host.
 
 
 <p align="center">
@@ -52,15 +52,15 @@ It also gives you ability to manipulate orchestrator:
  * **disable/enable metrics send**
  * **stop/start service container**
 
-If you don't see any metrics or master elected, please wait a little bit!
+If you don't see any metrics or master elected, **please wait a little bit!**
 
 By default the Archipel UI uses Archipel Node 1 API endpoint. You can change API endpoint in order to see other nodes state.
 
-| Node | Endpoint |
-| ---- | -------- |
-| Node 1 | http://172.28.42.2:3000 |
-| Node 2 | http://172.28.42.3:3000 |
-| Node 3 | http://172.28.42.4:3000 |
+| Node | API Endpoint Container | API Endpoint on host
+| ---- | -----------------------| --------------------
+| Node 1 | http://172.28.42.2:3000 | http://localhost:3001
+| Node 2 | http://172.28.42.3:3000 | http://localhost:3002
+| Node 3 | http://172.28.42.4:3000 | http://localhost:3003
 
 **Example** 
 
@@ -85,7 +85,7 @@ You must see multiple containers launched:
   - 2 Sentry Nodes: node2-polkadot-sync, node3-polkadot-sync
 
 ### 2.3 Check Polkadot Kusama Telemetry
-https://telemetry.polkadot.io/#/Kusama%20CC3
+https://telemetry.polkadot.io/#/Kusama
 
 - You must see 3 archipel nodes running
   - test-archipel-node-1-{active or passive}
@@ -133,10 +133,10 @@ docker ps
 
 **Archipel UI**
 
-Available at: http://172.28.42.5/
+Archipel UI http://172.28.42.5/ available at: http://localhost:3000/
 
-The Node 1 API endpoint is not available cause we stopped it. So you must change the API endpoint. 
-You can use: **http://172.28.42.3:3000**
+The Node 1 API endpoint is not available cause we stopped it. **So you must change the API endpoint**. 
+You can use Node 2 API : **http://172.28.42.3:3000** at **http://localhost:3002**
 
 <p align="center">
  <img src=./images/archipel-ui-3.png width = 1000>
@@ -144,7 +144,7 @@ You can use: **http://172.28.42.3:3000**
 
 **Telemetry**
 
-https://telemetry.polkadot.io/#/Kusama%20CC3
+https://telemetry.polkadot.io/#/Kusama
 <p align="center">
  <img src=./images/archipel-testing-telemetry-2.png width = 1000>
 </p>

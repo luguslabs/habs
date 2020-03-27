@@ -23,7 +23,6 @@ import { useLocalStorage } from "@rehooks/local-storage";
 
 function Main(props) {
   const defaultUrl = props.defaultUrl;
-  const URL_REGEXP = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/i;
   const [urlSorage, setUrlStorage, clearUrlStorage] = useLocalStorage("url");
   const [url, setUrl] = useState(urlSorage ? urlSorage : defaultUrl);
 
@@ -81,7 +80,7 @@ function Main(props) {
                           <Controller
                             as={Input}
                             name="urlInput"
-                            rules={{ required: true, pattern: URL_REGEXP }}
+                            rules={{ required: true }}
                             control={control}
                             defaultValue={url}
                           />
@@ -103,7 +102,7 @@ function Main(props) {
                           error
                           content={
                             formErrors.urlInput
-                              ? "Wrong URL format"
+                              ? "API Endpoint required"
                               : fetchError.toString()
                           }
                         />
