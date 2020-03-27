@@ -5,7 +5,7 @@ const { Metrics } = require('../metrics');
 test('Test metrics addition', () => {
   const metrics = new Metrics();
   metrics.addMetrics('wallet1', 42, 1500);
-  expect(metrics.getMetrics('wallet1')).toStrictEqual({ metrics: 42, timestamp: 1500 });
+  expect(metrics.getMetrics('wallet1')).toStrictEqual({ metrics: 42, name: '', timestamp: 1500 });
 });
 
 test('Test anyone is alive no wallets', () => {
