@@ -13,7 +13,9 @@ import {
   Message,
   Radio,
   Label,
-  Loader
+  Loader,
+  Popup,
+  Confirm
 } from "semantic-ui-react";
 import TimeAgo from "react-timeago";
 import useSWR from "swr";
@@ -26,6 +28,14 @@ function Main(props) {
   const defaultUrl = props.defaultUrl;
   const [urlSorage, setUrlStorage, clearUrlStorage] = useLocalStorage("url");
   const [url, setUrl] = useState(urlSorage ? urlSorage : defaultUrl);
+  const [warningOrchestratorPopup, setWarningOrchestratorPopup] = useState(
+    false
+  );
+  const [warningHeartbeatPopup, setWarningHeartbeatPopup] = useState(false);
+  const [
+    warningStopServiceContainer,
+    setWarningStopServiceContainer
+  ] = useState(false);
 
   //fetch API with useSWR
   const { data, revalidate, error: fetchError } = useSWR(url, fetch, {
@@ -139,9 +149,9 @@ function Main(props) {
                   <Grid.Row>
                     <Grid.Column className="two wide"></Grid.Column>
                     <Grid.Column className="twelve wide center aligned">
-                       <Loader as="h2" active inline indeterminate>
-                            Fetching Archipel Metrics. Please wait...
-                        </Loader>
+                      <Loader as="h2" active inline indeterminate>
+                        Fetching Archipel Metrics. Please wait...
+                      </Loader>
                     </Grid.Column>
                     <Grid.Column className="two wide"></Grid.Column>
                   </Grid.Row>
@@ -223,20 +233,46 @@ function Main(props) {
                   <Table.Cell>Orchestration</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      <Radio
-                        onClick={async () => {
-                          const action =
-                            JSON.stringify(data.orchestrationEnabled) === "true"
-                              ? "/orchestration/disable"
-                              : "/orchestration/enable";
-                          await fetch(encodeURI(url + action));
-                          revalidate();
-                        }}
-                        toggle
-                        checked={
-                          JSON.stringify(data.orchestrationEnabled) === "true"
-                        }
-                      />
+                      JSON.stringify(data.orchestrationEnabled) === "false" ? (
+                        <Radio
+                          onClick={async () => {
+                            await fetch(
+                              encodeURI(url + "/orchestration/enable")
+                            );
+                            revalidate();
+                          }}
+                          toggle
+                          checked={false}
+                        />
+                      ) : (
+                        <div>
+                          <Radio
+                            toggle
+                            checked={true}
+                            onClick={async () => {
+                              setWarningOrchestratorPopup(true);
+                            }}
+                          />
+                          <Confirm
+                            open={warningOrchestratorPopup}
+                            header="Dangerous Action"
+                            content="Deactivate orchestration can lead to unstable Archipel High Availability state. Are you sure to deactivate it?"
+                            cancelButton="No, I'am just a deckhand"
+                            confirmButton="Yes! I'am corsair"
+                            onConfirm={async () => {
+                              await fetch(
+                                encodeURI(url + "/orchestration/disable")
+                              );
+                              setWarningOrchestratorPopup(false);
+                              revalidate();
+                            }}
+                            onCancel={async () => {
+                              setWarningOrchestratorPopup(false);
+                              revalidate();
+                            }}
+                          />
+                        </div>
+                      )
                     ) : null}
                   </Table.Cell>
                 </Table.Row>
@@ -244,21 +280,43 @@ function Main(props) {
                   <Table.Cell>Heartbeat Send</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      <Radio
-                        onClick={async () => {
-                          const action =
-                            JSON.stringify(data.metricSendEnabledAdmin) ===
-                            "true"
-                              ? "/metrics/disable"
-                              : "/metrics/enable";
-                          await fetch(encodeURI(url + action));
-                          revalidate();
-                        }}
-                        toggle
-                        checked={
-                          JSON.stringify(data.metricSendEnabledAdmin) === "true"
-                        }
-                      />
+                      JSON.stringify(data.metricSendEnabledAdmin) ===
+                      "false" ? (
+                        <Radio
+                          onClick={async () => {
+                            await fetch(encodeURI(url + "/metrics/enable"));
+                            revalidate();
+                          }}
+                          toggle
+                          checked={false}
+                        />
+                      ) : (
+                        <div>
+                          <Radio
+                            toggle
+                            checked={true}
+                            onClick={async () => {
+                              setWarningHeartbeatPopup(true);
+                            }}
+                          />
+                          <Confirm
+                            open={warningHeartbeatPopup}
+                            header="Dangerous Action"
+                            content="Deactivate heartbeat can lead to unstable Archipel High Availability state. Are you sure to deactivate it?"
+                            cancelButton="No, I'am just a deckhand"
+                            confirmButton="Yes! I'am corsair"
+                            onConfirm={async () => {
+                              await fetch(encodeURI(url + "/metrics/disable"));
+                              setWarningHeartbeatPopup(false);
+                              revalidate();
+                            }}
+                            onCancel={async () => {
+                              setWarningHeartbeatPopup(false);
+                              revalidate();
+                            }}
+                          />
+                        </div>
+                      )
                     ) : null}
                   </Table.Cell>
                 </Table.Row>
@@ -339,28 +397,37 @@ function Main(props) {
                     {data &&
                     (data.serviceContainer === "active" ||
                       data.serviceContainer === "passive") ? (
-                      <Button
-                        onClick={async () => {
-                          let action = "/service/stop";
-                          await fetch(encodeURI(url + action));
-                          revalidate();
-                        }}
-                      >
-                        Stop Service Container
-                      </Button>
+                      <div>
+                        <Button
+                          onClick={async () => {
+                            setWarningStopServiceContainer(true);
+                          }}
+                        >
+                          Stop Service Container
+                        </Button>
+                        <Confirm
+                          open={warningStopServiceContainer}
+                          header="Dangerous Action"
+                          content="Stopping Service container can lead to unstable Archipel High Availability state. Are you sure to stop it?"
+                          cancelButton="No, I'am just a deckhand"
+                          confirmButton="Yes! I'am corsair"
+                          onConfirm={async () => {
+                            await fetch(encodeURI(url + "/service/stop"));
+                            setWarningStopServiceContainer(false);
+                            revalidate();
+                          }}
+                          onCancel={async () => {
+                            setWarningStopServiceContainer(false);
+                            revalidate();
+                          }}
+                        />
+                      </div>
                     ) : null}
                     {data &&
                     !postLoading &&
                     data.serviceContainer === "none" ? (
                       <div>
-                        <Button
-                          onClick={async () => {
-                            await executeServiceStart({
-                              data: { mode: "active" }
-                            });
-                            revalidate();
-                          }}
-                        >
+                        <Button onClick={async () => {}}>
                           Start Active Service Container
                         </Button>
                         <Button
