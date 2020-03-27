@@ -15,6 +15,7 @@ function launch_archipel () {
     -v $1:/root/chain/data \
     -v $1_service:/service \
     -v $SCRIPTPATH/chain/keys:/config \
+    -p ${17}:3000 \
     --network archipel \
     --ip "$6" \
     --cap-add=NET_ADMIN \
@@ -134,6 +135,7 @@ launch_archipel "archipel1" \
                 "$WIREGUARD_PEERS_PUB_ADDR" \
                 "$WIREGUARD_PEERS_ALLOWED_IP" \
                 "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
+                3001 \
 
 launch_archipel "archipel2" \
                 "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
@@ -151,6 +153,7 @@ launch_archipel "archipel2" \
                 "$WIREGUARD_PEERS_PUB_ADDR" \
                 "$WIREGUARD_PEERS_ALLOWED_IP" \
                 "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
+                3002 \
 
 launch_archipel "archipel3" \
                 "borrow initial guard hunt corn trust student opera now economy thumb argue" \
@@ -168,21 +171,30 @@ launch_archipel "archipel3" \
                 "$WIREGUARD_PEERS_PUB_ADDR" \
                 "$WIREGUARD_PEERS_ALLOWED_IP" \
                 "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
+                3003 \
 
 echo "Launching UI..."
 
 ARCHIPEL_UI_IP="172.28.42.5"
 
 echo "Launching Archipel UI..."
-docker run -d --name "archipel-ui" \
+docker run -d -p 3000:80 --name "archipel-ui" \
            --network archipel \
            --ip "$ARCHIPEL_UI_IP" \
-           --env REACT_APP_API_URL="http://$NODE1_IP:3000" \
+           --env REACT_APP_API_URL="http://localhost:3001" \
            luguslabs/archipel-ui:$ARCHIPEL_VERSION
-
-echo "-------------------- [ARCHIPEL UI] ---------------------"
-echo "Archipel UI is avaliable at http://$ARCHIPEL_UI_IP/"
+echo "Archipel was launched..."
+echo "-------------------- [Dockers Containers List] ---------------------"
+docker ps
 echo "--------------------------------------------------------"
 
-echo "Archipel was launched..."
-docker ps
+echo "-------------------- [API Entpoints] ---------------------"
+echo "Archipel Node 1 API Endpoint http://$NODE1_IP:3000/ is available at http://localhost:3001/" 
+echo "Archipel Node 2 API Endpoint http://$NODE2_IP:3000/ is available at http://localhost:3002/" 
+echo "Archipel Node 3 API Endpoint http://$NODE3_IP:3000/ is available at http://localhost:3003/" 
+echo "--------------------------------------------------------"
+
+echo "-------------------- [ARCHIPEL UI] ---------------------"
+echo "Archipel UI http://$ARCHIPEL_UI_IP/ is available at http://localhost:3000/" 
+echo "--------------------------------------------------------"
+
