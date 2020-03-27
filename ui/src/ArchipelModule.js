@@ -12,7 +12,8 @@ import {
   Progress,
   Message,
   Radio,
-  Label
+  Label,
+  Loader
 } from "semantic-ui-react";
 import TimeAgo from "react-timeago";
 import useSWR from "swr";
@@ -63,7 +64,9 @@ function Main(props) {
           <Grid.Column>
             <Header as="h2">
               <Icon name="sitemap" />
-              <Header.Content>Archipel Dashboard{data ? ` - ${data.archipelName}` : ''}</Header.Content>
+              <Header.Content>
+                Archipel Dashboard{data ? ` - ${data.archipelName}` : ""}
+              </Header.Content>
             </Header>
           </Grid.Column>
         </Grid.Row>
@@ -125,6 +128,28 @@ function Main(props) {
             </Segment>
           </Grid.Column>
         </Grid.Row>
+        {data &&
+        data.status === "200" &&
+        data.metrics &&
+        data.metrics.length == 0 ? (
+          <Grid.Row>
+            <Grid.Column>
+              <Segment raised>
+                <Grid columns={3}>
+                  <Grid.Row>
+                    <Grid.Column className="two wide"></Grid.Column>
+                    <Grid.Column className="twelve wide center aligned">
+                       <Loader as="h2" active inline indeterminate>
+                            Fetching Archipel Metrics. Please wait...
+                        </Loader>
+                    </Grid.Column>
+                    <Grid.Column className="two wide"></Grid.Column>
+                  </Grid.Row>
+                </Grid>
+              </Segment>
+            </Grid.Column>
+          </Grid.Row>
+        ) : null}
         {data
           ? data.metrics.map((metric, index) => (
               <Grid.Row>
@@ -143,7 +168,7 @@ function Main(props) {
                         <Grid.Column className="six wide center aligned">
                           <Statistic vertical size="tiny">
                             <Statistic.Value>
-                              {metric.name ? metric.name : ''}
+                              {metric.name ? metric.name : ""}
                             </Statistic.Value>
                             <Statistic.Label>{metric.wallet}</Statistic.Label>
                           </Statistic>
@@ -301,7 +326,7 @@ function Main(props) {
               <Table.Header>
                 <Table.Row>
                   <Table.HeaderCell>
-                  {data ? (
+                    {data ? (
                       <Label color="green" ribbon>
                         <Icon name="disk" />
                         Service Administration
