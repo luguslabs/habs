@@ -48,7 +48,7 @@ All nodes inside a federation, run Archipel Chain. In the current implementation
 
 The idea is that in Archipel federation, all participants are trusted. They can be friends or family or other trusted social links. That allows us to have a fast chain consensus. 
 
-**More information on [chain/README.md](chain/README.md)**
+More information on [chain/README.md](chain/README.md)
 
 ## [Archipel Orchestrator](orchestrator/)
 
@@ -79,13 +79,13 @@ The Polkadot node can be launched in two modes:
 
 We are also planning to support other services.
 
-**More information on [orchestrator/README.md](orchestrator/README.md)**
+More information on [orchestrator/README.md](orchestrator/README.md)
 
 ## [Archipel CLI](cli/)
 
 Archipel CLI is a component that generates configuration and bootstraps an Archipel federation.
 
-**More information on [cli/README.md](cli/README.md)**
+More information on [cli/README.md](cli/README.md)
 
 ## [Archipel UI](ui/)
 
@@ -95,21 +95,21 @@ The Archipel UI to administrate and visualize the federation state :
  <img src=doc/images/archipel-ui-page.png width = 1000>
 </p>
 
-**More information on [ui/README.md](ui/README.md)**
+More information on [ui/README.md](ui/README.md)
 
 ## [Archipel Deployer](deployer/)
 
 Archipel End-To-End tests, build scripts and deploy tools.
 
-**More information on [deployer/README.md](deployer/README.md)**
+More information on [deployer/README.md](deployer/README.md)
 
-## [Archipel DAppNode Package]((https://github.com/luguslabs/DAppNodePackage-archipel))
+## [Archipel DAppNode Package](https://github.com/luguslabs/DAppNodePackage-archipel)
 
 DAppNode package wrapping Archipel stack. 
 
 It allows installing Archipel from the DAppNode interface in one click.
 
-**More information on [DAppNodePackage-archipel/README.md](https://github.com/luguslabs/DAppNodePackage-archipel/README.md)**
+More information on [DAppNodePackage-archipel/README.md](https://github.com/luguslabs/DAppNodePackage-archipel/README.md)
 
 ## [Additional Documentation Resources](doc/README.md)
 
