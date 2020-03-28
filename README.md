@@ -35,7 +35,9 @@ To achieve the high availability of services, we are adding a service layer (Arc
 | [Deployer](deployer/) | Archipel End-To-End tests, build scripts and deploy tools |
 | [DAppNodePackage](https://github.com/luguslabs/DAppNodePackage-archipel) | DAppNode package wrapping Archipel |
 
-## Archipel Chain
+Please refer to the README instructions in the sub-repositories for more information on building, using, and testing each software component.
+
+## [Archipel Chain](chain/)
 To federate several nodes and have a shared state to elect leader, we created a specific blockchain using Substrate framework. 
 
 [Substrate](https://substrate.dev/) is a Parity framework that allows creating application-specific blockchains. 
@@ -46,13 +48,11 @@ All nodes inside a federation, run Archipel Chain. In the current implementation
 
 The idea is that in Archipel federation, all participants are trusted. They can be friends or family or other trusted social links. That allows us to have a fast chain consensus. 
 
-- [Archipel Chain](https://github.com/luguslabs/archipel/tree/master/chain)
+**More information on [chain/README.md](chain/README.md)**
 
-## Archipel Orchestrator
+## [Archipel Orchestrator](orchestrator/)
 
 Orchestrator is the component that is responsible for decision making in an Archipel Federation.
-
-- [Archipel Orchestrator](https://github.com/luguslabs/archipel/tree/master/orchestrator)
 
 ### External services modes
 * **Active mode** - the service will be launched in active mode only on the leader node
@@ -79,41 +79,52 @@ The Polkadot node can be launched in two modes:
 
 We are also planning to support other services.
 
-## Archipel CLI
+**More information on [orchestrator/README.md](orchestrator/README.md)**
+
+## [Archipel CLI](cli/)
 
 Archipel CLI is a component that generates configuration and bootstraps an Archipel federation.
 
-- [Archipel CLI](https://github.com/luguslabs/archipel/tree/master/cli)
+**More information on [cli/README.md](cli/README.md)**
 
-## Archipel UI
+## [Archipel UI](ui/)
 
-The Archipel UI visualizes the federation state.
+The Archipel UI to administrate and visualize the federation state :
 
-- [Archipel UI](https://github.com/luguslabs/archipel/tree/master/ui)
+<p align="center">
+ <img src=doc/images/archipel-ui-page.png width = 1000>
+</p>
 
-## DAppNode Package
+**More information on [ui/README.md](ui/README.md)**
+
+## [Archipel Deployer](deployer/)
+
+Archipel End-To-End tests, build scripts and deploy tools.
+
+**More information on [deployer/README.md](deployer/README.md)**
+
+## [Archipel DAppNode Package]((https://github.com/luguslabs/DAppNodePackage-archipel))
 
 DAppNode package wrapping Archipel stack. 
 
 It allows installing Archipel from the DAppNode interface in one click.
 
-- [Archipel DAppNode Package](https://github.com/luguslabs/DAppNodePackage-archipel)
+**More information on [DAppNodePackage-archipel/README.md](https://github.com/luguslabs/DAppNodePackage-archipel/README.md)**
 
-## Documentation
-Please refer to the README instructions in the sub-repositories for more information on building, using, and testing each software component.
+## [Additional Documentation Resources](doc/README.md)
 
-- [chain/README.md](chain/README.md)
-- [orchestrator/README.md](orchestrator/README.md)
-- [cli/README.md](cli/README.md)
-- [deployer/README.md](deployer/README.md)
-- [ui/README.md](ui/README.md)
+### Keys Initialization doc
+* [Archipel Keys Initialization](doc/archipel-keys-initialization.md)
+* [Archipel Wireguard Keys Initialization](doc/wireguard-keys-initialization.md)
+* [Polkadot Keys Initialization](doc/polkadot-keys-initialization.md)
 
-Additional documentation
- - [Documentation](doc/README.md)
+### Testing doc
+* [Archipel Federation Testing](doc/archipel-federation-testing.md)
+* [Archipel Test Results](doc/archipel-test-results.md)
 
-## Deployment with Docker
-
-- [Archipel Deployment with Docker](doc/deployment-with-docker.md)
+### Deployment doc
+* [Archipel Deployment On DAppNodes](doc/deployment-on-dappnodes.md)
+* [Archipel Deployment With Docker](doc/deployment-with-docker.md)
 
 ## Acknowledgements
 <p align="center">
