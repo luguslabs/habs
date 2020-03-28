@@ -1,9 +1,9 @@
-import React from "react";
-import "semantic-ui-css/semantic.min.css";
-import config from "./config";
-import ArchipelModule from "./ArchipelModule";
+import React from 'react';
+import 'semantic-ui-css/semantic.min.css';
+import config from './config';
+import ArchipelModule from './ArchipelModule';
 
-function Main() {
+function Main () {
   const defaultUrl = config.API_URL;
   return (
     <div>
@@ -11,6 +11,6 @@ function Main() {
     </div>
   );
 }
-export default function App() {
+export default function App () {
   return <Main />;
 }

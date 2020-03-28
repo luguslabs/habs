@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Table,
   Grid,
@@ -14,20 +14,19 @@ import {
   Radio,
   Label,
   Loader,
-  Popup,
   Confirm
-} from "semantic-ui-react";
-import TimeAgo from "react-timeago";
-import useSWR from "swr";
-import useAxios from "axios-hooks";
-import fetch from "./libs/fetch";
-import { useForm, Controller } from "react-hook-form";
-import { useLocalStorage } from "@rehooks/local-storage";
+} from 'semantic-ui-react';
+import TimeAgo from 'react-timeago';
+import useSWR from 'swr';
+import useAxios from 'axios-hooks';
+import fetch from './libs/fetch';
+import { useForm, Controller } from 'react-hook-form';
+import { useLocalStorage } from '@rehooks/local-storage';
 
-function Main(props) {
+function Main (props) {
   const defaultUrl = props.defaultUrl;
-  const [urlSorage, setUrlStorage, clearUrlStorage] = useLocalStorage("url");
-  const [url, setUrl] = useState(urlSorage ? urlSorage : defaultUrl);
+  const [urlSorage, setUrlStorage, clearUrlStorage] = useLocalStorage('url');
+  const [url, setUrl] = useState(urlSorage || defaultUrl);
   const [warningOrchestratorPopup, setWarningOrchestratorPopup] = useState(
     false
   );
@@ -37,20 +36,20 @@ function Main(props) {
     setWarningStopServiceContainer
   ] = useState(false);
 
-  //fetch API with useSWR
+  // fetch API with useSWR
   const { data, revalidate, error: fetchError } = useSWR(url, fetch, {
     // revalidate the data per second
     refreshInterval: 1000,
     onError: () => {}
   });
-  //post API with axios
+  // post API with axios
   const [
     { loading: postLoading, error: postError },
     executeServiceStart
   ] = useAxios(
     {
-      url: url + "/service/start",
-      method: "POST"
+      url: url + '/service/start',
+      method: 'POST'
     },
     { manual: true }
   );
@@ -75,7 +74,7 @@ function Main(props) {
             <Header as="h2">
               <Icon name="sitemap" />
               <Header.Content>
-                Archipel Dashboard{data ? ` - ${data.archipelName}` : ""}
+                Archipel Dashboard{data ? ` - ${data.archipelName}` : ''}
               </Header.Content>
             </Header>
           </Grid.Column>
@@ -115,7 +114,7 @@ function Main(props) {
                           error
                           content={
                             formErrors.urlInput
-                              ? "API Endpoint required"
+                              ? 'API Endpoint required'
                               : fetchError.toString()
                           }
                         />
@@ -125,7 +124,7 @@ function Main(props) {
                   <Grid.Column className="height wide"></Grid.Column>
                 </Grid.Row>
               </Grid>
-              {data && data.status === "200" ? (
+              {data && data.status === '200' ? (
                 <Progress
                   active
                   color="green"
@@ -139,76 +138,76 @@ function Main(props) {
           </Grid.Column>
         </Grid.Row>
         {data &&
-        data.status === "200" &&
+        data.status === '200' &&
         data.metrics &&
-        data.metrics.length == 0 ? (
-          <Grid.Row>
-            <Grid.Column>
-              <Segment raised>
-                <Grid columns={3}>
-                  <Grid.Row>
-                    <Grid.Column className="two wide"></Grid.Column>
-                    <Grid.Column className="twelve wide center aligned">
-                      <Loader as="h2" active inline indeterminate>
+        data.metrics.length === 0 ? (
+            <Grid.Row>
+              <Grid.Column>
+                <Segment raised>
+                  <Grid columns={3}>
+                    <Grid.Row>
+                      <Grid.Column className="two wide"></Grid.Column>
+                      <Grid.Column className="twelve wide center aligned">
+                        <Loader as="h2" active inline indeterminate>
                         Fetching Archipel Metrics. Please wait...
-                      </Loader>
-                    </Grid.Column>
-                    <Grid.Column className="two wide"></Grid.Column>
-                  </Grid.Row>
-                </Grid>
-              </Segment>
-            </Grid.Column>
-          </Grid.Row>
-        ) : null}
+                        </Loader>
+                      </Grid.Column>
+                      <Grid.Column className="two wide"></Grid.Column>
+                    </Grid.Row>
+                  </Grid>
+                </Segment>
+              </Grid.Column>
+            </Grid.Row>
+          ) : null}
         {data
           ? data.metrics.map((metric, index) => (
-              <Grid.Row>
-                <Grid.Column>
-                  <Segment raised>
-                    <Grid columns={4}>
-                      <Grid.Row>
-                        <Grid.Column className="two wide">
-                          {data.orchestratorAddress === metric.wallet ? (
-                            <Label color="green" ribbon>
-                              <Icon name="disk" />
+            <Grid.Row>
+              <Grid.Column>
+                <Segment raised>
+                  <Grid columns={4}>
+                    <Grid.Row>
+                      <Grid.Column className="two wide">
+                        {data.orchestratorAddress === metric.wallet ? (
+                          <Label color="green" ribbon>
+                            <Icon name="disk" />
                               Current Node
-                            </Label>
-                          ) : null}
-                        </Grid.Column>
-                        <Grid.Column className="six wide center aligned">
-                          <Statistic vertical size="tiny">
-                            <Statistic.Value>
-                              {metric.name ? metric.name : ""}
-                            </Statistic.Value>
-                            <Statistic.Label>{metric.wallet}</Statistic.Label>
-                          </Statistic>
-                        </Grid.Column>
-                        <Grid.Column className="six wide center aligned">
-                          <Statistic vertical size="tiny">
-                            <Statistic.Value>
-                              <Icon name="heartbeat" />{" "}
-                              <TimeAgo date={parseInt(metric.timestamp)} />
-                            </Statistic.Value>
-                            <Statistic.Label>Last Heartbeat</Statistic.Label>
-                          </Statistic>
-                        </Grid.Column>
-                        <Grid.Column className="two wide">
-                          {metric.wallet === data.leader ? (
-                            <Label color="orange" ribbon="right" size="large">
-                              <Icon name="winner" /> Active
-                            </Label>
-                          ) : (
-                            <Label color="grey" ribbon="right" size="large">
-                              <Icon name="bed" /> Passive
-                            </Label>
-                          )}
-                        </Grid.Column>
-                      </Grid.Row>
-                    </Grid>
-                  </Segment>
-                </Grid.Column>
-              </Grid.Row>
-            ))
+                          </Label>
+                        ) : null}
+                      </Grid.Column>
+                      <Grid.Column className="six wide center aligned">
+                        <Statistic vertical size="tiny">
+                          <Statistic.Value>
+                            {metric.name ? metric.name : ''}
+                          </Statistic.Value>
+                          <Statistic.Label>{metric.wallet}</Statistic.Label>
+                        </Statistic>
+                      </Grid.Column>
+                      <Grid.Column className="six wide center aligned">
+                        <Statistic vertical size="tiny">
+                          <Statistic.Value>
+                            <Icon name="heartbeat" />
+                            <TimeAgo date={parseInt(metric.timestamp)} />
+                          </Statistic.Value>
+                          <Statistic.Label>Last Heartbeat</Statistic.Label>
+                        </Statistic>
+                      </Grid.Column>
+                      <Grid.Column className="two wide">
+                        {metric.wallet === data.leader ? (
+                          <Label color="orange" ribbon="right" size="large">
+                            <Icon name="winner" /> Active
+                          </Label>
+                        ) : (
+                          <Label color="grey" ribbon="right" size="large">
+                            <Icon name="bed" /> Passive
+                          </Label>
+                        )}
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
+                </Segment>
+              </Grid.Column>
+            </Grid.Row>
+          ))
           : null}
         <Grid.Row>
           <Grid.Column>
@@ -222,7 +221,7 @@ function Main(props) {
                         Node Administration
                       </Label>
                     ) : (
-                      "Node Administration"
+                      'Node Administration'
                     )}
                   </Table.HeaderCell>
                   <Table.HeaderCell></Table.HeaderCell>
@@ -233,11 +232,11 @@ function Main(props) {
                   <Table.Cell>Orchestration</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      JSON.stringify(data.orchestrationEnabled) === "false" ? (
+                      JSON.stringify(data.orchestrationEnabled) === 'false' ? (
                         <Radio
                           onClick={async () => {
                             await fetch(
-                              encodeURI(url + "/orchestration/enable")
+                              encodeURI(url + '/orchestration/enable')
                             );
                             revalidate();
                           }}
@@ -261,7 +260,7 @@ function Main(props) {
                             confirmButton="Yes! I'am corsair"
                             onConfirm={async () => {
                               await fetch(
-                                encodeURI(url + "/orchestration/disable")
+                                encodeURI(url + '/orchestration/disable')
                               );
                               setWarningOrchestratorPopup(false);
                               revalidate();
@@ -281,42 +280,42 @@ function Main(props) {
                   <Table.Cell>
                     {data ? (
                       JSON.stringify(data.metricSendEnabledAdmin) ===
-                      "false" ? (
-                        <Radio
-                          onClick={async () => {
-                            await fetch(encodeURI(url + "/metrics/enable"));
-                            revalidate();
-                          }}
-                          toggle
-                          checked={false}
-                        />
-                      ) : (
-                        <div>
+                      'false' ? (
                           <Radio
-                            toggle
-                            checked={true}
                             onClick={async () => {
-                              setWarningHeartbeatPopup(true);
-                            }}
-                          />
-                          <Confirm
-                            open={warningHeartbeatPopup}
-                            header="Dangerous Action"
-                            content="Deactivate heartbeat can lead to unstable Archipel High Availability state. Are you sure to deactivate it?"
-                            cancelButton="No, I'am just a deckhand"
-                            confirmButton="Yes! I'am corsair"
-                            onConfirm={async () => {
-                              await fetch(encodeURI(url + "/metrics/disable"));
-                              setWarningHeartbeatPopup(false);
+                              await fetch(encodeURI(url + '/metrics/enable'));
                               revalidate();
                             }}
-                            onCancel={async () => {
-                              setWarningHeartbeatPopup(false);
-                              revalidate();
-                            }}
+                            toggle
+                            checked={false}
                           />
-                        </div>
-                      )
+                        ) : (
+                          <div>
+                            <Radio
+                              toggle
+                              checked={true}
+                              onClick={async () => {
+                                setWarningHeartbeatPopup(true);
+                              }}
+                            />
+                            <Confirm
+                              open={warningHeartbeatPopup}
+                              header="Dangerous Action"
+                              content="Deactivate heartbeat can lead to unstable Archipel High Availability state. Are you sure to deactivate it?"
+                              cancelButton="No, I'am just a deckhand"
+                              confirmButton="Yes! I'am corsair"
+                              onConfirm={async () => {
+                                await fetch(encodeURI(url + '/metrics/disable'));
+                                setWarningHeartbeatPopup(false);
+                                revalidate();
+                              }}
+                              onCancel={async () => {
+                                setWarningHeartbeatPopup(false);
+                                revalidate();
+                              }}
+                            />
+                          </div>
+                        )
                     ) : null}
                   </Table.Cell>
                 </Table.Row>
@@ -324,7 +323,7 @@ function Main(props) {
                   <Table.Cell>Heartbeat By Algorithm</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      JSON.stringify(data.metricSendEnabled) === "true" ? (
+                      JSON.stringify(data.metricSendEnabled) === 'true' ? (
                         <Icon name="checkmark" />
                       ) : (
                         <Icon name="close" />
@@ -335,18 +334,18 @@ function Main(props) {
                 <Table.Row>
                   <Table.Cell>Current Node Address</Table.Cell>
                   <Table.Cell>
-                    {data ? data.orchestratorAddress : ""}
+                    {data ? data.orchestratorAddress : ''}
                   </Table.Cell>
                 </Table.Row>
                 <Table.Row>
                   <Table.Cell>Leader Node Address</Table.Cell>
-                  <Table.Cell>{data ? data.leader : ""}</Table.Cell>
+                  <Table.Cell>{data ? data.leader : ''}</Table.Cell>
                 </Table.Row>
                 <Table.Row>
                   <Table.Cell>Connected To Chain</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      JSON.stringify(data.isConnected) === "true" ? (
+                      JSON.stringify(data.isConnected) === 'true' ? (
                         <Icon name="checkmark" />
                       ) : (
                         <Icon name="close" />
@@ -358,7 +357,7 @@ function Main(props) {
                   <Table.Cell>Synch State</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      JSON.stringify(data.synchState) === "false" ? (
+                      JSON.stringify(data.synchState) === 'false' ? (
                         <Icon name="checkmark" />
                       ) : (
                         <Icon name="sync" />
@@ -368,11 +367,11 @@ function Main(props) {
                 </Table.Row>
                 <Table.Row>
                   <Table.Cell>Peer Id</Table.Cell>
-                  <Table.Cell>{data ? data.peerId : ""}</Table.Cell>
+                  <Table.Cell>{data ? data.peerId : ''}</Table.Cell>
                 </Table.Row>
                 <Table.Row>
                   <Table.Cell>Peer Number</Table.Cell>
-                  <Table.Cell>{data ? data.peerNumber : ""}</Table.Cell>
+                  <Table.Cell>{data ? data.peerNumber : ''}</Table.Cell>
                 </Table.Row>
               </Table.Body>
             </Table>
@@ -390,59 +389,59 @@ function Main(props) {
                         Service Administration
                       </Label>
                     ) : (
-                      "Service Administration"
+                      'Service Administration'
                     )}
                   </Table.HeaderCell>
                   <Table.HeaderCell>
                     {data &&
-                    (data.serviceContainer === "active" ||
-                      data.serviceContainer === "passive") ? (
-                      <div>
-                        <Button
-                          onClick={async () => {
-                            setWarningStopServiceContainer(true);
-                          }}
-                        >
+                    (data.serviceContainer === 'active' ||
+                      data.serviceContainer === 'passive') ? (
+                        <div>
+                          <Button
+                            onClick={async () => {
+                              setWarningStopServiceContainer(true);
+                            }}
+                          >
                           Stop Service Container
-                        </Button>
-                        <Confirm
-                          open={warningStopServiceContainer}
-                          header="Dangerous Action"
-                          content="Stopping Service container can lead to unstable Archipel High Availability state. Are you sure to stop it?"
-                          cancelButton="No, I'am just a deckhand"
-                          confirmButton="Yes! I'am corsair"
-                          onConfirm={async () => {
-                            await fetch(encodeURI(url + "/service/stop"));
-                            setWarningStopServiceContainer(false);
-                            revalidate();
-                          }}
-                          onCancel={async () => {
-                            setWarningStopServiceContainer(false);
-                            revalidate();
-                          }}
-                        />
-                      </div>
-                    ) : null}
+                          </Button>
+                          <Confirm
+                            open={warningStopServiceContainer}
+                            header="Dangerous Action"
+                            content="Stopping Service container can lead to unstable Archipel High Availability state. Are you sure to stop it?"
+                            cancelButton="No, I'am just a deckhand"
+                            confirmButton="Yes! I'am corsair"
+                            onConfirm={async () => {
+                              await fetch(encodeURI(url + '/service/stop'));
+                              setWarningStopServiceContainer(false);
+                              revalidate();
+                            }}
+                            onCancel={async () => {
+                              setWarningStopServiceContainer(false);
+                              revalidate();
+                            }}
+                          />
+                        </div>
+                      ) : null}
                     {data &&
                     !postLoading &&
-                    data.serviceContainer === "none" ? (
-                      <div>
-                        <Button onClick={async () => {}}>
+                    data.serviceContainer === 'none' ? (
+                        <div>
+                          <Button onClick={async () => {}}>
                           Start Active Service Container
-                        </Button>
-                        <Button
-                          onClick={async () => {
-                            await executeServiceStart({
-                              data: { mode: "passive" }
-                            });
-                            revalidate();
-                          }}
-                        >
+                          </Button>
+                          <Button
+                            onClick={async () => {
+                              await executeServiceStart({
+                                data: { mode: 'passive' }
+                              });
+                              revalidate();
+                            }}
+                          >
                           Start Passive Service Container
-                        </Button>
-                      </div>
-                    ) : null}
-                    {postLoading ? "Starting container..." : null}
+                          </Button>
+                        </div>
+                      ) : null}
+                    {postLoading ? 'Starting container...' : null}
                     {postError ? postError.toString() : null}
                   </Table.HeaderCell>
                 </Table.Row>
@@ -450,13 +449,13 @@ function Main(props) {
               <Table.Body>
                 <Table.Row>
                   <Table.Cell>Service</Table.Cell>
-                  <Table.Cell>{data ? data.service : ""}</Table.Cell>
+                  <Table.Cell>{data ? data.service : ''}</Table.Cell>
                 </Table.Row>
                 <Table.Row>
                   <Table.Cell>Service Ready To Operate</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      JSON.stringify(data.isServiceReadyToStart) === "true" ? (
+                      JSON.stringify(data.isServiceReadyToStart) === 'true' ? (
                         <Icon name="checkmark" />
                       ) : (
                         <Icon name="close" />
@@ -467,13 +466,13 @@ function Main(props) {
                 <Table.Row>
                   <Table.Cell>Current Service Mode</Table.Cell>
                   <Table.Cell>
-                    {data && data.serviceMode === "passive" ? (
+                    {data && data.serviceMode === 'passive' ? (
                       <Icon name="bed" />
                     ) : null}
-                    {data && data.serviceMode === "active" ? (
+                    {data && data.serviceMode === 'active' ? (
                       <Icon name="winner" />
                     ) : null}
-                    {data && data.serviceMode === "none" ? (
+                    {data && data.serviceMode === 'none' ? (
                       <Icon name="close" />
                     ) : null}
                     {data && data.serviceMode ? data.serviceMode : null}
@@ -482,13 +481,13 @@ function Main(props) {
                 <Table.Row>
                   <Table.Cell>Service Container Status</Table.Cell>
                   <Table.Cell>
-                    {data && data.serviceContainer === "passive" ? (
+                    {data && data.serviceContainer === 'passive' ? (
                       <Icon name="bed" />
                     ) : null}
-                    {data && data.serviceContainer === "active" ? (
+                    {data && data.serviceContainer === 'active' ? (
                       <Icon name="winner" />
                     ) : null}
-                    {data && data.serviceContainer === "none" ? (
+                    {data && data.serviceContainer === 'none' ? (
                       <Icon name="close" />
                     ) : null}
                     {data && data.serviceContainer
@@ -505,6 +504,6 @@ function Main(props) {
   );
 }
 
-export default function ArchipelModule(props) {
+export default function ArchipelModule (props) {
   return <Main {...props} />;
 }
