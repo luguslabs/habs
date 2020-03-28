@@ -32,37 +32,37 @@ The next tab, is the Node Administration tabs. It will details informations rela
  <img src=../doc/images/archipel-ui-node-admin.png width = 1000>
 </p>
 
-- `Orchestration` radio button: orchestrator is the decison making program to start or stop the external service in active or passive mode. You can shutdown this program to do manual decision in emergency situations.
+- **`Orchestration`** radio button: orchestrator is the decison making program to start or stop the external service in active or passive mode. You can shutdown this program to do manual decision in emergency situations.
 
  **Warning: Deactivate orchestration can lead to unstable Archipel High Availability state. Use it at your own risk and High Availability peril**
-- `Heartbeat Send` radio button: Heartbeat is the ability of an archipel node to propagate his metrics and liveness information through a blockchain transaction. You can intentionally shutdown this propagation to do manual decision in emergency situtation.
+- **`Heartbeat Send`** radio button: Heartbeat is the ability of an archipel node to propagate his metrics and liveness information through a blockchain transaction. You can intentionally shutdown this propagation to do manual decision in emergency situtation.
 
 **Warning: Deactivate heartbeat can lead to unstable Archipel High Availability state. Use it at your own risk and High Availability peril**
-- `Heartbeat By Algorithm`: if you do not have manually deactivate the heartbeat, see Radio button above, this is the status value of the automatic heartbeat program. 
+- **`Heartbeat By Algorithm`**: if you do not have manually deactivate the heartbeat, see Radio button above, this is the status value of the automatic heartbeat program. 
 
 | sign | `Heartbeat By Algorithm` |
 |------|--------------------------|
 | checkmark | OK |
 | cross | KO |
 
-- `Current Node Address`: archipel chain node address identity.
+- **`Current Node Address`**: archipel chain node address identity.
 - `Leader Node Address`: archipel chain node address identity that is curra ently leader and must active the service in ACTIVE mode.
-- `Connected To Chain` : connection status between the API ochestratr program and the archipel chain node running program. 
+- **`Connected To Chain`** : connection status between the API ochestratr program and the archipel chain node running program. 
 
 | sign | `Connected To Chain` |
 |------|----------------------|
 | checkmark | OK (HTTP 200) |
 | cross | Failed |
 
-- `Synch State`: Synch status of the Archipel substrate chain.
+- **`Synch State`**: Synch status of the Archipel substrate chain.
 
 | sign | `Synch State` |
 |------|---------------|
 | checkmark | SYNCH |
 | spinner | NOT SYNCH |
 
-- `Peer Id`: Peer ID used in the networking layer to identify reserved peers between Archipel nodes.
-- `Peer Number`: number of reserved Archipel peers connected with.
+- **`Peer Id`**: Peer ID used in the networking layer to identify reserved peers between Archipel nodes.
+- **`Peer Number`**: number of reserved Archipel peers connected with.
 
 | Number | `Peer Number` |
 |------|---------------|
@@ -79,9 +79,9 @@ The last lab, show the status of the external service you initially wanted to ma
  <img src=../doc/images/archipel-ui-service-admin-stop.png width = 1000>
 </p>
 
-- `Service` : service on which you want to achieve HA. Support service now : `polkadot`
+- **`Service`** : service on which you want to achieve HA. Support service now : `polkadot`
 
-- `Service Ready To Operate` : You can code some prerequisite logic decisions in order to consider a service ready to be launch in active mode. Like waiting and checking the blockchain to be synch, checking peers numbers or others custom rules according to each service supported. Here the sign indicate if the service it currently ready to be operate as an active node. Orchestration program will only start an active service container if the sign is a checkmark.
+- **`Service Ready To Operate`** : You can code some prerequisite logic decisions in order to consider a service ready to be launch in active mode. Like waiting and checking the blockchain to be synch, checking peers numbers or others custom rules according to each service supported. Here the sign indicate if the service it currently ready to be operate as an active node. Orchestration program will only start an active service container if the sign is a checkmark.
 
 | sign | `Service Ready To Operate` |
 |------|----------------------|
@@ -89,7 +89,7 @@ The last lab, show the status of the external service you initially wanted to ma
 | cross | Service NOT ready to operate in Active mode. ( blockchain still synching etc ..) |
 
 
-- `Current Service Mode`: active or passive mode value decided by metrics and the decision logic. This informaton is used by the orchestrator to then start/restart/stop the service container in accurate mode.
+- **`Current Service Mode`**: active or passive mode value decided by metrics and the decision logic. This informaton is used by the orchestrator to then start/restart/stop the service container in accurate mode.
 
 | value | `Current Service Mode` |
 |------|----------------------|
@@ -97,7 +97,7 @@ The last lab, show the status of the external service you initially wanted to ma
 | passive | orchestrator must start the service container in passive mode |
 
 
-- `Service Container Status`: The current status of the docker container on the host machine for this service.
+- **`Service Container Status`**: The current status of the docker container on the host machine for this service.
 
 | value | `Current Service Mode` |
 |------|----------------------|
@@ -105,7 +105,7 @@ The last lab, show the status of the external service you initially wanted to ma
 | active | a docker container is running for this service and is in an active mode |
 | passive | a docker container is running for this service and is in passive mode |
 
-- `Stop Service Container` button: it will perform a `docker stop` and `docker rm` on the currently running container. If the orchestrator program is enabled, it will restart it in accurate mode immediately.
+- **`Stop Service Container`** button: it will perform a `docker stop` and `docker rm` on the currently running container. If the orchestrator program is enabled, it will restart it in accurate mode immediately.
 
 **Warning: Stopping containers can lead to unstable Archipel High Availability state. Use it at your own risk and High Availability peril**
 
@@ -116,10 +116,10 @@ The last lab, show the status of the external service you initially wanted to ma
 </p>
 
 
-- `Start Active Service Container`: It will perform a start of the docker container service in active mode.
+- **`Start Active Service Container`**: It will perform a start of the docker container service in active mode.
 
 
-- `Start Passive Service Container`: It will perform a start of the docker container service in passive mode.
+- **`Start Passive Service Container`**: It will perform a start of the docker container service in passive mode.
 
 
 ## Installation
@@ -205,7 +205,7 @@ To preview you website immediately go to:
    http://my.ipfs.dnp.dappnode.eth:8080/ipfs/QmZ6VMAgEJr9QCBGW6urSNCcRfMyG6HxPFBG6kyqwxG9ZP
 ```
 
-At Each UI release, we update the IPFS resolver of http://archipel.eth for a decentralized access. Don't trust, verify the IPFS record here : https://app.ens.domains/name/archipel.eth according to your `npm run publish` own test from source.
+At Each UI release, we update the IPFS resolver of **http://archipel.eth** for a decentralized access. Don't trust, verify the IPFS record here : https://app.ens.domains/name/archipel.eth according to your `npm run publish` own test from source.
 
 ## Configuration
 
