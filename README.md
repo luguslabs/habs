@@ -13,7 +13,7 @@ Archipel is a high availability solution for blockchain services.
 * Polkadot Validator Node
 
 ## Why Archipel ?
-Nowadays, many blockchain services are centralized on cloud infrastructure. For instance, around [70% of Ethereum nodes are in VPC](https://twitter.com/DAppNode/status/1108693643320270848?s=20) and 63% of Ethereum Dapps use Infura Provider as [this survey](https://medium.com/fluence-network/dapp-survey-results-2019-a04373db6452) shows. We can imagine that in a few years some of blockchain services can be banned from public cloud providers. Moreover, cloud providers can have interruption of services and network issues.
+Nowadays, many blockchain services are centralized on cloud infrastructure. For instance, around [70% of Ethereum nodes are in VPC](https://twitter.com/DAppNode/status/1108693643320270848?s=20) and 63% of Ethereum Dapps use Infura Provider as [this survey](https://medium.com/fluence-network/dapp-survey-results-2019-a04373db6452) shows. We can imagine that in a few years some of blockchain services can be banned from public cloud providers.
 
 The solution is to have a decentralized infrastructure at home. The problem is that it is challenging to maintain a good quality of service at home. 
 You can have internet connection or power cuts. As a result, it is very unsafe to install a Proof-of-Stake validator at home. Your validator must be always up (24/7) and ready to execute its duty. If not, you will be slashed by the network and lose your money.
@@ -21,9 +21,10 @@ To solve this problem, we are creating a solution to provide high availability f
 
 ## How it works ?
 The idea behind Archipel is federating some nodes between friends and family.
-We are using [DAppNode](https://dappnode.io/) as the infrastructure layer for our solution. We want here to thanks DAppNode Teams for their amazing work and also supports for months now.
-With DAppNode, you can launch a blockchain node (Bitcoin, Ethereum ...) or any P2P software.
-To achieve the high availability of services, we are adding a service layer (Archipel) on top of it.
+We are using [DAppNode](https://dappnode.io/) as the infrastructure layer for our solution. 
+With DAppNode, you can launch a blockchain node (Bitcoin, Ethereum ...) or any P2P software. 
+We would like to thank DAppNode Team for their amazing work.
+To achieve the high availability of services at a DAppNode, we are adding Archipel on top of it.
 
 ## Archipel Components
 | Component | Description |
@@ -38,15 +39,15 @@ To achieve the high availability of services, we are adding a service layer (Arc
 Please refer to the README instructions in the sub-repositories for more information on building, using, and testing each software component.
 
 ## [Archipel Chain](chain/)
-To federate several nodes and have a shared state to elect leader, we created a specific blockchain using Substrate framework. 
+To federate several nodes and have a shared state to elect a leader, we created a specific blockchain using the Substrate framework. 
 
 [Substrate](https://substrate.dev/) is a Parity framework that allows creating application-specific blockchains. 
 
-We created a Substrate runtime that collects all nodes metrics and sets federation leader. This helps Archipel orchestrator to select the best leader appropriately in the federation. We call this specific blockchain the Archipel Substrate Chain or Archipel Chain. 
+We created a Substrate runtime that collects all nodes metrics and sets federation leadership. This helps Archipel orchestrator to select the best leader appropriately in the federation. We call this specific blockchain the Archipel Substrate Chain or Archipel Chain. 
 
 All nodes inside a federation, run Archipel Chain. In the current implementation, an Archipel must be composed of 3 nodes. That means that to operate, you have to set up 3 nodes. Try to set up nodes in different locations.
 
-The idea is that in Archipel federation, all participants are trusted. They can be friends or family or other trusted social links. That allows us to have a fast chain consensus. 
+The idea is that in the Archipel federation, all participants are trusted. They can be friends or family or other trusted social links. That allows us to have a fast chain consensus. 
 
 More information on [chain/README.md](chain/README.md)
 
@@ -92,7 +93,7 @@ More information on [cli/README.md](cli/README.md)
 The Archipel UI to administrate and visualize the federation state :
 
 <p align="center">
- <img src=doc/images/archipel-ui-page.png width = 1000>
+ <img src=doc/images/archipel-ui-page.png width = 600>
 </p>
 
 More information on [ui/README.md](ui/README.md)
