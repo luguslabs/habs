@@ -1,14 +1,14 @@
 # Archipel UI
 
-Archipel UI is connecting to Archipel Node Orchestator API and shows states and metrics of the Archipel Federation. It allows also to perform administration actions on the current connected node.
+Archipel UI is a component that connects to Archipel Node Orchestrator API and shows the state and metrics of the Archipel Federation. It allows also to perform several administration actions.
 
 ## Introduction
 
-Archipel Orchestrator expose [API metrics and commands](https://github.com/luguslabs/archipel/tree/master/orchestrator/src/routes) to access the current Archipel state and also stop or start service Archipel UI is frontend react that render metrics values and allow also to activate/deactivate service.
-To operate, the Archipel UI must first connect to an exposed API.
+Archipel Orchestrator exposes [API metrics and commands](https://github.com/luguslabs/archipel/tree/master/orchestrator/src/routes) to access the current Archipel state and also stop or start service. Archipel UI is the frontend that renders metrics values and allows the Archipel Orchestrator management.
+To operate, the Archipel UI must be connected to Archipel Orchestrator API exposed by Archipel Node.
 
 ### Enpoint
-You can configuring the API Endpoint to target in the field :
+You can configure the Archipel Orchestrator API Endpoint in this field:
 
 <p align="center">
  <img src=../doc/images/archipel-ui-api-endpoint.png width = 1000>
@@ -16,110 +16,117 @@ You can configuring the API Endpoint to target in the field :
 
 ### Metrics
 
-The first tab will present metrics for all nodes of the current Archipel Federation state and status.
-- It will give the node identity address of the Archipel chain and the node number: 1,2 or 3.
-- Last detected heartbeat for each node.
-- On the left corner, the current target node API is indicted in green with `Current Node` text.
-- On the right corner, the current status of the node `Active (Orange)` or `Passive (Grey)`. There will be only one lader Active and 2 others in Passive mode.
+The first section presents metrics of all nodes of the current Archipel Federation. The metrics section includes some additional information:
+- Node key address that identifies a node within an Archipel Federation
+- Last detected heartbeat time for each node
+- Label `Current Node` that indicates to which orchestrator API the UI is  connected
+- Labels `Active` and `Passive` show the current status of each node in a federation. There will always be only one `Active` and two `Passive` nodes.
 
 <p align="center">
  <img src=../doc/images/archipel-ui-metrics.png width = 1000>
 </p>
 
 ### Node Administration
-The next tab, is the Node Administration tabs. It will details informations relative the the archipel node values and also 2 actions :
+Node administration section shows information relative to the Archipel Node. 
+
+Here you can also trigger two actions:
+
 <p align="center">
  <img src=../doc/images/archipel-ui-node-admin.png width = 1000>
 </p>
 
-- **`Orchestration`** radio button: orchestrator is the decison making program to start or stop the external service in active or passive mode. You can shutdown this program to do manual decision in emergency situations.
+- **`Orchestration`** orchestrator is the decision making algorithm to start or stop the external service in active or passive mode. You can shut down this algorithm to take manual decisions in some emergency situations.
 
- **Warning: Deactivate orchestration can lead to unstable Archipel High Availability state. Use it at your own risk and High Availability peril**
-- **`Heartbeat Send`** radio button: Heartbeat is the ability of an archipel node to propagate his metrics and liveness information through a blockchain transaction. You can intentionally shutdown this propagation to do manual decision in emergency situtation.
+ **Warning! The orchestration deactivation can lead to an unstable Archipel state. Use it at your own risk.**
 
-**Warning: Deactivate heartbeat can lead to unstable Archipel High Availability state. Use it at your own risk and High Availability peril**
-- **`Heartbeat By Algorithm`**: if you do not have manually deactivate the heartbeat, see Radio button above, this is the status value of the automatic heartbeat program. 
+- **`Heartbeat Send`** Heartbeat is the ability of an Archipel node to send it's metrics and liveness information through a blockchain transaction. You can intentionally shutdown this propagation to take manual decisions in some emergency situations.
+
+**Warning! The heartbeat send deactivation can lead to an unstable Archipel state. Use it at your own risk.**
+
+- **`Heartbeat By Algorithm`** The heartbeat send can be deactivated in some situations by the Archipel orchestration algorithm. 
 
 | sign | `Heartbeat By Algorithm` |
 |------|--------------------------|
-| checkmark | OK |
-| cross | KO |
+| checkmark | Activated |
+| cross | Deactivated |
 
-- **`Current Node Address`**: archipel chain node address identity.
-- `Leader Node Address`: archipel chain node address identity that is curra ently leader and must active the service in ACTIVE mode.
-- **`Connected To Chain`** : connection status between the API ochestratr program and the archipel chain node running program. 
+- **`Current Node Address`** node address identity.
+- **`Leader Node Address`** current leader address.
+- **`Connected To Chain`** if Archipel Orchestrator is connected to the Archipel chain.
 
 | sign | `Connected To Chain` |
 |------|----------------------|
-| checkmark | OK (HTTP 200) |
-| cross | Failed |
+| checkmark | Connected |
+| cross | Connection Failed |
 
-- **`Synch State`**: Synch status of the Archipel substrate chain.
+- **`Synch State`**: Synch status of the Archipel chain.
 
 | sign | `Synch State` |
 |------|---------------|
-| checkmark | SYNCH |
-| spinner | NOT SYNCH |
+| checkmark | Is synchronized |
+| spinner | Is not synchronized |
 
-- **`Peer Id`**: Peer ID used in the networking layer to identify reserved peers between Archipel nodes.
-- **`Peer Number`**: number of reserved Archipel peers connected with.
+- **`Peer Id`** Peer ID is used in the network layer to identify the Archipel chain node.
+- **`Peer Number`** number of reserved Archipel peers connected with.
 
 | Number | `Peer Number` |
 |------|---------------|
-| 2 | Nominal |
-| 1 | warning: 1 of the 2 reserved peers node is down.
-| 0 | Problem: no peer. network issue or 2 reserved peers down?
+| 2 | Normal |
+| 1 | Warning: One node can be down |
+| 0 | Problem: No peers. Network issue or 2 other peers are down |
+
 
 ### Service Administration
 
-The last lab, show the status of the external service you initially wanted to maintain a High Availability on it. You can also decie to do mannual stop start on the service container and choose to start it active r passive mode. Warning : there is some saftey controls when you try to start the container. For instance, you cannot start the container it in active mode if orchestration is disable.
+The last section shows the status of the service on which you want to maintain high availability. You can also do a manual stop or start of the service container. 
 
+**Warning! Avoid starting service in active mode while the orchestration is disabled. It can lead to multiple active services in the same Archipel Federation. (Double signs in Polkadot Validator)**
 
 <p align="center">
  <img src=../doc/images/archipel-ui-service-admin-stop.png width = 1000>
 </p>
 
-- **`Service`** : service on which you want to achieve HA. Support service now : `polkadot`
+- **`Service`** service on which you want to achieve HA. Supported service: `polkadot`
 
-- **`Service Ready To Operate`** : You can code some prerequisite logic decisions in order to consider a service ready to be launch in active mode. Like waiting and checking the blockchain to be synch, checking peers numbers or others custom rules according to each service supported. Here the sign indicate if the service it currently ready to be operate as an active node. Orchestration program will only start an active service container if the sign is a checkmark.
+- **`Service Ready To Operate`** if service is considered ready to be launched in active mode. Every service can have its logic: like waiting and checking the blockchain to be synchronized, checking peer numbers or any other custom rules. The orchestration algorithm will only start an active service container if the service is ready to operate. 
+In the example, the sign indicates that the service is currently ready to operate as an active node. 
 
 | sign | `Service Ready To Operate` |
 |------|----------------------|
-| checkmark | Service ready to operate in active mode |
-| cross | Service NOT ready to operate in Active mode. ( blockchain still synching etc ..) |
+| checkmark | Service ready to operate |
+| cross | Service is nOT ready to operate ( blockchain still synching etc ..) |
 
-
-- **`Current Service Mode`**: active or passive mode value decided by metrics and the decision logic. This informaton is used by the orchestrator to then start/restart/stop the service container in accurate mode.
-
-| value | `Current Service Mode` |
-|------|----------------------|
-| active | orchestrator must start the service container in active mode |
-| passive | orchestrator must start the service container in passive mode |
-
-
-- **`Service Container Status`**: The current status of the docker container on the host machine for this service.
+- **`Current Service Mode`** the service mode is decided by orchestration algorithm. It takes into consideration metrics, service state, and much other information. The service mode can be `active` or `passive`.
 
 | value | `Current Service Mode` |
 |------|----------------------|
-| none | no docker container is running for this service |
-| active | a docker container is running for this service and is in an active mode |
-| passive | a docker container is running for this service and is in passive mode |
+| active | Orchestrator must start the service container in active mode |
+| passive | Orchestrator must start the service container in passive mode |
 
-- **`Stop Service Container`** button: it will perform a `docker stop` and `docker rm` on the currently running container. If the orchestrator program is enabled, it will restart it in accurate mode immediately.
 
-**Warning: Stopping containers can lead to unstable Archipel High Availability state. Use it at your own risk and High Availability peril**
+- **`Service Container Status`** the current status of the docker container on the host machine for the service.
 
- When container is stopped, you will have 2 admin new buttons to operate a restart of the service container :
+| value | `Current Service Mode` |
+|------|----------------------|
+| none | No docker container is running for this service |
+| active | A docker container is running for this service and is in active mode |
+| passive | A docker container is running for this service and is in passive mode |
+
+- **`Stop Service Container`** will stop and remove the service container. If the orchestrator is enabled, the service container will be restarted in the correct mode.
+
+**Warning! Stopping containers can lead to an unstable Archipel state. Use it at your own risk.**
+
+When the service container is stopped, you have the ability to restart it in different modes:
 
 <p align="center">
  <img src=../doc/images/archipel-ui-service-admin-start.png width = 1000>
 </p>
 
 
-- **`Start Active Service Container`**: It will perform a start of the docker container service in active mode.
+- **`Start Active Service Container`** will start the service container in active mode.
 
 
-- **`Start Passive Service Container`**: It will perform a start of the docker container service in passive mode.
+- **`Start Passive Service Container`** will start the service container in passive mode.
 
 
 ## Installation
@@ -222,6 +229,3 @@ Some environment variables are read and integrated into the template `config` ob
 including:
 
 * `REACT_APP_API_URL` overriding `config[API_URL]`
-
-## References
-* [Based on Substrate Front End Template](https://github.com/substrate-developer-hub/substrate-front-end-template)
