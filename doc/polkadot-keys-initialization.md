@@ -139,3 +139,27 @@ Here how to extract the value from env varibale :
 ```bash
 export ROTATE_KEY=$(cat kusama-session-gran-ed25519.keys | grep Public | cut -d":" -f2)$(cat kusama-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-para-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)
 ```
+
+### Check 5 sesssion keys correctly installed on your node with ROTATE_KEY value check
+
+Connect to the container polkadot like this:
+
+```bash
+docker exec -it kusama-data-polkadot-synch sh
+```
+
+Export the ROTATE_KEY you want to verify as well install in your node :
+
+```bash
+       export ROTATE_KEY=0x00000000000000000001....
+       echo $ROTATE_KEY
+```
+
+Call of `author_hasSessionKeys` must return true.
+
+```bash
+> curl http://localhost:9993 -H 'Content-Type:application/json;charset=utf-8' -d "{\"jsonrpc\":\"2.0\",\"id\":1, \"method\":\"author_hasSessionKeys\", \"params\": [\"$ROTATE_KEY\"]}"
+> {"jsonrpc":"2.0","result":true,"id":1}
+```
+
+Check on you 3 Archipel polkadot running nodes. If all nodes are ready to operate on this sessions key, you are now confident to [Submitting the setKeys Transaction](https://wiki.polkadot.network/docs/en/maintain-guides-how-to-validate-kusama#submitting-the-setkeys-transaction).
