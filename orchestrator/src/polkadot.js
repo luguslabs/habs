@@ -456,7 +456,7 @@ class Polkadot {
           config.polkadotPrefix + 'polkadot-validator',
           config.polkadotPrefix + 'polkadot-sync',
           config.polkadotImage,
-          ['--name', `${config.polkadotName}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only']
+          ['--name', `${config.polkadotName}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only', ...formatOptionList('--sentry-nodes', config.polkadotReservedNodes) ]
           , '/polkadot',
           this.polkadotVolume,
           this.networkMode
@@ -468,7 +468,7 @@ class Polkadot {
           config.polkadotPrefix + 'polkadot-validator',
           config.polkadotPrefix + 'polkadot-sync',
           config.polkadotImage,
-          ['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions, '--sentry'],
+          ['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions, ...formatOptionList('--sentry', config.polkadotReservedNodes) ],
           '/polkadot',
           this.polkadotVolume,
           this.networkMode
