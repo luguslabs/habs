@@ -26,12 +26,12 @@ if [ ! -z "$CONFIG_FILE" ]; then
     fi
 
     #unpack config file
-    if [ ! -f "/config/config.json" ]; then
+    if [ -f "/config/archipel-config.zip" ]; then
         #if config file password was set unzip with password
         if [ ! -z "$CONFIG_FILE_PASSWORD" ]; then
-                unzip -P "$CONFIG_FILE_PASSWORD" -o /config/archipel-config.zip -d /config
+                unzip -f -P "$CONFIG_FILE_PASSWORD" -o /config/archipel-config.zip -d /config
         else 
-                unzip -o /config/archipel-config.zip -d /config
+                unzip -f -o /config/archipel-config.zip -d /config
         fi
         #check unzip command
         check_cmd $? 'unzip config file'
