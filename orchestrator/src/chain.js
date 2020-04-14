@@ -131,6 +131,10 @@ class Chain {
                 });
                 resolve(false);
               }
+              // If transaction is not ok resolving promise to false
+              if (status.isDropped || status.isInvalid || status.isUsurped) {
+                resolve(false);
+              }
             }).catch(err => reject(err));
         });
       } else {
@@ -218,6 +222,10 @@ class Chain {
                   resolve(true);
                 }
               });
+              resolve(false);
+            }
+            // If transaction is not ok resolving promise to false
+            if (status.isDropped || status.isInvalid || status.isUsurped) {
               resolve(false);
             }
           }).catch(err => reject(err));
