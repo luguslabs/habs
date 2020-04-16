@@ -8,7 +8,7 @@
 
 ### Issues
 
-[#210](https://github.com/luguslabs/archipel/issues/210): CLI breaking change in new polkadot RELEASE: v0.7.29): unzip config file do not work for fresh new config
+[#210](https://github.com/luguslabs/archipel/issues/210): unzip config file do not work for fresh new config
 
 ### Archipel components
 Main components | version | docker |
