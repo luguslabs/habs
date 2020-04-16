@@ -453,7 +453,7 @@ class Polkadot {
       if (mode === 'active') {
         const validatorCmdsList = ['--name', `${config.polkadotName}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only'];
         if (!isEmptyString(config.polkadotReservedNodes)) {
-          validatorCmdsList.push(...formatOptionList('--sentry-node', config.polkadotReservedNodes));
+          validatorCmdsList.push(...formatOptionList('--sentry-nodes', config.polkadotReservedNodes));
         }
         await this.docker.startServiceContainer(
           'active',
