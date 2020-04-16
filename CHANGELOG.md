@@ -17,7 +17,7 @@
 Main components | version | docker |
 -------------------------|-----------|-----------|
 archipel | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.0/deployer/archipel) |[docker pull luguslabs/archipel:1.0.1](https://hub.docker.com/layers/luguslabs/archipel/1.0.1/images/sha256-84ca11aa955587a1a8f966bd493f8d639ddbfbc32c01827017152e3750bddb74?context=repo)|
-archipel-cli | [v1.0.0](https://github.com/luguslabs/archipel/tree/v1.0.0/cli) |[docker pull luguslabs/archipel-cli:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-cli/1.0.1/images/sha256-5fc03fd2df6c780d2c1c8ee5109c3b18e56b9e0b5fb223887e16470d20776ddb?context=repo)|
+archipel-cli | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.0/cli) |[docker pull luguslabs/archipel-cli:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-cli/1.0.1/images/sha256-5fc03fd2df6c780d2c1c8ee5109c3b18e56b9e0b5fb223887e16470d20776ddb?context=repo)|
 archipel-ui | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.0/ui) | [docker pull luguslabs/archipel-ui:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-ui/1.0.1/images/sha256-141e6ab4cd0da600445ed92f60606f0019a63d39450c1754eebcbe6226ccdab4?context=repo)|
 
 sub components | version | docker |
