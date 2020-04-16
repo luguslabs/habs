@@ -65,7 +65,7 @@ const formatOptionList = (option, inputList) => {
 };
 
 const formatOptionCmds = inputCmds => {
-  if(inputCmds.split(' ').length == 1){
+  if (inputCmds.split(' ').length === 1) {
     return [inputCmds];
   }
   return inputCmds.split(' ').reduce((resultArray, item) => {
