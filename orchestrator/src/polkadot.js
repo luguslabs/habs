@@ -451,24 +451,32 @@ class Polkadot {
       // Launch service in specific mode
       let containerName = '';
       if (mode === 'active') {
+        const validatorCmdsList = ['--name', `${config.polkadotName}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only'];
+        if (!isEmptyString(config.polkadotReservedNodes)) {
+          validatorCmdsList.push(...formatOptionList('--sentry-node', config.polkadotReservedNodes));
+        }
         await this.docker.startServiceContainer(
           'active',
           config.polkadotPrefix + 'polkadot-validator',
           config.polkadotPrefix + 'polkadot-sync',
           config.polkadotImage,
-          ['--name', `${config.polkadotName}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only', ...formatOptionList('--sentry-nodes', config.polkadotReservedNodes) ]
-          , '/polkadot',
+          validatorCmdsList,
+          '/polkadot',
           this.polkadotVolume,
           this.networkMode
         );
         containerName = config.polkadotPrefix + 'polkadot-validator';
       } else if (mode === 'passive') {
+        const sentryCmdsList = ['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions];
+        if (!isEmptyString(config.polkadotReservedNodes)) {
+          sentryCmdsList.push(...formatOptionList('--sentry', config.polkadotReservedNodes));
+        }
         await this.docker.startServiceContainer(
           'passive',
           config.polkadotPrefix + 'polkadot-validator',
           config.polkadotPrefix + 'polkadot-sync',
           config.polkadotImage,
-          ['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions, ...formatOptionList('--sentry', config.polkadotReservedNodes) ],
+          sentryCmdsList,
           '/polkadot',
           this.polkadotVolume,
           this.networkMode
