@@ -25,18 +25,25 @@ if [ ! -z "$CONFIG_FILE" ]; then
             exit 1
       fi
 
-      #unpack config file
-      if [ -f "/config/archipel-config.zip" ]; then
-            #if config file password was set unzip with password
-            if [ ! -z "$CONFIG_FILE_PASSWORD" ]; then
-                  unzip -f -P "$CONFIG_FILE_PASSWORD" -o /config/archipel-config.zip -d /config
-            else 
-                  unzip -f -o /config/archipel-config.zip -d /config
-            fi
-            #check unzip command
-            check_cmd $? 'unzip config file'
-      fi
-      
+    #unpack config file
+    if [ -f "/config/archipel-config.zip" ]; then
+        echo "start-chain.sh : unzip /config/archipel-config.zip"
+        #if config file password was set unzip with password
+        if [ ! -z "$CONFIG_FILE_PASSWORD" ]; then
+            echo "start-chain.sh : unzip if first time  with -u option."
+            unzip -u -P "$CONFIG_FILE_PASSWORD" -o /config/archipel-config.zip -d /config
+            echo "start-chain.sh : refresh all configs files with unzip -f option."
+            unzip -f -P "$CONFIG_FILE_PASSWORD" -o /config/archipel-config.zip -d /config
+        else
+            echo "start-chain.sh : unzip if first time  with -u option."
+            unzip -u -o /config/archipel-config.zip -d /config
+            echo "start-chain.sh : refresh all configs files with unzip -f option."
+            unzip -f -o /config/archipel-config.zip -d /config
+        fi
+    else
+        echo "start-chain.sh : no file /config/archipel-config.zip"
+    fi
+
       #check if node id is valid
       NODES_NUMBER=$(cat /config/config.json | jq ".nodesNumber")
       if [ "$NODE_ID" -eq "0" ] || [ "$NODE_ID" -gt "$NODES_NUMBER" ]; then

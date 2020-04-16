@@ -27,14 +27,21 @@ if [ ! -z "$CONFIG_FILE" ]; then
 
     #unpack config file
     if [ -f "/config/archipel-config.zip" ]; then
+        echo "start-orchestrator.sh : unzip /config/archipel-config.zip"
         #if config file password was set unzip with password
         if [ ! -z "$CONFIG_FILE_PASSWORD" ]; then
-                unzip -f -P "$CONFIG_FILE_PASSWORD" -o /config/archipel-config.zip -d /config
+            echo "start-orchestrator.sh : unzip if first time  with -u option."
+            unzip -u -P "$CONFIG_FILE_PASSWORD" -o /config/archipel-config.zip -d /config
+            echo "start-orchestrator.sh : refresh all configs files with unzip -f option."
+            unzip -f -P "$CONFIG_FILE_PASSWORD" -o /config/archipel-config.zip -d /config
         else 
-                unzip -f -o /config/archipel-config.zip -d /config
+            echo "start-orchestrator.sh : unzip if first time  with -u option."
+            unzip -u -o /config/archipel-config.zip -d /config
+            echo "start-orchestrator.sh : refresh all configs files with unzip -f option."
+            unzip -f -o /config/archipel-config.zip -d /config
         fi
-        #check unzip command
-        check_cmd $? 'unzip config file'
+    else
+        echo "start-orchestrator.sh : no file /config/archipel-config.zip"
     fi
 
     #check if node id is valid
