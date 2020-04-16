@@ -4,6 +4,38 @@
 
 <!--New features/improvements/fixes go here-->
 
+## Unreleased [v1.0.2](https://github.com/luguslabs/archipel/releases/tag/v1.0.2)
+
+### Issues
+
+[#210](https://github.com/luguslabs/archipel/issues/210CLI breaking change in new polkadot RELEASE: v0.7.29): unzip config file do not work for fresh new config
+
+### Archipel components
+Main components | version | docker |
+-------------------------|-----------|-----------|
+archipel | [v1.0.2](https://github.com/luguslabs/archipel/tree/v1.0.2/deployer/archipel) |[docker pull luguslabs/archipel:1.0.2](TBD)|
+archipel-cli | [v1.0.2](https://github.com/luguslabs/archipel/tree/v1.0.2/cli) |[docker pull luguslabs/archipel-cli:1.0.2](TBD)|
+archipel-ui | [v1.0.2](https://github.com/luguslabs/archipel/tree/v1.0.2/ui) | [docker pull luguslabs/archipel-ui:1.0.2](TBD)|
+
+sub components | version | docker |
+-----------------------|-----------| --------- |
+chain | [v1.0.2](https://github.com/luguslabs/archipel/tree/v1.0.2/chain) |[docker pull luguslabs/archipel-chain:1.0.2](TBD)
+orchestrator | [v1.0.2](https://github.com/luguslabs/archipel/tree/v1.0.2/orchestrator) |[docker pull luguslabs/archipel-orchestrator:1.0.2](TBD)|
+
+### DAppNode Packages
+
+DAppNode Packages | version |
+------------------|---------|
+archipel.public.dappnode.eth|[v1.0.2](https://github.com/luguslabs/DAppNodePackage-archipel/releases/tag/v1.0.2)|
+archipel-ui.public.dappnode.eth|[v1.0.2](https://github.com/luguslabs/DAppNodePackage-archipel-ui/releases/tag/v1.0.2)|
+
+### Archipel UI
+
+TBD
+
+
+
+
 ## [v1.0.1](https://github.com/luguslabs/archipel/releases/tag/v1.0.1)
 
 ### Issues
@@ -16,14 +48,14 @@
 ### Archipel components
 Main components | version | docker |
 -------------------------|-----------|-----------|
-archipel | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.0/deployer/archipel) |[docker pull luguslabs/archipel:1.0.1](https://hub.docker.com/layers/luguslabs/archipel/1.0.1/images/sha256-84ca11aa955587a1a8f966bd493f8d639ddbfbc32c01827017152e3750bddb74?context=repo)|
-archipel-cli | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.0/cli) |[docker pull luguslabs/archipel-cli:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-cli/1.0.1/images/sha256-5fc03fd2df6c780d2c1c8ee5109c3b18e56b9e0b5fb223887e16470d20776ddb?context=repo)|
-archipel-ui | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.0/ui) | [docker pull luguslabs/archipel-ui:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-ui/1.0.1/images/sha256-141e6ab4cd0da600445ed92f60606f0019a63d39450c1754eebcbe6226ccdab4?context=repo)|
+archipel | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.1/deployer/archipel) |[docker pull luguslabs/archipel:1.0.1](https://hub.docker.com/layers/luguslabs/archipel/1.0.1/images/sha256-84ca11aa955587a1a8f966bd493f8d639ddbfbc32c01827017152e3750bddb74?context=repo)|
+archipel-cli | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.1/cli) |[docker pull luguslabs/archipel-cli:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-cli/1.0.1/images/sha256-5fc03fd2df6c780d2c1c8ee5109c3b18e56b9e0b5fb223887e16470d20776ddb?context=repo)|
+archipel-ui | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.1/ui) | [docker pull luguslabs/archipel-ui:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-ui/1.0.1/images/sha256-141e6ab4cd0da600445ed92f60606f0019a63d39450c1754eebcbe6226ccdab4?context=repo)|
 
 sub components | version | docker |
 -----------------------|-----------| --------- |
 chain | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.1/chain) |[docker pull luguslabs/archipel-chain:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-chain/1.0.1/images/sha256-ae156cf42ef8367bc0347d4f16df14044339a1641752c386fe74557d6d8f9a2b?context=repo)
-orchestrator | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.0/orchestrator) |[docker pull luguslabs/archipel-orchestrator:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-orchestrator/1.0.1/images/sha256-73c7163d8f6414bdcec7578e510377ac599c80e5ac7ad67eb1168f75c55b274a?context=repo)|
+orchestrator | [v1.0.1](https://github.com/luguslabs/archipel/tree/v1.0.1/orchestrator) |[docker pull luguslabs/archipel-orchestrator:1.0.1](https://hub.docker.com/layers/luguslabs/archipel-orchestrator/1.0.1/images/sha256-73c7163d8f6414bdcec7578e510377ac599c80e5ac7ad67eb1168f75c55b274a?context=repo)|
 
 ### DAppNode Packages
 
