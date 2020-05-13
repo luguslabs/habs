@@ -451,7 +451,7 @@ class Polkadot {
       // Launch service in specific mode
       let containerName = '';
       if (mode === 'active') {
-        const validatorCmdsList = ['--name', `${config.polkadotName}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only'];
+        const validatorCmdsList = ['--name', `${config.polkadotName.slice(0, -2)}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only'];
         if (!isEmptyString(config.polkadotReservedNodes)) {
           validatorCmdsList.push(...formatOptionList('--sentry-nodes', config.polkadotReservedNodes));
         }
