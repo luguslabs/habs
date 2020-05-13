@@ -44,9 +44,9 @@ To preview you website immediately go to:
 
 http://my.ipfs.dnp.dappnode.eth:8080/ipfs/QmV2Xh92xSQfh4AWisZw5YAY9SkVXTrs789QjgcUcmwf4D
 
-- [archipel.eth ENS Domain](https://app.ens.domains/name/archipel.eth) transaction IPFS content update for http://archipel.eth :
+- [archipel.eth ENS Domain](https://app.ens.domains/name/archipel.eth) http://archipel.eth :
 
-https://etherscan.io/tx/TBD
+
 
 ## [v1.0.2](https://github.com/luguslabs/archipel/releases/tag/v1.0.2)
 
