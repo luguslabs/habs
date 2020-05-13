@@ -1,6 +1,6 @@
 {
   "name": "archipel-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Archipel CLI is a component that generates configuration and bootstraps an Archipel federation.  ",
   "main": "src/app.js",
   "scripts": {
