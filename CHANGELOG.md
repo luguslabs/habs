@@ -4,7 +4,7 @@
 
 <!--New features/improvements/fixes go here-->
 
-## [Unreleased v1.0.3](https://github.com/luguslabs/archipel/releases/tag/v1.0.3)
+## [v1.0.3](https://github.com/luguslabs/archipel/releases/tag/v1.0.3)
 
 ### Issues
 
@@ -14,16 +14,16 @@
 
 ### Archipel components
 
-| Main components | version                                                                       | docker                                       |
-| --------------- | ----------------------------------------------------------------------------- | -------------------------------------------- |
-| archipel        | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/deployer/archipel) | [docker pull luguslabs/archipel:1.0.3]()     |
-| archipel-cli    | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/cli)               | [docker pull luguslabs/archipel-cli:1.0.3]() |
-| archipel-ui     | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/ui)                | [docker pull luguslabs/archipel-ui:1.0.3]()  |
+| Main components | version                                                                       | docker                                                                                                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| archipel        | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/deployer/archipel) | [docker pull luguslabs/archipel:1.0.3](https://hub.docker.com/layers/luguslabs/archipel/1.0.3/images/sha256-977a26ff3046dea119791d719b5f976fdc38202463d8a9b4162e3c28aa5e065c?context=repo)         |
+| archipel-cli    | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/cli)               | [docker pull luguslabs/archipel-cli:1.0.3](https://hub.docker.com/layers/luguslabs/archipel-cli/1.0.3/images/sha256-f0a5f3bcb59f478d3c524f7e6a5006436c9534b60d0ae478372c729d0c554217?context=repo) |
+| archipel-ui     | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/ui)                | [docker pull luguslabs/archipel-ui:1.0.3](https://hub.docker.com/layers/luguslabs/archipel-ui/1.0.3/images/sha256-2d30eabefcb6f23a0cdcfdbd6ef01eb0615078e1cd97c4764367a61d338bf5d4?context=repo)   |
 
-| sub components | version                                                                  | docker                                                |
-| -------------- | ------------------------------------------------------------------------ | ----------------------------------------------------- |
-| chain          | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/chain)        | [docker pull luguslabs/archipel-chain:1.0.3]()        |
-| orchestrator   | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/orchestrator) | [docker pull luguslabs/archipel-orchestrator:1.0.3]() |
+| sub components | version                                                                  | docker                                                                                                                                                                                                               |
+| -------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| chain          | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/chain)        | [docker pull luguslabs/archipel-chain:1.0.3](https://hub.docker.com/layers/luguslabs/archipel-chain/1.0.3/images/sha256-e3b6d86f3e05ff930566788f4fff7fe8108b66d97e3ca08ddeef3f83eb4a69d8?context=repo)               |
+| orchestrator   | [v1.0.3](https://github.com/luguslabs/archipel/tree/v1.0.3/orchestrator) | [docker pull luguslabs/archipel-orchestrator:1.0.3](https://hub.docker.com/layers/luguslabs/archipel-orchestrator/1.0.3/images/sha256-6ac62e661707128dc7479bea3bf053ceab81e900f90995374297a01cefd9b162?context=repo) |
 
 ### DAppNode Packages
 
@@ -38,11 +38,11 @@
 
 To point an .eth domain to this website, use this hash as value:
 
-TBD
+QmV2Xh92xSQfh4AWisZw5YAY9SkVXTrs789QjgcUcmwf4D
 
 To preview you website immediately go to:
 
-http://my.ipfs.dnp.dappnode.eth:8080/ipfs/TBD
+http://my.ipfs.dnp.dappnode.eth:8080/ipfs/QmV2Xh92xSQfh4AWisZw5YAY9SkVXTrs789QjgcUcmwf4D
 
 - [archipel.eth ENS Domain](https://app.ens.domains/name/archipel.eth) transaction IPFS content update for http://archipel.eth :
 
