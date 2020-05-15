@@ -4,6 +4,46 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v1.0.4](https://github.com/luguslabs/archipel/releases/tag/v1.0.4)
+
+### Issues
+
+[#217](https://github.com/luguslabs/archipel/issues/217): Validator switch a few seconds in passive mode and go back active again
+
+### Archipel components
+
+| Main components | version                                                                       | docker                                                                                                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| archipel        | [v1.0.4](https://github.com/luguslabs/archipel/tree/v1.0.4/deployer/archipel) | [docker pull luguslabs/archipel:1.0.4](https://hub.docker.com/layers/luguslabs/archipel/1.0.4/images/sha256-b203494361580a20f9216e74014ea80fcf9b123a67a55cd64123fdd33f074e5a?context=repo)         |
+| archipel-cli    | [v1.0.4](https://github.com/luguslabs/archipel/tree/v1.0.4/cli)               | [docker pull luguslabs/archipel-cli:1.0.4](https://hub.docker.com/layers/luguslabs/archipel-cli/1.0.4/images/sha256-1310a1f6a9aaf6dee8a9e09b5a44c81eb0832a0f56229102d9dcdefd94eb2acb?context=repo) |
+| archipel-ui     | [v1.0.4](https://github.com/luguslabs/archipel/tree/v1.0.4/ui)                | [docker pull luguslabs/archipel-ui:1.0.4](https://hub.docker.com/layers/luguslabs/archipel-ui/1.0.4/images/sha256-fa50522709f81a375c2c01e76d57c381e372bc97d05bb4c7759a5eecb696444e?context=repo)   |
+
+| sub components | version                                                                  | docker                                                                                                                                                                                                               |
+| -------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| chain          | [v1.0.4](https://github.com/luguslabs/archipel/tree/v1.0.4/chain)        | [docker pull luguslabs/archipel-chain:1.0.4](https://hub.docker.com/layers/luguslabs/archipel-chain/1.0.4/images/sha256-561dc5b5f106b47cfc42625ef0658a52509a36064df78f0d0013e610a0c868d2?context=repo)               |
+| orchestrator   | [v1.0.4](https://github.com/luguslabs/archipel/tree/v1.0.4/orchestrator) | [docker pull luguslabs/archipel-orchestrator:1.0.4](https://hub.docker.com/layers/luguslabs/archipel-orchestrator/1.0.4/images/sha256-e1495651f2b851c00c6368e9c5f791e801edfa10222f92a193e518703fcacba7?context=repo) |
+
+### DAppNode Packages
+
+| DAppNode Packages               | version                                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------------- |
+| archipel.public.dappnode.eth    | [v1.0.4](https://github.com/luguslabs/DAppNodePackage-archipel/releases/tag/v1.0.4)    |
+| archipel-ui.public.dappnode.eth | [v1.0.4](https://github.com/luguslabs/DAppNodePackage-archipel-ui/releases/tag/v1.0.4) |
+
+### Archipel UI
+
+- Archipel UI v1.0.4 IPFS link
+
+To point an .eth domain to this website, use this hash as value:
+
+QmV2Xh92xSQfh4AWisZw5YAY9SkVXTrs789QjgcUcmwf4D
+
+To preview you website immediately go to:
+
+http://my.ipfs.dnp.dappnode.eth:8080/ipfs/QmV2Xh92xSQfh4AWisZw5YAY9SkVXTrs789QjgcUcmwf4D
+
+- [archipel.eth ENS Domain](https://app.ens.domains/name/archipel.eth) http://archipel.eth :
+
 ## [v1.0.3](https://github.com/luguslabs/archipel/releases/tag/v1.0.3)
 
 ### Issues
@@ -45,8 +85,6 @@ To preview you website immediately go to:
 http://my.ipfs.dnp.dappnode.eth:8080/ipfs/QmV2Xh92xSQfh4AWisZw5YAY9SkVXTrs789QjgcUcmwf4D
 
 - [archipel.eth ENS Domain](https://app.ens.domains/name/archipel.eth) http://archipel.eth :
-
-
 
 ## [v1.0.2](https://github.com/luguslabs/archipel/releases/tag/v1.0.2)
 
