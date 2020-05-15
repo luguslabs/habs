@@ -68,12 +68,23 @@ class Chain {
   async canSendTransactions () {
     try {
       // Get peers number
-      const peersNumber = await this.getPeerNumber();
+      let peersNumber = await this.getPeerNumber();
       debug('addMetrics', `Node has ${peersNumber} peers.`);
 
       // Get sync state
-      const syncState = await this.getSyncState();
+      let syncState = await this.getSyncState();
       debug('addMetrics', `Node is sync: ${syncState}`);
+
+      if(peersNumber == 0 || syncState == true){
+        console.log('peersNumber is 0 or synch in progress. Wait 5 sec and retry');
+        console.log('peersNumber :' + peersNumber);
+        console.log('syncState :' + syncState);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        peersNumber = await this.getPeerNumber();
+        syncState = await this.getSyncState();
+        console.log('new peersNumber :' + peersNumber);
+        console.log('new syncState :' + syncState);
+      }
 
       // If node has any peers and is not in synchronizing chain
       return peersNumber !== 0 && syncState !== true;
