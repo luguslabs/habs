@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Issues
+
+[#220](https://github.com/luguslabs/archipel/issues/220): Update test config for polkadot v8.0.1
+
 <!--New features/improvements/fixes go here-->
 
 ## [v1.0.4](https://github.com/luguslabs/archipel/releases/tag/v1.0.4)
