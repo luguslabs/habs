@@ -4,10 +4,11 @@ const debug = require('debug')('chain');
 const { getKeysFromSeed } = require('./utils');
 
 class Chain {
-  constructor (wsProvider) {
+  constructor (wsProvider, role) {
     this.wsProvider = wsProvider;
     this.metricSendEnabled = true;
     this.metricSendEnabledAdmin = true;
+    this.role = role;
   }
 
   async connect () {
@@ -47,8 +48,13 @@ class Chain {
             debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
             // If anyone other took leadership
             if (event.data[0].toString() !== keys.address.toString()) {
-              console.log('Forcing service in passive mode...');
-              orchestrator.serviceStart('passive');
+              if (this.role === 'operator') {
+                console.log('Forcing service in passive mode...');
+                orchestrator.serviceStart('passive');
+              } else {
+                console.log('Forcing service in sentry mode...');
+                orchestrator.serviceStart('sentry');
+              }
             }
           }
           // Add metrics if Metrics updated event was received
@@ -75,7 +81,7 @@ class Chain {
       let syncState = await this.getSyncState();
       debug('addMetrics', `Node is sync: ${syncState}`);
 
-      if(peersNumber == 0 || syncState == true){
+      if (peersNumber === 0 || syncState === true) {
         console.log('peersNumber is 0 or synch in progress. Wait 5 sec and retry');
         console.log('peersNumber :' + peersNumber);
         console.log('syncState :' + syncState);

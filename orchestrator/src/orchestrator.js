@@ -22,7 +22,7 @@ class Orchestrator {
     }
   }
 
-  constructor (chain, service, metrics, mnemonic, aliveTime, archipelName) {
+  constructor (chain, service, metrics, mnemonic, aliveTime, archipelName, role) {
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
@@ -37,7 +37,8 @@ class Orchestrator {
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
     this.orchestrationEnabled = true;
-    this.mode = 'passive';
+    this.mode = (role === 'operator') ? 'passive' : 'sentry';
+    this.role = role;
     this.archipelName = archipelName;
   }
 
@@ -53,61 +54,71 @@ class Orchestrator {
         return;
       }
 
-      // If node state permits to send transactions
-      console.log('Checking if Archipel chain node can receive transactions...');
-      const sendTransaction = await this.chain.canSendTransactions();
-      if (!sendTransaction) {
-        console.log('Archipel chain node can\'t receive transactions. Enforcing \'passive\' service mode...');
-        await this.serviceStart('passive');
-        return;
+      if (this.role === 'operator') {
+        console.log('Start node in operator mode, active or passive...');
+        await this.orchestrateOperatorService();
+      } else {
+        console.log('Start node in sentry mode...');
+        await this.serviceStart('sentry');
       }
-
-      // Get node address from seed
-      const key = await getKeysFromSeed(this.mnemonic);
-      const nodeKey = key.address;
-      debug('orchestrateService', `Current Node Key: ${nodeKey}`);
-
-      // Check if anyone is alive
-      console.log('Checking is anyone in federation is alive...');
-      if (!this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
-        console.log('Seems that no one is alive. Enforcing \'passive\' service mode...');
-        await this.serviceStart('passive');
-        return;
-      }
-
-      // Check service readiness only if in passive mode
-      console.log('Checking if service is ready to start...');
-      const serviceReady = await this.serviceReadinessManagement();
-      if (!serviceReady) {
-        console.log('Service is not ready. Enforcing \'passive\' service mode...');
-        await this.serviceStart('passive');
-        return;
-      }
-
-      // If metrics are disabled enforcing passive service mode
-      if (!this.chain.metricSendEnabled || !this.chain.metricSendEnabledAdmin) {
-        console.log('Metric send is disabled. Enforcing passive service mode...');
-        await this.serviceStart('passive');
-        return;
-      }
-
-      // Check node leadership
-      console.log('Checking node leadership...');
-      const leadership = await this.leadershipManagement(nodeKey);
-
-      if (!leadership) {
-        console.log('The current node is not leader. Enforcing \'passive\' service mode...');
-        await this.serviceStart('passive');
-        return;
-      }
-
-      // If all checks passed we can start service in active mode
-      console.log('All checks passed. Launching service in active mode...');
-      await this.serviceStart('active');
     } catch (error) {
       debug('orchestrateService', error);
       throw error;
     }
+  }
+
+  async orchestrateOperatorService () {
+    // If node state permits to send transactions
+    console.log('Checking if Archipel chain node can receive transactions...');
+    const sendTransaction = await this.chain.canSendTransactions();
+    if (!sendTransaction) {
+      console.log('Archipel chain node can\'t receive transactions. Enforcing \'passive\' service mode...');
+      await this.serviceStart('passive');
+      return;
+    }
+
+    // Get node address from seed
+    const key = await getKeysFromSeed(this.mnemonic);
+    const nodeKey = key.address;
+    debug('orchestrateService', `Current Node Key: ${nodeKey}`);
+
+    // Check if anyone is alive
+    console.log('Checking is anyone in federation is alive...');
+    if (!this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
+      console.log('Seems that no one is alive. Enforcing \'passive\' service mode...');
+      await this.serviceStart('passive');
+      return;
+    }
+
+    // Check service readiness only if in passive mode
+    console.log('Checking if service is ready to start...');
+    const serviceReady = await this.serviceReadinessManagement();
+    if (!serviceReady) {
+      console.log('Service is not ready. Enforcing \'passive\' service mode...');
+      await this.serviceStart('passive');
+      return;
+    }
+
+    // If metrics are disabled enforcing passive service mode
+    if (!this.chain.metricSendEnabled || !this.chain.metricSendEnabledAdmin) {
+      console.log('Metric send is disabled. Enforcing passive service mode...');
+      await this.serviceStart('passive');
+      return;
+    }
+
+    // Check node leadership
+    console.log('Checking node leadership...');
+    const leadership = await this.leadershipManagement(nodeKey);
+
+    if (!leadership) {
+      console.log('The current node is not leader. Enforcing \'passive\' service mode...');
+      await this.serviceStart('passive');
+      return;
+    }
+
+    // If all checks passed we can start service in active mode
+    console.log('All checks passed. Launching service in active mode...');
+    await this.serviceStart('active');
   }
 
   // Take leader place

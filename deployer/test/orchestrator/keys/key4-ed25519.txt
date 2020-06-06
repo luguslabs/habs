@@ -1,0 +1,5 @@
+Secret phrase `border energy rib ugly solid paper stock trash junior invite length hello` is account:
+  Secret seed:      0x3f2e8665f7d95117833a22b50bdc6b199fddc1db841bc9b09641729e512b0fe9
+  Public key (hex): 0xcc7a15a6052a417445470bcb1a65c8a9bb41ea50c7e2c268568eca71c2cc277f
+  Account ID:       0xcc7a15a6052a417445470bcb1a65c8a9bb41ea50c7e2c268568eca71c2cc277f
+  SS58 Address:     5Ggoti4ADP7oHxukAGjqJnQjJB89ZS6dKotC1d7CmvFG8iiL

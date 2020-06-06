@@ -1,0 +1,5 @@
+Secret phrase `ketchup produce seat decade denial open around hour suit benefit dream story` is account:
+  Secret seed:      0x15ec71e703a629071664c1f27d3b4e7bc078d8e26828a559766cdaa5ffcb904d
+  Public key (hex): 0x534e09369b0e2aac3ed2e16173ce1128cff14f56494e6a41ceb6e3462068a107
+  Account ID:       0x534e09369b0e2aac3ed2e16173ce1128cff14f56494e6a41ceb6e3462068a107
+  SS58 Address:     5Dww1iPtLbZTUjuXciBdki2Wtnh55M8g1FB4hx32JcSo4NMk

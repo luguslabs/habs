@@ -181,7 +181,7 @@ class Docker {
       }
 
       // Check if passive service container is already running
-      if (type === 'passive' && await this.isContainerRunningByName(passiveName)) {
+      if ((type === 'passive' || type === 'sentry') && await this.isContainerRunningByName(passiveName)) {
         console.log(`Service is already running in ${type} mode...`);
         return;
       }

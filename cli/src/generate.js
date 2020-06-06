@@ -54,14 +54,15 @@ const validateConfigData = async configData => {
   isEmptyString(configData.publicIps, 'Nodes public ips were not set in archipel.json file.');
   isEmptyString(configData.service, 'Service name was not found in archipel.json file.');
   validatePublicIps(configData.publicIps);
+  validateNodesRole(configData.nodesRole);
   await validateServiceConfig(configData);
 };
 
 // Validate public ips list
 const validatePublicIps = ips => {
   const externalIPAddresses = ips.split(',');
-  if (externalIPAddresses.length !== 3) {
-    throw Error('For now Archipel supports only 3 nodes config.');
+  if (externalIPAddresses.length < 3) {
+    throw Error('Archipel must have at least 3 nodes config.');
   }
   // Check if every ip address in list is valid
   externalIPAddresses.forEach(element => {
@@ -69,6 +70,15 @@ const validatePublicIps = ips => {
       throw Error(`Public ip list has an invalid IP address or DNS domain (${element}).`);
     }
   });
+};
+
+// Validate nodes role support
+const validateNodesRole = roles => {
+  roles.split(',').forEach(role => {
+    if (role != 'sentry' && role != 'operator') {
+      throw Error('Bad role node :' + role + '. Archipel node role must be sentry or operator');
+    }
+  })
 };
 
 // Generate config
@@ -104,6 +114,8 @@ const generateConfig = async () => {
 
     // Add name to config
     config.name = configData.name.toLowerCase().replace(/\s/g, '-');
+
+    config.nodesRole = configData.nodesRole;
 
     // Add node number to config
     config.nodesNumber = externalIPAddresses.length;

@@ -52,6 +52,19 @@ if [ ! -z "$CONFIG_FILE" ]; then
     fi
 
     #set variables from config file
+    #get NODES_ROLE
+    if [ -z "$NODES_ROLE" ]; then
+        NODES_ROLE=$(cat /config/config.json | jq ".nodesRole")
+        check_cmd $? 'retrieve NODES_ROLE'
+        if [ "$NODES_ROLE" == "null" ]; then
+            echo "Assure old config support. Force config NODES_ROLE to 'operator,operator,operator'"
+            NODES_ROLE="operator,operator,operator"
+        fi
+        IFS=',' read -ra rolesArray <<< "$NODES_ROLE"
+        index=$(( $NODE_ID - 1 ))
+        NODE_ROLE=${rolesArray[index]}
+    fi
+
     #get ARCHIPEL_KEY_SEED
     if [ -z "$ARCHIPEL_KEY_SEED" ]; then
         ARCHIPEL_KEY_SEED=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].seed" | sed 's/\"//g')
@@ -80,9 +93,27 @@ if [ ! -z "$CONFIG_FILE" ]; then
 
 fi
 
+if [ -z "$NODES_ROLE" ]; then
+  echo "Assure old config support. Force config NODES_ROLE to 'operator,operator,operator'"
+  NODES_ROLE="operator,operator,operator"
+fi
+echo "NODES_ROLE=$NODES_ROLE"
+
+if [ -z "$NODE_ROLE" ]; then
+  echo "Assure old config support. Force config NODE_ROLE to 'operator'"
+  NODE_ROLE="operator"
+fi
+echo "NODE_ROLE=$NODE_ROLE"
+
+
+
 # Setting Archipel orchestrator variables
+NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
+NODES_ROLE=$(echo $NODES_ROLE | sed 's/\"//g')
 export NODE_ENV=production
 export NODE_WS="ws://127.0.0.1:9944"
+export NODE_ROLE=$NODE_ROLE
+export NODES_ROLE=$NODES_ROLE
 export MNEMONIC="$ARCHIPEL_KEY_SEED"
 export NODES_WALLETS="$ARCHIPEL_AUTHORITIES_SR25519_LIST"
 export ARCHIPEL_NAME="$ARCHIPEL_NAME"
