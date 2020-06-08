@@ -23,7 +23,9 @@ const {
   SERVICE,
   SUSPEND_SERVICE,
   NODES_WALLETS,
-  ARCHIPEL_NAME
+  ARCHIPEL_NAME,
+  NODE_ROLE,
+  NODES_ROLE
 } = process.env;
 
 // Check if all necessary env vars were set
@@ -35,6 +37,8 @@ const checkEnvVars = () => {
     checkVariable(SERVICE, 'SERVICE');
     checkVariable(ARCHIPEL_NAME, 'ARCHIPEL_NAME');
     checkVariable(NODES_WALLETS, 'NODES_WALLETS');
+    checkVariable(NODE_ROLE, 'NODE_ROLE');
+    checkVariable(NODES_ROLE, 'NODES_ROLE');
   } catch (error) {
     debug('checkEnvVars', error);
     throw error;
@@ -49,7 +53,7 @@ async function main () {
 
     // Connect to Polkadot API
     console.log('Connecting to Archipel Chain node...');
-    const chain = new Chain(NODE_WS);
+    const chain = new Chain(NODE_WS, NODE_ROLE);
     await chain.connect();
 
     // Construct nodes list
@@ -59,7 +63,7 @@ async function main () {
     const metrics = new Metrics(nodes);
 
     // Create orchestrator instance
-    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME, ARCHIPEL_NAME);
+    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME, ARCHIPEL_NAME, NODE_ROLE);
 
     // If orchestrator is launched in suspend service mode disabling metrics send and orchestration
     if (SUSPEND_SERVICE.includes('true')) {
@@ -68,8 +72,8 @@ async function main () {
     }
 
     // Start service in passive mode
-    console.log('Starting service in passive mode...');
-    await orchestrator.serviceStart('passive');
+    console.log('Starting service in passive or sentry mode...');
+    await orchestrator.serviceStart(NODE_ROLE === 'operator' ? 'passive' : 'sentry');
 
     // Listen events
     chain.listenEvents(metrics, orchestrator, MNEMONIC);
@@ -78,7 +82,9 @@ async function main () {
     setIntervalAsync(async () => {
       try {
         // If metric send is enabled sending metrics
-        await chain.addMetrics(42, MNEMONIC);
+        const metricsValue = (NODE_ROLE === 'operator') ? 1 : 2;
+
+        await chain.addMetrics(metricsValue, MNEMONIC);
         // Orchestrating service
         await orchestrator.orchestrateService();
       } catch (error) {
@@ -91,8 +97,8 @@ async function main () {
       try {
         if (!chain.isConnected()) {
           console.log('Warning! Connection with chain was lost...');
-          console.log('Enforcing passive mode for service...');
-          await orchestrator.serviceStart('passive');
+          console.log('Enforcing passive mode or sentry for service...');
+          await orchestrator.serviceStart(NODE_ROLE === 'operator' ? 'passive' : 'sentry');
         }
       } catch (error) {
         console.error(error);

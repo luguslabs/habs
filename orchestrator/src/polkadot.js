@@ -35,6 +35,7 @@ class Polkadot {
       config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
       config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
       config.polkadotAdditionalOptions = process.env.POLKADOT_ADDITIONAL_OPTIONS;
+      config.nodesRole = process.env.NODES_ROLE;
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
       config.polkadotRpcPort = '9993';
@@ -109,6 +110,12 @@ class Polkadot {
       if (isEmptyString(config.polkadotReservedNodes)) {
         if ('service' in configFromFile && 'reservedPeersList' in configFromFile.service) {
           config.polkadotReservedNodes = configFromFile.service.reservedPeersList;
+        }
+      }
+
+      if (isEmptyString(config.nodesRole)) {
+        if ('nodesRole' in configFromFile) {
+          config.nodesRole = configFromFile.nodesRole;
         }
       }
 
@@ -285,6 +292,11 @@ class Polkadot {
         containerName = config.polkadotPrefix + 'polkadot-validator';
       }
 
+      // If mode is sentry we will check validator container
+      if (mode === 'sentry') {
+        containerName = config.polkadotPrefix + 'polkadot-sentry';
+      }
+
       // Check if container exists and is running
       const containerExistAndRunning = await this.docker.isContainerRunningByName(containerName);
       if (!containerExistAndRunning) {
@@ -379,6 +391,9 @@ class Polkadot {
     if (await this.docker.isContainerRunningByName(config.polkadotPrefix + 'polkadot-sync')) {
       return 'passive';
     }
+    if (await this.docker.isContainerRunningByName(config.polkadotPrefix + 'polkadot-sentry')) {
+      return 'sentry';
+    }
     return 'none';
   }
 
@@ -453,7 +468,8 @@ class Polkadot {
       if (mode === 'active') {
         const validatorCmdsList = ['--name', `${config.polkadotName.slice(0, -2)}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only'];
         if (!isEmptyString(config.polkadotReservedNodes)) {
-          validatorCmdsList.push(...formatOptionList('--sentry-nodes', config.polkadotReservedNodes));
+          const sentryPeers = await this.extractPeers(config.polkadotReservedNodes, config.nodesRole, 'sentry');
+          validatorCmdsList.push(...formatOptionList('--sentry-nodes', sentryPeers));
         }
         await this.docker.startServiceContainer(
           'active',
@@ -467,27 +483,50 @@ class Polkadot {
         );
         containerName = config.polkadotPrefix + 'polkadot-validator';
       } else if (mode === 'passive') {
-        const sentryCmdsList = ['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions];
+        const cmdsList = ['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions];
         if (!isEmptyString(config.polkadotReservedNodes)) {
-          sentryCmdsList.push(...formatOptionList('--sentry', config.polkadotReservedNodes));
+          if (!config.nodesRole.includes('sentry')) {
+            // if no sentry roles in config. add passive nodes as sentry for validator.
+            cmdsList.push(...formatOptionList('--sentry', config.polkadotReservedNodes));
+          } else {
+            // specific sentry nodes are present in config. So passive peers are never exposed and stay private with --reserved-only
+            cmdsList.push('--reserved-only');
+          }
         }
         await this.docker.startServiceContainer(
           'passive',
           config.polkadotPrefix + 'polkadot-validator',
           config.polkadotPrefix + 'polkadot-sync',
           config.polkadotImage,
-          sentryCmdsList,
+          cmdsList,
           '/polkadot',
           this.polkadotVolume,
           this.networkMode
         );
         containerName = config.polkadotPrefix + 'polkadot-sync';
+      } else if (mode === 'sentry') {
+        const cmdsList = ['--name', `${config.polkadotName}-sentry`, ...this.commonPolkadotOptions];
+        if (!isEmptyString(config.polkadotReservedNodes)) {
+          const operatorPeers = await this.extractPeers(config.polkadotReservedNodes, config.nodesRole, 'operator');
+          cmdsList.push(...formatOptionList('--sentry', operatorPeers));
+        }
+        await this.docker.startServiceContainer(
+          'sentry',
+          config.polkadotPrefix + 'polkadot-validator',
+          config.polkadotPrefix + 'polkadot-sentry',
+          config.polkadotImage,
+          cmdsList,
+          '/polkadot',
+          this.polkadotVolume,
+          this.networkMode
+        );
+        containerName = config.polkadotPrefix + 'polkadot-sentry';
       } else {
         throw new Error(`Mode '${mode}' is unknown.`);
       }
 
-      // Adding keys to polkadot keystore if there is no already 5 keys
-      if (this.importedKeys.length < 5) {
+      // Adding keys to polkadot keystore if no sentry node and if there is no already 5 keys
+      if ((mode !== 'sentry') && (this.importedKeys.length < 5)) {
         // Waiting for 10 seconds to be sure that node was started
         await new Promise(resolve => setTimeout(resolve, 10000));
         await this.polkadotKeysImport(containerName);
@@ -498,6 +537,23 @@ class Polkadot {
     }
   }
 
+  async extractPeers (peers, nodesRole, role) {
+    if (!nodesRole.includes(role)) {
+      // no role in config. sentry and validator will be all peers
+      return peers;
+    }
+    const result = [];
+    const peersList = peers.toString().split(',');
+    const nodesRoleList = nodesRole.toString().split(',');
+    peersList.forEach((value, index) => {
+      if (nodesRoleList[index].includes(role)) {
+        result.push(value);
+      }
+    });
+    console.log('extractPeers with role :[' + role + '] are [' + result.join() + ']');
+    return result.join();
+  }
+
   // Cleaning up polkadot service
   async cleanUp () {
     try {
@@ -505,6 +561,7 @@ class Polkadot {
       if (!this.cleaningUp) {
         this.cleaningUp = true;
         console.log('Cleaning containers before exit...');
+        await this.docker.removeContainer(config.polkadotPrefix + 'polkadot-sentry');
         await this.docker.removeContainer(config.polkadotPrefix + 'polkadot-sync');
         await this.docker.removeContainer(config.polkadotPrefix + 'polkadot-validator');
       } else {

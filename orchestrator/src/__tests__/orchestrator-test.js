@@ -42,14 +42,14 @@ beforeAll(async () => {
   docker = new Docker();
 
   // Connecting to Archipel Chain Node
-  chain = new Chain('ws://127.0.0.1:9944');
+  chain = new Chain('ws://127.0.0.1:9944', 'operator');
   await chain.connect();
 
   // Create metrics instance
   metrics = new Metrics();
 
   // Create Orchestrator instance
-  orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 60000, "false", "archipel-test");
+  orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 60000, "archipel-test", 'operator');
 
   // Mock isServiceReadyToStart
   orchestrator.isServiceReadyToStart = () => true;

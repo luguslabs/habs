@@ -42,8 +42,8 @@ function launch_archipel () {
     --env POLKADOT_NODE_KEY_FILE="${11}" \
     --env POLKADOT_SIMULATE_SYNCH="true" \
     --env POLKADOT_ADDITIONAL_OPTIONS="--chain kusama --db-cache 512" \
-    --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
-    --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj" \
+    --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s,5GYxkGrnJ9nkuhVyZ6Qf73CLwgu3tEKXP58KFRCiKjtEBHWm" \
+    --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj,5Dww1iPtLbZTUjuXciBdki2Wtnh55M8g1FB4hx32JcSo4NMk" \
     --env DEBUG="app,chain,docker,metrics,polkadot,service" \
     --env WIREGUARD_PRIVATE_KEY="${12}" \
     --env WIREGUARD_ADDRESS="${13}" \
@@ -51,6 +51,8 @@ function launch_archipel () {
     --env WIREGUARD_PEERS_PUB_ADDR="${14}" \
     --env WIREGUARD_PEERS_ALLOWED_IP="${15}" \
     --env WIREGUARD_PEERS_EXTERNAL_ADDR="${16}" \
+    --env NODES_ROLE="operator,operator,operator,sentry" \
+    --env NODE_ROLE="${18}" \
     luguslabs/archipel:$ARCHIPEL_VERSION
 
   echo "Waiting 10 seconds to be sure that archipel is started..."
@@ -60,6 +62,7 @@ function launch_archipel () {
 NODE1_IP="172.28.42.2"
 NODE2_IP="172.28.42.3"
 NODE3_IP="172.28.42.4"
+NODE4_IP="172.28.42.5"
 
 WIREGUARD_PRIVATE_KEY_NODE1=+M0IaceBwxP9DbT91Rzf9LyTSPuwvN6sYomP5g6Y53g=
 WIREGUARD_FULL_ADDRESS_NODE1=10.0.1.1/32
@@ -69,13 +72,17 @@ WIREGUARD_PRIVATE_KEY_NODE2=sGOTT/f0Is7nb1qxLG2NZMmERPL6FcxFFOcuCwN9qkw=
 WIREGUARD_FULL_ADDRESS_NODE2=10.0.1.2/32
 WIREGUARD_ADDRESS_NODE2=10.0.1.2
 
-WIREGUARD_PRIVATE_KEY_NODE1=CLuE2RAE7hSFv4yXSfZMayDJHVyYnRbuoaCj5djCr28=
+WIREGUARD_PRIVATE_KEY_NODE3=CLuE2RAE7hSFv4yXSfZMayDJHVyYnRbuoaCj5djCr28=
 WIREGUARD_FULL_ADDRESS_NODE3=10.0.1.3/32
 WIREGUARD_ADDRESS_NODE3=10.0.1.3
 
-WIREGUARD_PEERS_PUB_ADDR=W4fsCLN+53bIsNPtZXVmSzy8XoUcqxRbZfmwxSw28Ug=,Ye1zL1kDRafBCyqLl+gk3uszWac9dpkkTjpFVJZBvDo=,kmBiuOoUpsVf8U2vXEIF/ALNsct1vcb9Tr4d3iMIhxM=
-WIREGUARD_PEERS_ALLOWED_IP=10.0.1.1/32,10.0.1.2/32,10.0.1.3/32
-WIREGUARD_PEERS_EXTERNAL_ADDR=$NODE1_IP:51820,$NODE2_IP:51820,$NODE3_IP:51820
+WIREGUARD_PRIVATE_KEY_NODE4=cHOHXgwOnBEi3ZYxVqZCsvy0xkrB7gsyTFwwX0gzM00=
+WIREGUARD_FULL_ADDRESS_NODE4=10.0.1.4/32
+WIREGUARD_ADDRESS_NODE4=10.0.1.4
+
+WIREGUARD_PEERS_PUB_ADDR=W4fsCLN+53bIsNPtZXVmSzy8XoUcqxRbZfmwxSw28Ug=,Ye1zL1kDRafBCyqLl+gk3uszWac9dpkkTjpFVJZBvDo=,kmBiuOoUpsVf8U2vXEIF/ALNsct1vcb9Tr4d3iMIhxM=,Rw3D8TgMw9I4pevn2WKzWYbI3c12ooXekUbiwNF2DzY=
+WIREGUARD_PEERS_ALLOWED_IP=10.0.1.1/32,10.0.1.2/32,10.0.1.3/32,10.0.1.4/32
+WIREGUARD_PEERS_EXTERNAL_ADDR=$NODE1_IP:51820,$NODE2_IP:51820,$NODE3_IP:51820,$NODE4_IP:51820
 
 # Creating a docker network for Archipel chain
 echo "Creating docker network for archipel test..."
@@ -87,6 +94,8 @@ docker volume create archipel2
 docker volume create archipel2_service
 docker volume create archipel3
 docker volume create archipel3_service
+docker volume create archipel4
+docker volume create archipel4_service
 
 NODE1_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key1-peer-id.txt)
 echo "Local archipel1 node identity is '$NODE1_LOCAL_ID'"
@@ -94,15 +103,18 @@ NODE2_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key2-peer-id.txt)
 echo "Local archipel2 node identity is '$NODE2_LOCAL_ID'"
 NODE3_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-peer-id.txt)
 echo "Local archipel3 node identity is '$NODE3_LOCAL_ID'"
+NODE4_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key4-peer-id.txt)
+echo "Local archipel4 node identity is '$NODE4_LOCAL_ID'"
 
 
 # Constructing bootnodes and reserved nodes lists
-RESERVED_LIST="/ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_LOCAL_ID"
+RESERVED_LIST="/ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE4/tcp/30333/p2p/$NODE4_LOCAL_ID"
 echo "RESERVED_LIST  is '$RESERVED_LIST'"
 
 POLKADOT_NODE1_IP="172.17.0.2"
 POLKADOT_NODE2_IP="172.17.0.3"
 POLKADOT_NODE3_IP="172.17.0.4"
+POLKADOT_NODE4_IP="172.17.0.5"
 
 # Getting polkadot nodes local node identity
 NODE1_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key1-polkadot-peer-id.txt)
@@ -111,12 +123,14 @@ NODE2_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key2-polkadot-peer-id.txt)
 echo "Local node2-polkadot-sync node identity is '$NODE2_POLKADOT_LOCAL_ID'"
 NODE3_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-polkadot-peer-id.txt)
 echo "Local node3-polkadot-sync node identity is '$NODE3_POLKADOT_LOCAL_ID'"
+NODE4_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key4-polkadot-peer-id.txt)
+echo "Local node4-polkadot-sentry node identity is '$NODE4_POLKADOT_LOCAL_ID'"
 
 # Constructing reserved peers polkadot list
-POLKADOT_RESERVED_NODES="/ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_POLKADOT_LOCAL_ID"
+POLKADOT_RESERVED_NODES="/ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE4/tcp/30333/p2p/$NODE4_POLKADOT_LOCAL_ID"
 echo "POLKADOT_RESERVED_NODES list is '$POLKADOT_RESERVED_NODES'"
 
-# You can add a custom Telemery URL like POLKADOT_TELEMETRY_URL="ws://IP_HERE:8000/submit"
+# You can add a custom Telemery URL like POLKADOT_TELEMETRY_URL="ws://IP_HERE:8000/submit 0"
 POLKADOT_TELEMETRY_URL=
 
 launch_archipel "archipel1" \
@@ -136,6 +150,7 @@ launch_archipel "archipel1" \
                 "$WIREGUARD_PEERS_ALLOWED_IP" \
                 "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
                 3001 \
+                "operator" \
 
 launch_archipel "archipel2" \
                 "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
@@ -154,6 +169,7 @@ launch_archipel "archipel2" \
                 "$WIREGUARD_PEERS_ALLOWED_IP" \
                 "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
                 3002 \
+                "operator" \
 
 launch_archipel "archipel3" \
                 "borrow initial guard hunt corn trust student opera now economy thumb argue" \
@@ -172,10 +188,30 @@ launch_archipel "archipel3" \
                 "$WIREGUARD_PEERS_ALLOWED_IP" \
                 "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
                 3003 \
+                "operator" \
+
+launch_archipel "archipel4" \
+                "ketchup produce seat decade denial open around hour suit benefit dream story" \
+                "test-archipel-node-4" \
+                "node4-" \
+                "" \
+                "$NODE4_IP" \
+                "$RESERVED_LIST" \
+                "$POLKADOT_RESERVED_NODES" \
+                "$POLKADOT_TELEMETRY_URL" \
+                "key4-node-key-file" \
+                "key4-polkadot-node-key-file" \
+                "$WIREGUARD_PRIVATE_KEY_NODE4" \
+                "$WIREGUARD_FULL_ADDRESS_NODE4" \
+                "$WIREGUARD_PEERS_PUB_ADDR" \
+                "$WIREGUARD_PEERS_ALLOWED_IP" \
+                "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
+                3004 \
+                "sentry" \
 
 echo "Launching UI..."
 
-ARCHIPEL_UI_IP="172.28.42.5"
+ARCHIPEL_UI_IP="172.28.42.6"
 
 echo "Launching Archipel UI..."
 docker run -d -p 3000:80 --name "archipel-ui" \
@@ -192,6 +228,7 @@ echo "-------------------- [API Entpoints] ---------------------"
 echo "Archipel Node 1 API Endpoint http://$NODE1_IP:3000/ is available at http://localhost:3001/" 
 echo "Archipel Node 2 API Endpoint http://$NODE2_IP:3000/ is available at http://localhost:3002/" 
 echo "Archipel Node 3 API Endpoint http://$NODE3_IP:3000/ is available at http://localhost:3003/" 
+echo "Archipel Node 4 API Endpoint http://$NODE4_IP:3000/ is available at http://localhost:3004/" 
 echo "--------------------------------------------------------"
 
 echo "-------------------- [ARCHIPEL UI] ---------------------"

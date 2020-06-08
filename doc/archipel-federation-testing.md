@@ -4,27 +4,34 @@
 
 - Linux or macOS machine
 - Docker installed
-- Wireguard Kernel modules installed 
+- Wireguard Kernel modules installed
   - https://www.wireguard.com/install/
 
-## Step 1: Bootstrap a federation of 3 nodes
+## Step 1: Bootstrap a federation of 4 nodes
 
 What will be launched:
-- **3 Archipel nodes** (Archipel Substrate Validator Node + Orchestrator)
+
+- **4 Archipel nodes** (Archipel Substrate Validator Node + Orchestrator)
 - **3 Polkadot KUSAMA Nodes**
+
   - 1 Validator Node
-  - 2 Sentry Nodes
+  - 2 Passive Nodes
+  - 1 Sentry node
+
 - **Archipel UI instance**
 
 Connection between Archipel nodes and Polkadot KUSAMA nodes are secured by **WireGuard VPN**!
 
 ### 1.1 Clone Archipel Repository
+
 ```bash
 git clone https://github.com/luguslabs/archipel.git
 ```
+
 ### 1.2 Launch federation
+
 ```bash
-cd archipel/deployer/test 
+cd archipel/deployer/test
 ./launch.sh
 ```
 
@@ -38,8 +45,7 @@ The execution of **[launch.sh](../deployer/test/launch.sh)** script will generat
  <img src=./images/archipel-launch-ui.png width = 465>
 </p>
 
-Archipel UI will be available at http://172.28.42.5/ on container and http://localhost:3000 on host.
-
+Archipel UI will be available at http://172.28.42.6/ on container and http://localhost:3000 on host.
 
 <p align="center">
  <img src=./images/archipel-ui-1.png width = 1000>
@@ -48,27 +54,30 @@ Archipel UI will be available at http://172.28.42.5/ on container and http://loc
 Archipel UI will show you the full state of the Archipel Federation.
 
 It also gives you ability to manipulate orchestrator:
- * **disable/enable orchestration**
- * **disable/enable metrics send**
- * **stop/start service container**
+
+- **disable/enable orchestration**
+- **disable/enable metrics send**
+- **stop/start service container**
 
 If you don't see any metrics or master elected, **please wait a little bit!**
 
 By default the Archipel UI uses Archipel Node 1 API endpoint. You can change API endpoint in order to see other nodes state.
 
-| Node | API Endpoint Container | API Endpoint on host
-| ---- | -----------------------| --------------------
-| Node 1 | http://172.28.42.2:3000 | http://localhost:3001
-| Node 2 | http://172.28.42.3:3000 | http://localhost:3002
-| Node 3 | http://172.28.42.4:3000 | http://localhost:3003
+| Node   | API Endpoint Container  | API Endpoint on host  |
+| ------ | ----------------------- | --------------------- |
+| Node 1 | http://172.28.42.2:3000 | http://localhost:3001 |
+| Node 2 | http://172.28.42.3:3000 | http://localhost:3002 |
+| Node 3 | http://172.28.42.4:3000 | http://localhost:3003 |
+| Node 3 | http://172.28.42.5:3000 | http://localhost:3004 |
 
-**Example** 
+**Example**
 
 <p align="center">
  <img src=./images/archipel-ui-2.png width = 1000>
 </p>
 
 ### 2.2 Check containers launched
+
 ```bash
 docker ps
 ```
@@ -78,43 +87,51 @@ docker ps
 </p>
 
 You must see multiple containers launched:
-- **3 Archipel nodes**: archipel1, archipel2, archipel3
+
+- **3 Archipel nodes**: archipel1, archipel2, archipel3, archipel4
 - **Archipel UI**: archipel-ui
 - **3 Polkadot KUSAMA nodes**
   - 1 Validator Node: node1-polkadot-validator
-  - 2 Sentry Nodes: node2-polkadot-sync, node3-polkadot-sync
+  - 2 Passives Nodes: node2-polkadot-sync, node3-polkadot-sync
+  - 1 Sentry Nodes: node4-polkadot-sentry
 
 ### 2.3 Check Polkadot Kusama Telemetry
+
 https://telemetry.polkadot.io/#/Kusama
 
 - You must see 3 archipel nodes running
   - test-archipel-node-1-{active or passive}
   - test-archipel-node-2-{active or passive}
   - test-archipel-node-3-{active or passive}
+  - test-archipel-node-4-sentry
 - Active node = Validator Node
-- Passive node = Sentry Node
+- Passive node = Full node ready to backup the validator Node in clase of failure
 
 <p align="center">
  <img src=./images/archipel-testing-telemetry-1.png width = 1000>
 </p>
 
 - Here node 1 was elected as leader, so it is active = launched as Validator
-- Nodes 2 and 3 are in passive mode = launched as Sentry Node
+- Nodes 2 and 3 are in passive mode
 
 ## Step 3: Simulating active node failure
 
-### 3.1 Stop active node 
+### 3.1 Stop active node
+
 ```bash
-./stop-archipel.sh {node_number} 
+./stop-archipel.sh {node_number}
 ```
+
 - Here you must choose the active node number
 
 **Example**
 
 If Node 1 is active:
+
 ```bash
 ./stop-archipel.sh 1
 ```
+
 - Stop node script will stop the Archipel Node.
 
 ### 3.2 Check if the active node was stopped
@@ -133,9 +150,9 @@ docker ps
 
 **Archipel UI**
 
-Archipel UI http://172.28.42.5/ available at: http://localhost:3000/
+Archipel UI http://172.28.42.6/ available at: http://localhost:3000/
 
-The Node 1 API endpoint is not available cause we stopped it. **So you must change the API endpoint**. 
+The Node 1 API endpoint is not available cause we stopped it. **So you must change the API endpoint**.
 You can use Node 2 API : **http://172.28.42.3:3000** at **http://localhost:3002**
 
 <p align="center">
@@ -145,6 +162,7 @@ You can use Node 2 API : **http://172.28.42.3:3000** at **http://localhost:3002*
 **Telemetry**
 
 https://telemetry.polkadot.io/#/Kusama
+
 <p align="center">
  <img src=./images/archipel-testing-telemetry-2.png width = 1000>
 </p>
@@ -164,14 +182,17 @@ docker ps
 ## Step 4: Relaunch node
 
 ### 4.1 Relaunch old active node
+
 ```bash
 ./restart-archipel.sh {node_number}
 ```
+
 - Here you must choose the node number
 
-**Example** 
+**Example**
 
 Node 1 was active and was stopped so restarting it
+
 ```bash
 ./restart-archipel.sh 1
 ```
@@ -197,14 +218,18 @@ docker ps
 The old active node was restarted in passive mode.
 
 ## Step 5: Remove all launched containers and created folders
+
 ```bash
 ./remove.sh
 ```
+
 - removes all containers launched by test scripts and all directories created by containers
 
 ## Play: Feel free to play with Archipel!
-**Warning!** Archipel must have minimum **2 nodes** alive to have an active service (validator) running! 
-- If you stop 2 nodes the third node will remain in passive mode! 
+
+**Warning!** Archipel must have minimum **2 nodes** alive to have an active service (validator) running!
+
+- If you stop 2 nodes the third node will remain in passive mode!
 - If you stop 2 passive nodes, the active node will switch in passive mode!
 
 We are considering that if 1 node is alone in Archipel Federation, there is a problem, so it should not continue to validate.
