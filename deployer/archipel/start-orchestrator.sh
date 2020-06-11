@@ -65,6 +65,56 @@ if [ ! -z "$CONFIG_FILE" ]; then
         NODE_ROLE=${rolesArray[index]}
     fi
 
+    #get nexmoApiKey
+    if [ -z "$NEXMO_API_KEY" ]; then
+        NEXMO_API_KEY_LIST=$(cat /config/config.json | jq ".nexmoApiKey")
+        check_cmd $? 'retrieve NEXMO_API_KEY_LIST'
+        if [ "$NEXMO_API_KEY_LIST" != "null" ]; then
+            IFS=',' read -ra apikeysArray <<< "$NEXMO_API_KEY_LIST"
+            index=$(( $NODE_ID - 1 ))
+            value=${apikeysArray[index]}
+            if [ "$value" != "null" ]; then
+                NEXMO_API_KEY=${apikeysArray[index]}
+            fi
+        fi
+    fi
+
+    #get nexmoApiSecret
+    if [ -z "$NEXMO_API_SECRET" ]; then
+        NEXMO_API_SECRET_LIST=$(cat /config/config.json | jq ".nexmoApiSecret")
+        check_cmd $? 'retrieve NEXMO_API_SECRET_LIST'
+        if [ "$NEXMO_API_SECRET_LIST" != "null" ]; then
+            IFS=',' read -ra apiSecretArray <<< "$NEXMO_API_SECRET_LIST"
+            index=$(( $NODE_ID - 1 ))
+            value=${apiSecretArray[index]}
+            if [ "$value" != "null" ]; then
+                NEXMO_API_SECRET=${apiSecretArray[index]}
+            fi
+        fi
+    fi
+
+    #get TWILOIPhoneNumber   
+    if [ -z "$NEXMO_PHONE_NUMBER" ]; then
+        NEXMO_PHONE_NUMBER_LIST=$(cat /config/config.json | jq ".nexmoPhoneNumber")
+        check_cmd $? 'retrieve NEXMO_PHONE_NUMBER_LIST'
+        if [ "$NEXMO_PHONE_NUMBER_LIST" != "null" ]; then
+            IFS=',' read -ra phoneNumbersArray <<< "$NEXMO_PHONE_NUMBER_LIST"
+            index=$(( $NODE_ID - 1 ))
+            value=${phoneNumbersArray[index]}
+            if [ "$value" != "null" ]; then
+                NEXMO_PHONE_NUMBER=${phoneNumbersArray[index]}
+            fi
+        fi
+    fi
+
+    if [ -z "$OUTLET_PHONE_NUMBER_LIST" ]; then
+        OUTLET_PHONE_NUMBER_LIST=$(cat /config/config.json | jq ".outletPhoneNumber")
+        check_cmd $? 'retrieve OUTLET_PHONE_NUMBERS'
+        if [ "$OUTLET_PHONE_NUMBERS" != "null" ]; then
+            OUTLET_PHONE_NUMBER_LIST=$OUTLET_PHONE_NUMBER_LIST
+        fi
+    fi
+
     #get ARCHIPEL_KEY_SEED
     if [ -z "$ARCHIPEL_KEY_SEED" ]; then
         ARCHIPEL_KEY_SEED=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].seed" | sed 's/\"//g')
@@ -105,7 +155,15 @@ if [ -z "$NODE_ROLE" ]; then
 fi
 echo "NODE_ROLE=$NODE_ROLE"
 
+if [ -z "$SMS_STONITH_ACTIVE" ]; then
+  echo "set default value to false for SMS_STONITH_ACTIVE"
+  SMS_STONITH_ACTIVE="false"
+fi
 
+if [ -z "$SMS_STONITH_CALLBACK_MANDATORY" ]; then
+  echo "set default value to false for SMS_STONITH_CALLBACK_MANDATORY"
+  SMS_STONITH_CALLBACK_MANDATORY="false"
+fi
 
 # Setting Archipel orchestrator variables
 NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
@@ -119,6 +177,15 @@ export NODES_WALLETS="$ARCHIPEL_AUTHORITIES_SR25519_LIST"
 export ARCHIPEL_NAME="$ARCHIPEL_NAME"
 export ALIVE_TIME=60000
 export SUSPEND_SERVICE="$ARCHIPEL_SUSPEND_SERVICE"
+export AUTHORITIES_LIST="$ARCHIPEL_AUTHORITIES_SR25519_LIST"
+export SMS_STONITH_ACTIVE="$SMS_STONITH_ACTIVE"
+export SMS_STONITH_CALLBACK_MANDATORY="$SMS_STONITH_CALLBACK_MANDATORY"
+export NEXMO_API_KEY="$NEXMO_API_KEY"
+export NEXMO_API_SECRET="$NEXMO_API_SECRET"
+export NEXMO_PHONE_NUMBER="$NEXMO_PHONE_NUMBER"
+export OUTLET_PHONE_NUMBER_LIST="$OUTLET_PHONE_NUMBER_LIST"
+
+
 
 # Generate env file in shared volume for Archipel UI to auto-detect the local API endpoint
 ARCHIPEL_CONTAINER_IP=$(awk 'END{print $1}' /etc/hosts)
