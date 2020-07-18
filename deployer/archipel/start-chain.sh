@@ -51,6 +51,17 @@ if [ ! -z "$CONFIG_FILE" ]; then
             exit 1
       fi
 
+      #set variables from config file
+      #get NODES_ROLE
+      if [ -z "$NODES_ROLE" ]; then
+            NODES_ROLE=$(cat /config/config.json | jq ".nodesRole")
+            check_cmd $? 'retrieve NODES_ROLE'
+            if [ "$NODES_ROLE" == "null" ]; then
+                  echo "Assure old config support. Force config NODES_ROLE to 'operator,operator,operator'"
+                  NODES_ROLE="operator,operator,operator"
+            fi
+      fi
+
       #set variables from config file if they are not set
       if [ -z "$ARCHIPEL_NODE_ALIAS" ]; then
             ARCHIPEL_NODE_ALIAS_CMD=$(cat /config/config.json | jq '.name' | sed 's/\"//g')
@@ -255,13 +266,31 @@ done
 LIST_TO_INJECT=${LIST_TO_INJECT%?} 
 sed -i "s/\"REPLACE_BALANCES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
+if [ -z "$NODES_ROLE" ]; then
+  echo "Assure old config support. Force config NODES_ROLE to 'operator,operator,operator'"
+  NODES_ROLE="operator,operator,operator"
+fi
+echo "NODES_ROLE=$NODES_ROLE"
+NODES_ROLE=$(echo $NODES_ROLE | sed 's/\"//g')
+
 # reserved peers list construct
 RESERVED_PEERS_PARAM="--reserved-only"
 if [ ! -z "$ARCHIPEL_RESERVED_PEERS" ]
 then
+      indexArray=0
       for ITEM in $(echo $ARCHIPEL_RESERVED_PEERS |  tr "," " ")
       do
-            RESERVED_PEERS_PARAM="$RESERVED_PEERS_PARAM --reserved-nodes $ITEM"
+            IFS=',' read -ra rolesArray <<< "$NODES_ROLE"
+            NODE_ROLE=${rolesArray[indexArray]}
+            NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
+            if [ "$NODE_ROLE" == "sentry" ] || [ "$NODE_ROLE" == "operator" ]
+            then
+                  echo "NODE_ROLE = $NODE_ROLE. Include  PeerId in reserved peers list"
+                  RESERVED_PEERS_PARAM="$RESERVED_PEERS_PARAM --reserved-nodes $ITEM"
+            else
+                  echo "NODE_ROLE = sentryExternal. Do NOT include PeerId in reserved peers list"
+            fi
+            indexArray=$(( $indexArray + 1 ))
       done
 fi
 

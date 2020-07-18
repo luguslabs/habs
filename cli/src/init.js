@@ -11,11 +11,11 @@ const {
 const configTemplate = {
   name: 'Archipel Name',
   publicIps: '1.1.1.1,2.2.2.2,3.3.3.3,4.4.4.4,5.5.5.5,6.6.6.6',
-  nodesRole: 'operator,operator,operator,sentry,sentry,sentry',
-  nexmoApiKey :'null,null,null,null,null,null',
-  nexmoApiSecret :'null,null,null,null,null,null',
-  nexmoPhoneNumber:'null,null,null,null,null,null',
-  outletPhoneNumber:'null,null,null,null,null,null'
+  nodesRole: 'operator,operator,operator,sentryExternal,sentryExternal,sentryExternal',
+  nexmoApiKey :'null,null,null',
+  nexmoApiSecret :'null,null,null',
+  nexmoPhoneNumber:'null,null,null',
+  outletPhoneNumber:'null,null,null'
 };
 
 const initConfig = async service => {

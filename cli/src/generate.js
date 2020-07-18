@@ -75,8 +75,8 @@ const validatePublicIps = ips => {
 // Validate nodes role support
 const validateNodesRole = roles => {
   roles.split(',').forEach(role => {
-    if (role != 'sentry' && role != 'operator') {
-      throw Error('Bad role node :' + role + '. Archipel node role must be sentry or operator');
+    if (role != 'sentry' && role != 'operator' && role != 'sentryExternal' ) {
+      throw Error('Bad role node :' + role + '. Archipel node role must be sentry, sentryExternal or operator');
     }
   })
 };
