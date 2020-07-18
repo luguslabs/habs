@@ -14,6 +14,7 @@ const {
   initApi
 } = require('./api');
 
+
 // Import env variables from .env file
 dotenv.config();
 const {
@@ -25,7 +26,15 @@ const {
   NODES_WALLETS,
   ARCHIPEL_NAME,
   NODE_ROLE,
-  NODES_ROLE
+  NODES_ROLE,
+  SMS_STONITH_ACTIVE,
+  SMS_STONITH_CALLBACK_MANDATORY,
+  AUTHORITIES_LIST,
+  NEXMO_API_KEY,
+  NEXMO_API_SECRET,
+  NEXMO_PHONE_NUMBER,
+  OUTLET_PHONE_NUMBER_LIST
+
 } = process.env;
 
 // Check if all necessary env vars were set
@@ -39,6 +48,9 @@ const checkEnvVars = () => {
     checkVariable(NODES_WALLETS, 'NODES_WALLETS');
     checkVariable(NODE_ROLE, 'NODE_ROLE');
     checkVariable(NODES_ROLE, 'NODES_ROLE');
+    checkVariable(SMS_STONITH_ACTIVE, 'SMS_STONITH_ACTIVE');
+    checkVariable(SMS_STONITH_CALLBACK_MANDATORY, 'SMS_STONITH_CALLBACK_MANDATORY');
+    checkVariable(AUTHORITIES_LIST, 'AUTHORITIES_LIST');
   } catch (error) {
     debug('checkEnvVars', error);
     throw error;
@@ -63,7 +75,21 @@ async function main () {
     const metrics = new Metrics(nodes);
 
     // Create orchestrator instance
-    const orchestrator = new Orchestrator(chain, SERVICE, metrics, MNEMONIC, ALIVE_TIME, ARCHIPEL_NAME, NODE_ROLE);
+    const orchestrator = new Orchestrator(
+      chain,
+      SERVICE,
+      metrics,
+      MNEMONIC,
+      ALIVE_TIME,
+      ARCHIPEL_NAME,
+      NODE_ROLE,
+      SMS_STONITH_ACTIVE,
+      SMS_STONITH_CALLBACK_MANDATORY,
+      NEXMO_API_KEY.replace(/"/g, ''),
+      NEXMO_API_SECRET.replace(/"/g, ''),
+      NEXMO_PHONE_NUMBER.replace(/"/g, ''),
+      OUTLET_PHONE_NUMBER_LIST.replace(/"/g, ''),
+      AUTHORITIES_LIST);
 
     // If orchestrator is launched in suspend service mode disabling metrics send and orchestration
     if (SUSPEND_SERVICE.includes('true')) {
