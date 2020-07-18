@@ -53,7 +53,7 @@ class Orchestrator {
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
     this.orchestrationEnabled = true;
-    this.mode = role === 'operator' ? 'passive' : 'sentry';
+    this.mode = (role === 'operator') ? 'passive' : 'sentry';
     this.role = role;
     this.archipelName = archipelName;
     this.smsStonithActive = smsStonithActive;
@@ -154,7 +154,7 @@ class Orchestrator {
   // SMS stonith algorithm
   async getOutletPhoneFromOldValidatorToShoot (currentLeaderKeyToShoot) {
     console.log(
-      'currentLeaderKeyToShoot is [' + this.currentLeaderKeyToShoot + ']'
+      'currentLeaderKeyToShoot is [' + currentLeaderKeyToShoot + ']'
     );
     console.log('this.outletPhoneNumberList is ' + this.outletPhoneNumberList);
     console.log('this.authoritiesList is ' + this.authoritiesList);
@@ -171,7 +171,8 @@ class Orchestrator {
     for (var i = 0, len = authoritiesListArray.length; i < len; i++) {
       console.log('authoritiesListArray index ' + i);
       console.log('authoritiesListArray item ' + authoritiesListArray[i]);
-      if (authoritiesListArray[i] === currentLeaderKeyToShoot) {
+      if (authoritiesListArray[i].trim() === currentLeaderKeyToShoot) {
+        console.log('indexToShoot  is ' + i);
         indexToShoot = i;
       }
     }
@@ -244,7 +245,7 @@ class Orchestrator {
 
     const from = this.nexmoPhoneNumber;
     const to = outletNumberToShoot;
-    const text = 'TurnOn';
+    const text = 'Restart';
     console.log(
       'shoot !!  from [' +
         this.nexmoPhoneNumber +
@@ -282,7 +283,16 @@ class Orchestrator {
         'waitSmsCallBackShootConfirmation . sms received !! smsStonithCallbackStatus is ' +
           this.smsStonithCallbackStatus
       );
-      return true;
+      if(this.smsStonithCallbackStatus === 'Restarted'){
+        console.log(
+          'waitSmsCallBackShootConfirmation .  smsStonithCallbackStatus is Restarted. OK to become active');
+        return true;
+      }
+      else{
+        console.log(
+          'waitSmsCallBackShootConfirmation .  smsStonithCallbackStatus is NOT Restarted. KO to become active');
+        return false;
+      }
     }
   }
 
@@ -292,8 +302,10 @@ class Orchestrator {
       const setLeader = await this.chain.setLeader(nodeKey, this.mnemonic);
       if (setLeader) {
         console.log('The leadership was taken successfully...');
-        if (this.smsStonithActive) {
-          console.log('smsStonith is Active. ');
+        console.log('smsStonith is Active = ' + this.smsStonithActive);
+
+        if (this.smsStonithActive === 'true') {
+          console.log('smsStonith is Active ');
           const orchestratorAddress = await this.getOrchestratorAddress();
           this.smsStonithCallbackStatus = 'waitingCallBack';
           const shoot = await this.smsShootOldValidatorInTheHead(
@@ -304,7 +316,7 @@ class Orchestrator {
             const callbackShootConfirmation = await this.waitSmsCallBackShootConfirmation();
             if (
               !callbackShootConfirmation &&
-              this.smsStonithActiveCallbackMandatory
+              this.smsStonithActiveCallbackMandatory === 'true'
             ) {
               console.log(
                 'sms callback not received and is mandatory. Shutdown orchetrator to stay a passive node... '

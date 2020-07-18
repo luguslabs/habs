@@ -115,7 +115,20 @@ const generateConfig = async () => {
     // Add name to config
     config.name = configData.name.toLowerCase().replace(/\s/g, '-');
 
+    // Add nodesRole to config
     config.nodesRole = configData.nodesRole;
+
+    // Add nexmoApiKey to config
+    config.nexmoApiKey = configData.nexmoApiKey;
+
+    // Add nexmoApiSecret to config
+    config.nexmoApiSecret = configData.nexmoApiSecret;
+
+    // Add nexmoPhoneNumber to config
+    config.nexmoPhoneNumber = configData.nexmoPhoneNumber;
+
+    // Add outletPhoneNumber to config
+    config.outletPhoneNumber = configData.outletPhoneNumber;
 
     // Add node number to config
     config.nodesNumber = externalIPAddresses.length;

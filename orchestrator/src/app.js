@@ -14,9 +14,6 @@ const {
   initApi
 } = require('./api');
 
-const {
-  initSmsApi
-} = require('./smsApi');
 
 // Import env variables from .env file
 dotenv.config();
@@ -88,10 +85,10 @@ async function main () {
       NODE_ROLE,
       SMS_STONITH_ACTIVE,
       SMS_STONITH_CALLBACK_MANDATORY,
-      NEXMO_API_KEY,
-      NEXMO_API_SECRET,
-      NEXMO_PHONE_NUMBER,
-      OUTLET_PHONE_NUMBER_LIST,
+      NEXMO_API_KEY.replace(/"/g, ''),
+      NEXMO_API_SECRET.replace(/"/g, ''),
+      NEXMO_PHONE_NUMBER.replace(/"/g, ''),
+      OUTLET_PHONE_NUMBER_LIST.replace(/"/g, ''),
       AUTHORITIES_LIST);
 
     // If orchestrator is launched in suspend service mode disabling metrics send and orchestration
