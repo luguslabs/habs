@@ -124,6 +124,12 @@ const generateConfig = async () => {
     // Add nexmoApiSecret to config
     config.nexmoApiSecret = configData.nexmoApiSecret;
 
+    // Add nexmoApiSignatureMethod to config
+    config.nexmoApiSignatureMethod = configData.nexmoApiSignatureMethod;
+
+    // Add nexmoApiSignatureSecret to config
+    config.nexmoApiSignatureSecret = configData.nexmoApiSignatureSecret;
+
     // Add nexmoPhoneNumber to config
     config.nexmoPhoneNumber = configData.nexmoPhoneNumber;
 

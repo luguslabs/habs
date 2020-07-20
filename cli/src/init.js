@@ -14,6 +14,8 @@ const configTemplate = {
   nodesRole: 'operator,operator,operator,sentryExternal,sentryExternal,sentryExternal',
   nexmoApiKey :'null,null,null',
   nexmoApiSecret :'null,null,null',
+  nexmoApiSignatureMethod:'null,null,null',
+  nexmoApiSignatureSecret:'null,null,null',
   nexmoPhoneNumber:'null,null,null',
   outletPhoneNumber:'null,null,null'
 };

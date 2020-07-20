@@ -13,7 +13,9 @@ const { Orchestrator } = require('./orchestrator');
 const {
   initApi
 } = require('./api');
-
+const {
+  initApiSms
+} = require('./apiSms');
 
 // Import env variables from .env file
 dotenv.config();
@@ -32,6 +34,9 @@ const {
   AUTHORITIES_LIST,
   NEXMO_API_KEY,
   NEXMO_API_SECRET,
+  NEXMO_API_SIGNATURE_METHOD,
+  NEXMO_API_SIGNATURE_SECRET,
+  NEXMO_API_CHECK_MSG_SIGNATURE,
   NEXMO_PHONE_NUMBER,
   OUTLET_PHONE_NUMBER_LIST
 
@@ -50,6 +55,7 @@ const checkEnvVars = () => {
     checkVariable(NODES_ROLE, 'NODES_ROLE');
     checkVariable(SMS_STONITH_ACTIVE, 'SMS_STONITH_ACTIVE');
     checkVariable(SMS_STONITH_CALLBACK_MANDATORY, 'SMS_STONITH_CALLBACK_MANDATORY');
+    checkVariable(NEXMO_API_CHECK_MSG_SIGNATURE, 'NEXMO_API_CHECK_MSG_SIGNATURE');
     checkVariable(AUTHORITIES_LIST, 'AUTHORITIES_LIST');
   } catch (error) {
     debug('checkEnvVars', error);
@@ -87,6 +93,9 @@ async function main () {
       SMS_STONITH_CALLBACK_MANDATORY,
       NEXMO_API_KEY.replace(/"/g, ''),
       NEXMO_API_SECRET.replace(/"/g, ''),
+      NEXMO_API_SIGNATURE_METHOD.replace(/"/g, ''),
+      NEXMO_API_SIGNATURE_SECRET.replace(/"/g, ''),
+      NEXMO_API_CHECK_MSG_SIGNATURE,
       NEXMO_PHONE_NUMBER.replace(/"/g, ''),
       OUTLET_PHONE_NUMBER_LIST.replace(/"/g, ''),
       AUTHORITIES_LIST);
@@ -136,6 +145,7 @@ async function main () {
 
     // Init api
     initApi(orchestrator);
+    initApiSms(orchestrator);
 
     // Printing end message
     console.log('Orchestrator was successfully launched...');

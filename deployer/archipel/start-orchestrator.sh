@@ -93,7 +93,35 @@ if [ ! -z "$CONFIG_FILE" ]; then
         fi
     fi
 
-    #get TWILOIPhoneNumber   
+    #get nexmoSignatureMethod
+    if [ -z "$NEXMO_API_SIGNATURE_METHOD" ]; then
+        NEXMO_API_SIGNATURE_METHOD_LIST=$(cat /config/config.json | jq ".nexmoApiSignatureMethod")
+        check_cmd $? 'retrieve NEXMO_API_SIGNATURE_METHOD_LIST'
+        if [ "$NEXMO_API_SIGNATURE_METHOD_LIST" != "null" ]; then
+            IFS=',' read -ra signatureMethodsArray <<< "$NEXMO_API_SIGNATURE_METHOD_LIST"
+            index=$(( $NODE_ID - 1 ))
+            value=${signatureMethodsArray[index]}
+            if [ "$value" != "null" ]; then
+                NEXMO_API_SIGNATURE_METHOD=${signatureMethodsArray[index]}
+            fi
+        fi
+    fi
+
+    #get nexmoSignatureSecret
+    if [ -z "$NEXMO_API_SIGNATURE_SECRET" ]; then
+        NEXMO_API_SIGNATURE_SECRET_LIST=$(cat /config/config.json | jq ".nexmoApiSignatureSecret")
+        check_cmd $? 'retrieve NEXMO_API_SIGNATURE_SECRET_LIST'
+        if [ "$NEXMO_API_SIGNATURE_SECRET_LIST" != "null" ]; then
+            IFS=',' read -ra signatureSecretsArray <<< "$NEXMO_API_SIGNATURE_SECRET_LIST"
+            index=$(( $NODE_ID - 1 ))
+            value=${signatureSecretsArray[index]}
+            if [ "$value" != "null" ]; then
+                NEXMO_API_SIGNATURE_SECRET=${signatureSecretsArray[index]}
+            fi
+        fi
+    fi
+
+    #get NexmoPhoneNumber
     if [ -z "$NEXMO_PHONE_NUMBER" ]; then
         NEXMO_PHONE_NUMBER_LIST=$(cat /config/config.json | jq ".nexmoPhoneNumber")
         check_cmd $? 'retrieve NEXMO_PHONE_NUMBER_LIST'
@@ -165,6 +193,38 @@ if [ -z "$SMS_STONITH_CALLBACK_MANDATORY" ]; then
   SMS_STONITH_CALLBACK_MANDATORY="false"
 fi
 
+if [ -z "$NEXMO_API_CHECK_MSG_SIGNATURE" ]; then
+  NEXMO_API_CHECK_MSG_SIGNATURE="false"
+fi
+
+if [ -z "$NEXMO_API_KEY" ]; then
+  NEXMO_API_KEY="null"
+fi
+
+if [ -z "$NEXMO_API_SECRET" ]; then
+  NEXMO_API_SECRET="null"
+fi
+
+if [ -z "$NEXMO_API_SIGNATURE_METHOD" ]; then
+  NEXMO_API_SIGNATURE_METHOD="null"
+fi
+
+if [ -z "$NEXMO_API_SIGNATURE_SECRET" ]; then
+  NEXMO_API_SIGNATURE_SECRET="null"
+fi
+
+if [ -z "$NEXMO_PHONE_NUMBER" ]; then
+  NEXMO_PHONE_NUMBER="null"
+fi
+
+if [ -z "$OUTLET_PHONE_NUMBER_LIST" ]; then
+  OUTLET_PHONE_NUMBER_LIST="null"
+fi
+
+if [ -z "$OUTLET_PHONE_NUMBER_LIST" ]; then
+  OUTLET_PHONE_NUMBER_LIST="null"
+fi
+
 # Setting Archipel orchestrator variables
 NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
 NODES_ROLE=$(echo $NODES_ROLE | sed 's/\"//g')
@@ -182,6 +242,9 @@ export SMS_STONITH_ACTIVE="$SMS_STONITH_ACTIVE"
 export SMS_STONITH_CALLBACK_MANDATORY="$SMS_STONITH_CALLBACK_MANDATORY"
 export NEXMO_API_KEY="$NEXMO_API_KEY"
 export NEXMO_API_SECRET="$NEXMO_API_SECRET"
+export NEXMO_API_SIGNATURE_METHOD="$NEXMO_API_SIGNATURE_METHOD"
+export NEXMO_API_SIGNATURE_SECRET="$NEXMO_API_SIGNATURE_SECRET"
+export NEXMO_API_CHECK_MSG_SIGNATURE="$NEXMO_API_CHECK_MSG_SIGNATURE"
 export NEXMO_PHONE_NUMBER="$NEXMO_PHONE_NUMBER"
 export OUTLET_PHONE_NUMBER_LIST="$OUTLET_PHONE_NUMBER_LIST"
 
