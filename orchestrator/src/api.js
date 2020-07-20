@@ -4,6 +4,7 @@ const mainRoutes = require('./routes/main');
 const metricsRoutes = require('./routes/metrics');
 const orchestratorRoutes = require('./routes/orchestrator');
 const serviceRoutes = require('./routes/service');
+const smsRoutes = require('./routes/sms');
 
 // Return not found response
 const get404 = (req, res, next) => {
@@ -54,6 +55,7 @@ const initApi = async orchestrator => {
   app.use('/metrics', metricsRoutes.routes);
   app.use('/orchestration', orchestratorRoutes.routes);
   app.use('/service', serviceRoutes.routes);
+  app.use('/sms', smsRoutes.routes);
 
   // Add not found middleware
   app.use(get404);

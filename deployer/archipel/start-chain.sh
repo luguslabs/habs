@@ -51,6 +51,17 @@ if [ ! -z "$CONFIG_FILE" ]; then
             exit 1
       fi
 
+      #set variables from config file
+      #get NODES_ROLE
+      if [ -z "$NODES_ROLE" ]; then
+            NODES_ROLE=$(cat /config/config.json | jq ".nodesRole")
+            check_cmd $? 'retrieve NODES_ROLE'
+            if [ "$NODES_ROLE" == "null" ]; then
+                  echo "Assure old config support. Force config NODES_ROLE to 'operator,operator,operator'"
+                  NODES_ROLE="operator,operator,operator"
+            fi
+      fi
+
       #set variables from config file if they are not set
       if [ -z "$ARCHIPEL_NODE_ALIAS" ]; then
             ARCHIPEL_NODE_ALIAS_CMD=$(cat /config/config.json | jq '.name' | sed 's/\"//g')
@@ -196,6 +207,14 @@ then
       exit 1
 fi
 
+if [ -z "$NODES_ROLE" ]; then
+  echo "Assure old config support. Force config NODES_ROLE to 'operator,operator,operator'"
+  NODES_ROLE="operator,operator,operator"
+fi
+echo "NODES_ROLE=$NODES_ROLE"
+NODES_ROLE=$(echo $NODES_ROLE | sed 's/\"//g')
+IFS=',' read -ra rolesArray <<< "$NODES_ROLE"
+
 # clear bootnodes array in template 
 cp  -f /root/chain/archipelTemplateSpec.json /root/chain/archipelSpec.json
 cat /root/chain/archipelSpec.json | jq '.bootNodes = []'  > /tmp/archipelSpecTmp.json
@@ -212,20 +231,38 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 # add SS58 Adress to aura.authorities 
  cat /root/chain/archipelSpec.json | jq '.genesis.runtime.aura.authorities = []'  > /tmp/archipelSpecTmp.json
  mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+indexArray=0
 for AUTH in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
 do
- cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.aura.authorities += [$AUTH]'  > /tmp/archipelSpecTmp.json
- mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+      NODE_ROLE=${rolesArray[indexArray]}
+      NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
+      if [ "$NODE_ROLE" == "sentry" ] || [ "$NODE_ROLE" == "operator" ]
+      then
+            cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.aura.authorities += [$AUTH]'  > /tmp/archipelSpecTmp.json
+            mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+      else
+            echo "skip add in ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN because NODE_ROLE=$NODE_ROLE "
+      fi
+      indexArray=$(( $indexArray + 1 ))
 done
 
 # add SS58 Adress to grandpa.authorities 
 cat /root/chain/archipelSpec.json | jq '.genesis.runtime.grandpa.authorities = ["REPLACE_AUTHORITIES_HERE"]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 LIST_TO_INJECT=""
+indexArray=0
 for ITEM in $ARCHIPEL_AUTHORITIES_ED25519_LIST_CLEAN
 do
-      ITEM_OUTPUT=$(echo "[\"$ITEM\",1]")
-      LIST_TO_INJECT="$LIST_TO_INJECT $ITEM_OUTPUT,"
+      NODE_ROLE=${rolesArray[indexArray]}
+      NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
+      if [ "$NODE_ROLE" == "sentry" ] || [ "$NODE_ROLE" == "operator" ]
+      then
+            ITEM_OUTPUT=$(echo "[\"$ITEM\",1]")
+            LIST_TO_INJECT="$LIST_TO_INJECT $ITEM_OUTPUT,"
+      else
+            echo "skip add in ARCHIPEL_AUTHORITIES_ED25519_LIST_CLEAN because NODE_ROLE=$NODE_ROLE "
+      fi
+      indexArray=$(( $indexArray + 1 ))
 done
 
 # remove last , of loop
@@ -235,33 +272,62 @@ sed -i "s/\"REPLACE_AUTHORITIES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/arc
 # add SS58 Adress to indices
 cat /root/chain/archipelSpec.json | jq '.genesis.runtime.indices.ids = []'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+indexArray=0
 for AUTH in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
 do
- cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.indices.ids += [$AUTH]'  > /tmp/archipelSpecTmp.json
- mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+      NODE_ROLE=${rolesArray[indexArray]}
+      NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
+      if [ "$NODE_ROLE" == "sentry" ] || [ "$NODE_ROLE" == "operator" ]
+      then
+            cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.indices.ids += [$AUTH]'  > /tmp/archipelSpecTmp.json
+            mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
+      else
+            echo "skip add in ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN because NODE_ROLE=$NODE_ROLE "
+      fi
+      indexArray=$(( $indexArray + 1 ))
 done
 
 # add SS58 Adress Balances 
 cat /root/chain/archipelSpec.json | jq '.genesis.runtime.balances.balances = ["REPLACE_BALANCES_HERE"]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 LIST_TO_INJECT=""
+indexArray=0
 for ITEM in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
 do
-      ITEM_OUTPUT=$(echo "[\"$ITEM\",1152921504606847000]")
-      LIST_TO_INJECT="$LIST_TO_INJECT $ITEM_OUTPUT,"
+      NODE_ROLE=${rolesArray[indexArray]}
+      NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
+      if [ "$NODE_ROLE" == "sentry" ] || [ "$NODE_ROLE" == "operator" ]
+      then
+            ITEM_OUTPUT=$(echo "[\"$ITEM\",1152921504606847000]")
+            LIST_TO_INJECT="$LIST_TO_INJECT $ITEM_OUTPUT,"
+      else
+            echo "skip add in ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN because NODE_ROLE=$NODE_ROLE "
+      fi
+      indexArray=$(( $indexArray + 1 ))
 done
 
 # remove last , of loop
 LIST_TO_INJECT=${LIST_TO_INJECT%?} 
 sed -i "s/\"REPLACE_BALANCES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
+
 # reserved peers list construct
 RESERVED_PEERS_PARAM="--reserved-only"
 if [ ! -z "$ARCHIPEL_RESERVED_PEERS" ]
 then
+      indexArray=0
       for ITEM in $(echo $ARCHIPEL_RESERVED_PEERS |  tr "," " ")
       do
-            RESERVED_PEERS_PARAM="$RESERVED_PEERS_PARAM --reserved-nodes $ITEM"
+            NODE_ROLE=${rolesArray[indexArray]}
+            NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
+            if [ "$NODE_ROLE" == "sentry" ] || [ "$NODE_ROLE" == "operator" ]
+            then
+                  echo "NODE_ROLE = $NODE_ROLE. Include  PeerId in reserved peers list"
+                  RESERVED_PEERS_PARAM="$RESERVED_PEERS_PARAM --reserved-nodes $ITEM"
+            else
+                  echo "NODE_ROLE = sentryExternal. Do NOT include PeerId in reserved peers list"
+            fi
+            indexArray=$(( $indexArray + 1 ))
       done
 fi
 
