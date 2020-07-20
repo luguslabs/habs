@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const asyncHandler = require('express-async-handler');
+const Nexmo = require('nexmo');
 
 // Post inbound-sms
 router.post(
@@ -10,9 +11,24 @@ router.post(
     const params = Object.assign(req.query, req.body);
     console.log('/webhooks/inbound-sms');
     // console.log(params);
-    if (params && params.text && params.text.toString() !== '') {
-      console.log('text:'+params.text.toString());
-      orchestrator.smsStonithCallbackStatus = params.text.toString();
+    // console.log('generated sig = ' + Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params));
+    // console.log('params.sig = '+ params.sig);
+    if (orchestrator.nexmoApiCheckMsgSignature === 'true') {
+      if (Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params) === params.sig) {
+        console.log('Valid signature');
+        if (params && params.text && params.text.toString() !== '') {
+          console.log('text:' + params.text.toString());
+          orchestrator.smsStonithCallbackStatus = params.text.toString();
+        }
+      } else {
+        console.log('Invalid signature');
+      }
+    } else {
+      console.log('Do not check signature');
+      if (params && params.text && params.text.toString() !== '') {
+        console.log('text:' + params.text.toString());
+        orchestrator.smsStonithCallbackStatus = params.text.toString();
+      }
     }
     res.status(204).send();
   })
@@ -26,9 +42,24 @@ router.get(
     const params = Object.assign(req.query, req.body);
     console.log('/webhooks/inbound-sms');
     // console.log(params);
-    if (params && params.text && params.text.toString() !== '') {
-      console.log('text:'+params.text.toString());
-      orchestrator.smsStonithCallbackStatus = params.text.toString();
+    // console.log('generated sig = ' + Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params));
+    // console.log('params.sig = '+ params.sig);
+    if (orchestrator.nexmoApiCheckMsgSignature === 'true') {
+      if (Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params) === params.sig) {
+        console.log('Valid signature');
+        if (params && params.text && params.text.toString() !== '') {
+          console.log('text:' + params.text.toString());
+          orchestrator.smsStonithCallbackStatus = params.text.toString();
+        }
+      } else {
+        console.log('Invalid signature');
+      }
+    } else {
+      console.log('Do not check signature');
+      if (params && params.text && params.text.toString() !== '') {
+        console.log('text:' + params.text.toString());
+        orchestrator.smsStonithCallbackStatus = params.text.toString();
+      }
     }
     res.status(204).send();
   })

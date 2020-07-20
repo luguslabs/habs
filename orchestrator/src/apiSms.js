@@ -1,9 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mainRoutes = require('./routes/main');
-const metricsRoutes = require('./routes/metrics');
-const orchestratorRoutes = require('./routes/orchestrator');
-const serviceRoutes = require('./routes/service');
+const smsRoutes = require('./routes/sms');
 
 // Return not found response
 const get404 = (req, res, next) => {
@@ -34,7 +31,7 @@ const errorHandler = (err, req, res, next) => {
 };
 
 // Init api
-const initApi = async orchestrator => {
+const initApiSms = async orchestrator => {
   const app = express();
 
   app.set('orchestrator', orchestrator);
@@ -50,10 +47,7 @@ const initApi = async orchestrator => {
   });
 
   // Use routes
-  app.use('/', mainRoutes.routes);
-  app.use('/metrics', metricsRoutes.routes);
-  app.use('/orchestration', orchestratorRoutes.routes);
-  app.use('/service', serviceRoutes.routes);
+  app.use('/sms', smsRoutes.routes);
 
   // Add not found middleware
   app.use(get404);
@@ -62,9 +56,9 @@ const initApi = async orchestrator => {
   app.use(errorHandler);
 
   // Set listen port
-  app.listen(3000);
+  app.listen(3001);
 };
 
 module.exports = {
-  initApi
+  initApiSms
 };

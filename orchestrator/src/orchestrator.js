@@ -35,6 +35,9 @@ class Orchestrator {
     smsStonithActiveCallbackMandatory,
     nexmoApiKey,
     nexmoApiSecret,
+    nexmoApiSignatureMethod,
+    nexmoApiSignatureSecret,
+    nexmoApiCheckMsgSignature,
     nexmoPhoneNumber,
     outletPhoneNumberList,
     authoritiesList
@@ -60,6 +63,9 @@ class Orchestrator {
     this.smsStonithActiveCallbackMandatory = smsStonithActiveCallbackMandatory;
     this.nexmoApiKey = nexmoApiKey;
     this.nexmoApiSecret = nexmoApiSecret;
+    this.nexmoApiSignatureMethod = nexmoApiSignatureMethod;
+    this.nexmoApiSignatureSecret = nexmoApiSignatureSecret;
+    this.nexmoApiCheckMsgSignature = nexmoApiCheckMsgSignature;
     this.nexmoPhoneNumber = nexmoPhoneNumber;
     this.outletPhoneNumberList = outletPhoneNumberList;
     this.authoritiesList = authoritiesList;
@@ -160,7 +166,7 @@ class Orchestrator {
     console.log('this.authoritiesList is ' + this.authoritiesList);
     const outletPhoneNumberArray = this.outletPhoneNumberList.split(',');
     const authoritiesListArray = this.authoritiesList.split(',');
-    if (outletPhoneNumberArray.length !== authoritiesListArray.length) {
+    if (parseInt(outletPhoneNumberArray.length) > parseInt(authoritiesListArray.length)) {
       console.log(
         'No Phone to call : wrong size be tween outletPhoneNumberArray and authoritiesListArray '
       );
@@ -240,7 +246,9 @@ class Orchestrator {
 
     const nexmo = new Nexmo({
       apiKey: this.nexmoApiKey,
-      apiSecret: this.nexmoApiSecret
+      apiSecret: this.nexmoApiSecret,
+      signatureMethod: this.nexmoApiSignatureMethod,
+      signatureSecret: this.nexmoApiSignatureSecret
     });
 
     const from = this.nexmoPhoneNumber;
@@ -283,12 +291,11 @@ class Orchestrator {
         'waitSmsCallBackShootConfirmation . sms received !! smsStonithCallbackStatus is ' +
           this.smsStonithCallbackStatus
       );
-      if(this.smsStonithCallbackStatus === 'Restarted'){
+      if (this.smsStonithCallbackStatus === 'Restarted') {
         console.log(
           'waitSmsCallBackShootConfirmation .  smsStonithCallbackStatus is Restarted. OK to become active');
         return true;
-      }
-      else{
+      } else {
         console.log(
           'waitSmsCallBackShootConfirmation .  smsStonithCallbackStatus is NOT Restarted. KO to become active');
         return false;
