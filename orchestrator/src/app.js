@@ -24,7 +24,9 @@ const {
   MNEMONIC,
   ALIVE_TIME,
   SERVICE,
-  SUSPEND_SERVICE,
+  ARCHIPEL_SERVICE_MODE,
+  ARCHIPEL_METRICS_ENABLE,
+  ARCHIPEL_ORCHESTRATION_ENABLE,
   NODES_WALLETS,
   ARCHIPEL_NAME,
   NODE_ROLE,
@@ -88,6 +90,7 @@ async function main () {
       MNEMONIC,
       ALIVE_TIME,
       ARCHIPEL_NAME,
+      ARCHIPEL_SERVICE_MODE,
       NODE_ROLE,
       SMS_STONITH_ACTIVE,
       SMS_STONITH_CALLBACK_MANDATORY,
@@ -100,15 +103,27 @@ async function main () {
       OUTLET_PHONE_NUMBER_LIST.replace(/"/g, ''),
       AUTHORITIES_LIST);
 
-    // If orchestrator is launched in suspend service mode disabling metrics send and orchestration
-    if (SUSPEND_SERVICE.includes('true')) {
+    if (ARCHIPEL_METRICS_ENABLE.includes('false')) {
       orchestrator.chain.metricSendEnabledAdmin = false;
+    }
+    if (ARCHIPEL_ORCHESTRATION_ENABLE.includes('false')) {
       orchestrator.orchestrationEnabled = false;
     }
 
-    // Start service in passive mode
-    console.log('Starting service in passive or sentry mode...');
-    await orchestrator.serviceStart(NODE_ROLE === 'operator' ? 'passive' : 'sentry');
+    if (ARCHIPEL_SERVICE_MODE === 'orchestrator') {
+      // Start service in passive mode
+      console.log('ARCHIPEL_SERVICE_MODE is orchestrator. Starting service in passive or sentry mode...');
+      await orchestrator.serviceStart(NODE_ROLE === 'operator' ? 'passive' : 'sentry');
+    } else if (ARCHIPEL_SERVICE_MODE === 'sentry') {
+      console.log('ARCHIPEL_SERVICE_MODE is force as sentry mode...');
+      await orchestrator.serviceStart('sentry');
+    } else if (ARCHIPEL_SERVICE_MODE === 'passive') {
+      console.log('ARCHIPEL_SERVICE_MODE is force as passive mode...');
+      await orchestrator.serviceStart('passive');
+    } else if (ARCHIPEL_SERVICE_MODE === 'active') {
+      console.log('ARCHIPEL_SERVICE_MODE is force as active mode...');
+      await orchestrator.serviceStart('active');
+    }
 
     // Listen events
     chain.listenEvents(metrics, orchestrator, MNEMONIC);
@@ -116,9 +131,8 @@ async function main () {
     // Add metrics and orchestrate every 10 seconds
     setIntervalAsync(async () => {
       try {
-        // If metric send is enabled sending metrics
+        // If metric send is enabled sending metrics.1 or 2 tricks for UI badge.
         const metricsValue = (NODE_ROLE === 'operator') ? 1 : 2;
-
         await chain.addMetrics(metricsValue, MNEMONIC);
         // Orchestrating service
         await orchestrator.orchestrateService();

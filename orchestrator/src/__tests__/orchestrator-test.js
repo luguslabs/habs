@@ -49,7 +49,7 @@ beforeAll(async () => {
   metrics = new Metrics();
 
   // Create Orchestrator instance
-  orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 60000, "archipel-test", 'operator');
+  orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 60000, "archipel-test", 'orchestrator', 'operator');
 
   // Mock isServiceReadyToStart
   orchestrator.isServiceReadyToStart = () => true;
