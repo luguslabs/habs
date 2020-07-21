@@ -11,10 +11,9 @@ router.post(
     const params = Object.assign(req.query, req.body);
     console.log('/webhooks/inbound-sms');
     // console.log(params);
-    // console.log('generated sig = ' + Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params));
-    // console.log('params.sig = '+ params.sig);
     if (orchestrator.nexmoApiCheckMsgSignature === 'true') {
-      if (Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params) === params.sig) {
+      const sigToCheck = Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params);
+      if (sigToCheck && sigToCheck.toUpperCase() === params.sig) {
         console.log('Valid signature');
         if (params && params.text && params.text.toString() !== '') {
           console.log('text:' + params.text.toString());
@@ -42,10 +41,9 @@ router.get(
     const params = Object.assign(req.query, req.body);
     console.log('/webhooks/inbound-sms');
     // console.log(params);
-    // console.log('generated sig = ' + Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params));
-    // console.log('params.sig = '+ params.sig);
     if (orchestrator.nexmoApiCheckMsgSignature === 'true') {
-      if (Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params) === params.sig) {
+      const sigToCheck = Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params);
+      if (sigToCheck && sigToCheck.toUpperCase() === params.sig) {
         console.log('Valid signature');
         if (params && params.text && params.text.toString() !== '') {
           console.log('text:' + params.text.toString());
