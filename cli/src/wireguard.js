@@ -20,11 +20,21 @@ const generateWireguardKeys = async keysNumber => {
 };
 
 // Generate Wireguard configuration
-const generateWireguardConfig = async externalIPAddresses => {
+const generateWireguardConfig = async (externalIPAddresses, wireguardPortsList) => {
   const config = {};
 
   // Add port number to addresses and add to config
-  config.wireguardExternalAddrList = externalIPAddresses.map(element => `${element}:51820`).join(',');
+  config.wireguardExternalAddrList = externalIPAddresses.map((element, index) => 
+    {
+      if (wireguardPortsList && wireguardPortsList.length >= index && wireguardPortsList[index]){
+        const port = wireguardPortsList[index];
+        return `${element}:${port}`
+      }
+      else{
+        return `${element}:51820`
+      } 
+    } 
+  ).join(',');
 
   // Generate Wireguard keys
   const wireGuardKeys = await generateWireguardKeys(externalIPAddresses.length);

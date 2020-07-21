@@ -112,6 +112,8 @@ const generateConfig = async () => {
 
     const externalIPAddresses = configData.publicIps.split(',');
 
+    const wireguardPortsList = configData.wireguardPorts ? configData.wireguardPorts.split(',') : null;
+
     // Add name to config
     config.name = configData.name.toLowerCase().replace(/\s/g, '-');
 
@@ -142,7 +144,7 @@ const generateConfig = async () => {
     config = { ...config, ...await generateServiceConfig(configData, config.nodesNumber) };
 
     // Adding wireguard config
-    config = { ...config, ...await generateWireguardConfig(externalIPAddresses) };
+    config = { ...config, ...await generateWireguardConfig(externalIPAddresses, wireguardPortsList) };
 
     // Adding Archipel config
     config = { ...config, ...await generateArchipelConfig(config.nodesNumber) };
