@@ -30,6 +30,7 @@ class Orchestrator {
     mnemonic,
     aliveTime,
     archipelName,
+    serviceMode,
     role,
     smsStonithActive,
     smsStonithActiveCallbackMandatory,
@@ -56,7 +57,12 @@ class Orchestrator {
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
     this.orchestrationEnabled = true;
-    this.mode = (role === 'operator') ? 'passive' : 'sentry';
+    this.serviceMode = serviceMode;
+    if (serviceMode === 'orchestrator') {
+      this.mode = (role === 'operator') ? 'passive' : 'sentry';
+    } else {
+      this.mode = serviceMode;
+    }
     this.role = role;
     this.archipelName = archipelName;
     this.smsStonithActive = smsStonithActive;
@@ -83,13 +89,26 @@ class Orchestrator {
         console.log('Orchestration is disabled...');
         return;
       }
-
-      if (this.role === 'operator') {
-        console.log('Start node in operator mode, active or passive...');
-        await this.orchestrateOperatorService();
-      } else {
-        console.log('Start node in sentry mode...');
+      if (this.serviceMode === 'orchestrator') {
+        if (this.role === 'operator') {
+          console.log('Start node in operator mode, active or passive...');
+          await this.orchestrateOperatorService();
+        } else {
+          console.log('Start node in sentry mode...');
+          await this.serviceStart('sentry');
+        }
+      } else if (this.serviceMode === 'sentry') {
+        console.log('serviceMode force to sentry. Start node in sentry mode...');
         await this.serviceStart('sentry');
+      } else if (this.serviceMode === 'passive') {
+        console.log('serviceMode force to passive. Start node in passive mode...');
+        await this.serviceStart('passive');
+      } else if (this.serviceMode === 'active') {
+        console.log('serviceMode force to active. Start node in active mode...');
+        await this.serviceStart('active');
+      } else {
+        console.log('Wrong service mode ' + this.serviceMode + '. Do nothing...');
+        return;
       }
     } catch (error) {
       debug('orchestrateService', error);
