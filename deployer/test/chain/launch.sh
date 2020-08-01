@@ -61,48 +61,5 @@ launch_node "node3" \
             "borrow initial guard hunt corn trust student opera now economy thumb argue" \
             ""
 
-# Getting nodes local node identity
-get_node_identity "node1" NODE1_LOCAL_ID
-echo "Local node1 identity is '$NODE1_LOCAL_ID'"
-get_node_identity "node2" NODE2_LOCAL_ID
-echo "Local node2 identity is '$NODE2_LOCAL_ID'"
-get_node_identity "node3" NODE3_LOCAL_ID
-echo "Local node3 identity is '$NODE3_LOCAL_ID'"
-
-# Constructing reserved  list
-RESERVED_LIST="/ip4/$NODE1_IP/tcp/30333/p2p/$NODE1_LOCAL_ID,/ip4/$NODE2_IP/tcp/30333/p2p/$NODE2_LOCAL_ID,/ip4/$NODE3_IP/tcp/30333/p2p/$NODE3_LOCAL_ID"
-echo "RESERVED_LIST  is '$RESERVED_LIST'"
-
-echo "Sleeping 10 sec before node remove to be sure that keys were added..."
-sleep 10
-
-# Recreating nodes containers
-# Removing nodes containers
-docker rm -f node1 node2 node3
-echo "Sleeping 5 seconds to be sure that nodes are stopped and deleted..."
-sleep 5
-
-# Relaunching nodes with bootnodes list
-# Starting node1
-launch_node "node1" \
-            "$NODE1_IP" \
-            "-p 9944:9944 -p 9933:9933 -p 9955:9955" \
-            "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud" \
-            "$RESERVED_LIST"
-
-# Starting node2
-launch_node "node2" \
-            "$NODE2_IP" \
-            "" \
-            "fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer" \
-            "$RESERVED_LIST"
-
-# Starting node3
-launch_node "node3" \
-            "$NODE3_IP" \
-            "" \
-            "borrow initial guard hunt corn trust student opera now economy thumb argue" \
-            "$RESERVED_LIST"
-
 echo "Chain is fully initilized!"
 docker ps

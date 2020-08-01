@@ -8,7 +8,7 @@ class Metrics {
   }
 
   // Add metrics into Map
-  addMetrics (wallet, metrics, timestamp) {
+  addMetrics (wallet, metrics, blockNumber) {
     let name = '';
 
     // Get node name from nodes array
@@ -17,21 +17,21 @@ class Metrics {
       name = node.name;
     }
 
+    debug('nodeMetrics', `name ${name} metrics ${metrics} blockNumber ${blockNumber}.`);
     var nodeMetrics = {
       name,
       metrics,
-      timestamp
+      blockNumber
     };
 
     this.metrics.set(wallet, nodeMetrics);
   }
 
   // If any node in Map is alive
-  anyOneAlive (excludeNode, aliveTime) {
-    const nowTime = new Date().getTime();
+  anyOneAlive (excludeNode, aliveTime, bestNumber) {
     for (const [key, value] of this.metrics.entries()) {
       if (key !== excludeNode) {
-        const lastSeenAgo = nowTime - value.timestamp;
+        const lastSeenAgo = bestNumber - value.blockNumber;
         if (lastSeenAgo < aliveTime) {
           debug('metrics', `${key} is alive.`);
           return true;
@@ -49,7 +49,7 @@ class Metrics {
         wallet: key,
         name: value.name,
         metrics: value.metrics,
-        timestamp: value.timestamp
+        blockNumber: value.blockNumber
       });
     });
 

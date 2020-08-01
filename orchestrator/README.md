@@ -15,7 +15,7 @@ DEBUG='app,chain,docker,metrics,polkadot,service'
 # Setting Archipel Variables
 NODE_WS='ws://127.0.0.1:9944'
 MNEMONIC='mushroom ladder...'
-ALIVE_TIME=60000
+ALIVE_TIME=12
 SERVICE='polkadot'
 ARCHIPEL_SERVICE_MODE="orchestrator"
 NODES_WALLETS='5FLaEvGea8M8qExr3owNQ...,5ETsP7Fd8wVVkHLM...,5HHW1oLjpJ3jrD86EG8PWw1peWWFbz...'

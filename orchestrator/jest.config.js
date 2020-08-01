@@ -14,6 +14,7 @@ process.env.POLKADOT_ADDITIONAL_OPTIONS = '--chain kusama --db-cache 512';
 process.env.DEBUG = 'app,chain,docker,metrics,polkadot,service';
 process.env.TESTING = 'true';
 process.env.NODES_ROLE = 'operator,operator,operator';
+process.env.NODE_ROLE = 'operator';
 
 module.exports = {
   // All imported modules in your tests should be mocked automatically

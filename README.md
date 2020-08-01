@@ -71,6 +71,7 @@ Archipel federation support only 3 nodes or 6 nodes.
   In 3 nodes federation, all 3 nodes are operator. Passive nodes act as sentry nodes for the current validator on a 3 nodes federation.
   That means that at some point a validator node can be exposed if passive (sentry). To have a more secure setup use the 6 nodes federation config.
   In 6 nodes federation, sentry nodes never because passive and active nodes. And passive and active nods never become sentry nodes during the HA orchestration.
+- **External Sentry Role** - external sentry have the same purpuse as sentry role for the service. Service sentry information peers are used without the use of an archipel node, metrics, orchestrator etc ...
 
 #### 3 nodes federation roles
 
@@ -91,9 +92,9 @@ You must have the 3 operator nodes running to operate.
 | archipel-node-1-{active or passive} | operator |
 | archipel-node-2-{active or passive} | operator |
 | archipel-node-3-{active or passive} | operator |
-| archipel-node-4 | sentry |
-| archipel-node-5 | sentry |
-| archipel-node-6 | sentry |
+| archipel-node-4 | sentry or externalSentry |
+| archipel-node-5 | sentry or externalSentry |
+| archipel-node-6 | sentry or externalSentry |
 
 You must have the 3 operator nodes running to operate and at least one sentry node up. 2 sentry nodes up is better. 3 sentry nodes up is safer.
 
@@ -115,16 +116,23 @@ The first service targeted by Archipel is Polkadot Validator.
 
 The Polkadot node can be launched :
 
-#### 3 nodes federation
+#### 3 nodes federation active, passive/sentry
 
-- **Active mode** - Polkadot node in with validator option
-- **Sentry-Passive mode** - Polkadot node in the sentry mode for the current validator
+- **1 Active mode** - Polkadot node in with validator option
+- **2 Sentry-Passive mode** - Polkadot node in the sentry mode for the current validator
 
-#### 6 nodes federation
+#### 3 nodes federation active/passive wth n external sentry
 
-- **Active mode** - Polkadot node in with validator option
-- **Passive mode** - Polkadot node in the sync-only mode and with reserved peers only
-- **Sentry mode** - Polkadot node in the sentry mode for passive and active others nodes.
+- **1 Active mode** - Polkadot node in with validator option. never exposed as sentry
+- **2 Passive mode** - Polkadot node in full node backup for the current validator. never exposed as sentry
+- **external sentry** - External Polkadot node with sentry option (not in the archipel federation).
+
+#### N Mixed federation
+
+- **1 Active mode** - Polkadot node in with validator option. Never exposed as sentry
+- **2 Passive mode** - Polkadot node in the sync-only mode and with reserved peers only. Never exposed as sentry
+- **n Sentry mode** - Polkadot node in the sentry mode for passive and active others nodes.
+- **n external Sentry** - External Polkadot node with sentry option (not in the archipel federation).
 
 We are also planning to support other services.
 

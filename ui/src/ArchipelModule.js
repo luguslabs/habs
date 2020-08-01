@@ -16,7 +16,6 @@ import {
   Loader,
   Confirm
 } from 'semantic-ui-react';
-import TimeAgo from 'react-timeago';
 import useSWR from 'swr';
 import useAxios from 'axios-hooks';
 import fetch from './libs/fetch';
@@ -186,9 +185,9 @@ function Main (props) {
                         <Statistic vertical size="tiny">
                           <Statistic.Value>
                             <Icon name="heartbeat" />
-                            <TimeAgo date={parseInt(metric.timestamp)} />
+                            {metric.blockNumber ? metric.blockNumber : ''}
                           </Statistic.Value>
-                          <Statistic.Label>Last Heartbeat</Statistic.Label>
+                          <Statistic.Label>Last Heartbeat Block</Statistic.Label>
                         </Statistic>
                       </Grid.Column>
                       <Grid.Column className="two wide">

@@ -16,8 +16,24 @@ class Chain {
       // Creating Websocket Provider
       const provider = new WsProvider(this.wsProvider);
       // Creating API
-      this.api = await ApiPromise.create({ provider });
+      this.api = await ApiPromise.create({
+        provider,
+        types: {
+          // mapping the actual specified address format
+          Address: 'AccountId',
+          // mapping the lookup
+          LookupSource: 'AccountId'
+        }
+      });
       this.provider = provider;
+      // Retrieve the chain & node information information via rpc calls
+      const [chain, nodeName, nodeVersion] = await Promise.all([
+        this.api.rpc.system.chain(),
+        this.api.rpc.system.name(),
+        this.api.rpc.system.version()
+      ]);
+
+      console.log(`You are connected to chain ${chain} using ${nodeName} v${nodeVersion}`);
     } catch (error) {
       debug('constructor', error);
       throw error;
@@ -119,10 +135,9 @@ class Chain {
 
         // Get keys from mnemonic
         const keys = await getKeysFromSeed(mnemonic);
-
         // Get account nonce
-        const nonce = await this.api.query.system.accountNonce(keys.address);
-
+        const accountNonce = await this.api.query.system.account(keys.address);
+        const nonce = accountNonce.nonce;
         // Nonce show
         debug('addMetrics', `Nonce: ${nonce}`);
 
@@ -185,11 +200,22 @@ class Chain {
     }
   }
 
+  // Get bestNumber Chain
+  async getBestNumber () {
+    try {
+      const bestNumber = await this.api.derive.chain.bestNumber();
+      return bestNumber;
+    } catch (error) {
+      debug('getBestNumber', error);
+      return 0;
+    }
+  }
+
   // Get peer number connected to Archipel node
   async getPeerNumber () {
     try {
-      const peers = await this.api.rpc.system.peers();
-      return peers.length;
+      const health = await this.api.rpc.system.health();
+      return parseInt(health.peers);
     } catch (error) {
       debug('getPeerNumber', error);
       return 0;
@@ -214,7 +240,8 @@ class Chain {
       const keys = await getKeysFromSeed(mnemonic);
 
       // Get account nonce
-      const nonce = await this.api.query.system.accountNonce(keys.address);
+      const accountNonce = await this.api.query.system.account(keys.address);
+      const nonce = accountNonce.nonce;
 
       // Nonce show
       debug('setLeader', `Nonce: ${nonce}`);
