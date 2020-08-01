@@ -135,7 +135,11 @@ class Orchestrator {
 
     // Check if anyone is alive
     console.log('Checking is anyone in federation is alive...');
-    if (!this.metrics.anyOneAlive(nodeKey, this.aliveTime)) {
+
+    const bestNumber = await this.chain.getBestNumber();
+    debug('orchestrateService', `bestNumber: ${bestNumber}`);
+
+    if (!this.metrics.anyOneAlive(nodeKey, this.aliveTime, bestNumber)) {
       console.log(
         "Seems that no one is alive. Enforcing 'passive' service mode..."
       );
@@ -488,8 +492,9 @@ class Orchestrator {
         }
       }
 
-      const nowTime = new Date().getTime();
-      const lastSeenAgo = nowTime - leaderMetrics.timestamp;
+      const bestNumber = await this.chain.getBestNumber();
+      debug('orchestrateService', `bestNumber: ${bestNumber}`);
+      const lastSeenAgo = bestNumber - leaderMetrics.blockNumber;
 
       // Checking if leader can be considered alive
       if (lastSeenAgo > this.aliveTime) {

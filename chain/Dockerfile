@@ -1,21 +1,22 @@
 ###########################
 # Archipel chain build step
 ###########################dock
-FROM rust:buster as builder
+FROM debian:buster as builder
 WORKDIR /root/  
 COPY . .
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
-		g++ libssl-dev gcc clang libclang-dev make \
-		git pkg-config curl time rhash
-RUN ./scripts/init.sh && cargo build --release
-RUN ./target/release/archipel build-spec --chain template > archipelTemplateSpec.json
-RUN ./target/release/archipel build-spec --chain template --raw > archipelTemplateSpecRaw.json
+	cmake pkg-config libssl-dev git gcc build-essential clang libclang-dev curl ca-certificates
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN rustup update nightly && rustup target add wasm32-unknown-unknown --toolchain nightly
+RUN cargo build --release
+RUN ./target/release/archipel build-spec --disable-default-bootnode --chain local > archipelTemplateSpec.json
+RUN ./target/release/archipel build-spec --disable-default-bootnode --chain local --raw > archipelTemplateSpecRaw.json
 
 ###########################
 # Build subkey tool step
 ###########################
-RUN rustup install stable
 RUN cargo +stable install --force --git https://github.com/paritytech/substrate subkey
 
 ####################################
@@ -27,10 +28,10 @@ RUN mkdir chain
 COPY --from=builder /root/target/release/archipel ./chain
 COPY --from=builder /root/archipelTemplateSpec.json ./chain
 COPY --from=builder /root/archipelTemplateSpecRaw.json ./chain
-COPY --from=builder /usr/local/cargo/bin/subkey /usr/local/bin/
+COPY --from=builder /root/.cargo/bin/subkey /usr/local/bin/
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
-		libssl-dev curl jq
+	libssl-dev curl jq
 COPY ./entrypoint.sh .
 RUN chmod +x ./entrypoint.sh
 

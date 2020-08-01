@@ -269,24 +269,6 @@ done
 LIST_TO_INJECT=${LIST_TO_INJECT%?} 
 sed -i "s/\"REPLACE_AUTHORITIES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
-# add SS58 Adress to indices
-cat /root/chain/archipelSpec.json | jq '.genesis.runtime.indices.ids = []'  > /tmp/archipelSpecTmp.json
-mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-indexArray=0
-for AUTH in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
-do
-      NODE_ROLE=${rolesArray[indexArray]}
-      NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
-      if [ "$NODE_ROLE" == "sentry" ] || [ "$NODE_ROLE" == "operator" ]
-      then
-            cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.indices.ids += [$AUTH]'  > /tmp/archipelSpecTmp.json
-            mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-      else
-            echo "skip add in ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN because NODE_ROLE=$NODE_ROLE "
-      fi
-      indexArray=$(( $indexArray + 1 ))
-done
-
 # add SS58 Adress Balances 
 cat /root/chain/archipelSpec.json | jq '.genesis.runtime.balances.balances = ["REPLACE_BALANCES_HERE"]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
@@ -334,13 +316,15 @@ fi
 ARCHIPEL_TELEMETRY_URL_CMD="--no-telemetry"
 if [ ! -z "$ARCHIPEL_TELEMETRY_URL" ] && [ ! "--no-telemetry" == "$ARCHIPEL_TELEMETRY_URL" ]
 then
-      ARCHIPEL_TELEMETRY_URL_CMD=""
-      for ITEM in $(echo $ARCHIPEL_TELEMETRY_URL |  tr "," " ")
-      do
-            ARCHIPEL_TELEMETRY_URL_CMD="$ARCHIPEL_TELEMETRY_URL_CMD --telemetry-url $ITEM"
-      done
+      ARCHIPEL_TELEMETRY_URL_CMD="$ARCHIPEL_TELEMETRY_URL"
 fi
 echo "ARCHIPEL_TELEMETRY_URL_CMD: $ARCHIPEL_TELEMETRY_URL_CMD"
+
+ARCHIPEL_TELEMETRY_LOGLEVEL_CMD="0"
+if [ ! -z "$ARCHIPEL_TELEMETRY_LOGLEVEL" ]
+then
+      ARCHIPEL_TELEMETRY_LOGLEVEL_CMD=$ARCHIPEL_TELEMETRY_LOGLEVEL
+fi
 
 # generate raw spec file 
 /root/chain/archipel build-spec --chain=/root/chain/archipelSpec.json --raw > /root/chain/archipelSpecRaw.json
@@ -367,15 +351,16 @@ echo "\"$ARCHIPEL_KEY_SEED\"" > "/root/chain/data/chains/archipel/keystore/$SR25
 echo "RESERVED_PEERS_PARAM: $RESERVED_PEERS_PARAM"
 
 # if archipel chain has additionals params
-if [ ! -z "$RESERVED_PEERS_PARAM" ]
+if [ "--no-telemetry" == "$ARCHIPEL_TELEMETRY_URL_CMD" ]
 then
       /root/chain/archipel \
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
             --validator \
+            --no-prometheus \
             --port $ARCHIPEL_LISTEN_PORT \
             --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
-            $ARCHIPEL_TELEMETRY_URL_CMD \
+            --no-telemetry \
             --name "$ARCHIPEL_NODE_ALIAS" \
             $RESERVED_PEERS_PARAM
 else
@@ -383,8 +368,10 @@ else
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
             --validator \
+            --no-prometheus \
             --port $ARCHIPEL_LISTEN_PORT \
             --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
-            $ARCHIPEL_TELEMETRY_URL_CMD \
-            --name "$ARCHIPEL_NODE_ALIAS"
+            --telemetry-url "$ARCHIPEL_TELEMETRY_URL_CMD $ARCHIPEL_TELEMETRY_LOGLEVEL_CMD" \
+            --name "$ARCHIPEL_NODE_ALIAS" \
+            $RESERVED_PEERS_PARAM
 fi

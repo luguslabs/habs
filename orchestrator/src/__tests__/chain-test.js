@@ -3,7 +3,7 @@
 const { exec } = require('child_process');
 
 const { Chain } = require('../chain');
-const { getKeysFromSeed } = require('../utils');
+const { getKeysFromSeed, constructNodesList} = require('../utils');
 const { Metrics } = require('../metrics');
 
 // Test configuration
@@ -12,6 +12,7 @@ const jestTimeout = 60000;
 const mnemonic1 = 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud';
 const mnemonic2 = 'fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer';
 const mnemonic3 = 'borrow initial guard hunt corn trust student opera now economy thumb argue';
+const NODES_WALLETS = '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s'
 
 // Promisify exec
 const execAsync = cmd => new Promise((resolve, reject) => {
@@ -34,8 +35,15 @@ beforeAll(async () => {
   console.log('Test chain was launched...');
 
   // Connecting to Archipel Chain Node
-  chain = new Chain('ws://127.0.0.1:9944');
+  chain = new Chain('ws://127.0.0.1:9944','orchestrator');
   await chain.connect();
+  // Construct nodes list
+  const nodes = constructNodesList(NODES_WALLETS, 'node1');
+
+  // Create Metrics instance
+  const metrics = new Metrics(nodes);
+
+
 });
 
 afterAll(async () => {

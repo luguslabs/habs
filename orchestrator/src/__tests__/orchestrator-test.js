@@ -49,7 +49,7 @@ beforeAll(async () => {
   metrics = new Metrics();
 
   // Create Orchestrator instance
-  orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 60000, "archipel-test", 'orchestrator', 'operator');
+  orchestrator = new Orchestrator(chain, 'polkadot', metrics, mnemonic1, 12, "archipel-test", 'orchestrator', 'operator');
 
   // Mock isServiceReadyToStart
   orchestrator.isServiceReadyToStart = () => true;
@@ -192,8 +192,8 @@ test('If service is not ready to start. Service remains in passive mode.', async
   expect(leader.toString()).toBe('');
 
   const keys2 = await getKeysFromSeed(mnemonic2);
-  const nowTime = new Date().getTime();
-  metrics.addMetrics(keys2.address.toString(), '42', nowTime);
+  const blockNumber = await chain.getBestNumber();
+  metrics.addMetrics(keys2.address.toString(), '42', blockNumber);
 
   orchestrator.metrics = metrics;
   orchestrator.mnemonic = mnemonic1;
@@ -222,8 +222,8 @@ test('If chain can not receive transactions. Service remains in passive mode.', 
   expect(leader.toString()).toBe('');
 
   const keys2 = await getKeysFromSeed(mnemonic2);
-  const nowTime = new Date().getTime();
-  metrics.addMetrics(keys2.address.toString(), '42', nowTime);
+  const blockNumber = await chain.getBestNumber();
+  metrics.addMetrics(keys2.address.toString(), '42', blockNumber);
 
   orchestrator.metrics = metrics;
   orchestrator.mnemonic = mnemonic1;
@@ -255,8 +255,8 @@ test('No leader and someone is alive. So service starts in active mode.', async 
   expect(leader.toString()).toBe('');
 
   const keys2 = await getKeysFromSeed(mnemonic2);
-  const nowTime = new Date().getTime();
-  metrics.addMetrics(keys2.address.toString(), '42', nowTime);
+  const blockNumber = await chain.getBestNumber();
+  metrics.addMetrics(keys2.address.toString(), '42', blockNumber);
 
   orchestrator.metrics = metrics;
   orchestrator.mnemonic = mnemonic1;
@@ -283,8 +283,8 @@ test('I am leader and someone is alive. So service starts in active mode.', asyn
   let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys1.address);
 
-  const nowTime = new Date().getTime();
-  metrics.addMetrics(keys2.address.toString(), '42', nowTime);
+  const blockNumber = await chain.getBestNumber();
+  metrics.addMetrics(keys2.address.toString(), '42', blockNumber);
   orchestrator.metrics = metrics;
   orchestrator.mnemonic = mnemonic1;
 
@@ -357,8 +357,8 @@ test('Other node is leader and is online. Service remains in passive mode.', asy
   let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys1.address);
 
-  const nowTime = new Date().getTime();
-  metrics.addMetrics(keys1.address.toString(), '42', nowTime);
+  const blockNumber = await chain.getBestNumber();
+  metrics.addMetrics(keys1.address.toString(), '42', blockNumber);
   orchestrator.metrics = metrics;
   orchestrator.mnemonic = mnemonic2;
 
@@ -384,9 +384,10 @@ test('Other node is leader is offline and someone other is alive. Get leadership
   let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys1.address);
 
-  const nowTime = new Date().getTime();
-  metrics.addMetrics(keys1.address.toString(), '42', nowTime - 80000);
-  metrics.addMetrics(keys3.address.toString(), '42', nowTime);
+  const blockNumber = await chain.getBestNumber();
+  expect(blockNumber > 12 ).toBe(true);
+  metrics.addMetrics(keys1.address.toString(), '42', blockNumber - 13);
+  metrics.addMetrics(keys3.address.toString(), '42', blockNumber);
   orchestrator.metrics = metrics;
   orchestrator.mnemonic = mnemonic2;
 
@@ -413,9 +414,10 @@ test('Other node is leader is offline and nobody other is alive. Do not get lead
   let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys2.address);
 
-  const nowTime = new Date().getTime();
-  metrics.addMetrics(keys2.address.toString(), '42', nowTime - 80000);
-  metrics.addMetrics(keys3.address.toString(), '42', nowTime - 80000);
+  const blockNumber = await chain.getBestNumber();
+  expect(blockNumber > 12 ).toBe(true);
+  metrics.addMetrics(keys2.address.toString(), '42', blockNumber - 13);
+  metrics.addMetrics(keys3.address.toString(), '42', blockNumber - 13);
   orchestrator.metrics = metrics;
   orchestrator.mnemonic = mnemonic1;
 
@@ -442,8 +444,8 @@ test('Other node is leader, someone is online and no metrics about leader. Thres
   let leader = await chain.getLeader();
   expect(leader.toString()).toBe(keys2.address);
 
-  const nowTime = new Date().getTime();
-  metrics.addMetrics(keys3.address.toString(), '42', nowTime);
+  const blockNumber = await chain.getBestNumber();
+  metrics.addMetrics(keys3.address.toString(), '42', blockNumber);
   orchestrator.noLivenessThreshold = 3;
   orchestrator.metrics = metrics;
   orchestrator.mnemonic = mnemonic1;
@@ -502,10 +504,10 @@ test('Testing serviceReadinessManagement.', async () => {
   expect(leader.toString()).toBe(keys1.address);
   expect(orchestrator.chain.metricSendEnabled).toBe(true);
 
-  const nowTime = new Date().getTime();
-  metrics.addMetrics(keys1.address.toString(), '42', nowTime);
-  metrics.addMetrics(keys2.address.toString(), '42', nowTime);
-  metrics.addMetrics(keys3.address.toString(), '42', nowTime);
+  const blockNumber = await chain.getBestNumber();
+  metrics.addMetrics(keys1.address.toString(), '42', blockNumber);
+  metrics.addMetrics(keys2.address.toString(), '42', blockNumber);
+  metrics.addMetrics(keys3.address.toString(), '42', blockNumber);
 
   orchestrator.noReadyThreshold = 3;
   orchestrator.metrics = metrics;
@@ -580,5 +582,4 @@ test('Testing serviceReadinessManagement.', async () => {
   expect(orchestrator.chain.metricSendEnabled).toBe(true);
 
   await orchestrator.serviceCleanUp();
-
 });

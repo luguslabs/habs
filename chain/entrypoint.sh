@@ -128,15 +128,6 @@ done
 LIST_TO_INJECT=${LIST_TO_INJECT%?} 
 sed -i "s/\"REPLACE_AUTHORITIES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
-# add SS58 Adress to indices
-cat /root/chain/archipelSpec.json | jq '.genesis.runtime.indices.ids = []'  > /tmp/archipelSpecTmp.json
-mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-for AUTH in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
-do
- cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.indices.ids += [$AUTH]'  > /tmp/archipelSpecTmp.json
- mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
-done
-
 # add SS58 Adress Balances 
 cat /root/chain/archipelSpec.json | jq '.genesis.runtime.balances.balances = ["REPLACE_BALANCES_HERE"]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
