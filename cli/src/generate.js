@@ -14,8 +14,8 @@ const {
 } = require('./utils');
 
 const {
-  generateServiceConfig,
-  validateServiceConfig
+  generateServicesConfig,
+  validateServicesConfig
 } = require('./service');
 
 const {
@@ -52,17 +52,17 @@ const getPasswordFromUser = () => {
 const validateConfigData = async configData => {
   isEmptyString(configData.name, 'Archipel Name was not set in archipel.json file.');
   isEmptyString(configData.publicIps, 'Nodes public ips were not set in archipel.json file.');
-  isEmptyString(configData.service, 'Service name was not found in archipel.json file.');
+  isEmptyString(configData.services, 'Services was not found in archipel.json file.');
   validatePublicIps(configData.publicIps);
   validateNodesRole(configData.nodesRole);
-  await validateServiceConfig(configData);
+  await validateServicesConfig(configData);
 };
 
 // Validate public ips list
 const validatePublicIps = ips => {
   const externalIPAddresses = ips.split(',');
-  if (externalIPAddresses.length < 3) {
-    throw Error('Archipel must have at least 3 nodes config.');
+  if (externalIPAddresses.length < 4) {
+    throw Error('Archipel must have at least 4 nodes config.');
   }
   // Check if every ip address in list is valid
   externalIPAddresses.forEach(element => {
@@ -120,6 +120,12 @@ const generateConfig = async () => {
     // Add nodesRole to config
     config.nodesRole = configData.nodesRole;
 
+    // Add nodesGroups to config
+    config.nodesGroup = configData.nodesGroup;
+
+    // Add nodesGroups to config
+    config.nodesGroupId = configData.nodesGroupId;
+
     // Add nexmoApiKey to config
     config.nexmoApiKey = configData.nexmoApiKey;
 
@@ -141,7 +147,7 @@ const generateConfig = async () => {
     // Add node number to config
     config.nodesNumber = externalIPAddresses.length;
 
-    config = { ...config, ...await generateServiceConfig(configData, config.nodesNumber) };
+    config = { ...config, ...await generateServicesConfig(configData, config.nodesNumber) };
 
     // Adding wireguard config
     config = { ...config, ...await generateWireguardConfig(externalIPAddresses, wireguardPortsList) };

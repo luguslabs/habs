@@ -50,7 +50,7 @@ To federate several nodes and have a shared state to elect a leader, we created 
 
 [Substrate](https://substrate.dev/) is a Parity framework that allows creating application-specific blockchains.
 
-We created a Substrate runtime that collects all nodes metrics and sets federation leadership. This helps Archipel orchestrator to select the best leader appropriately in the federation. We call this specific blockchain the Archipel Substrate Chain or Archipel Chain.
+We created a Substrate runtime that collects all nodes heartbeats and sets federation leadership. This helps Archipel orchestrator to select the best leader appropriately in the federation. We call this specific blockchain the Archipel Substrate Chain or Archipel Chain.
 
 All nodes inside a federation, run Archipel Chain. In the current implementation, an Archipel must be composed of at least 3 nodes. That means that to operate, you have to set up at least 3 nodes. Try to set up nodes in different locations.
 
@@ -71,7 +71,7 @@ Archipel federation support only 3 nodes or 6 nodes.
   In 3 nodes federation, all 3 nodes are operator. Passive nodes act as sentry nodes for the current validator on a 3 nodes federation.
   That means that at some point a validator node can be exposed if passive (sentry). To have a more secure setup use the 6 nodes federation config.
   In 6 nodes federation, sentry nodes never because passive and active nodes. And passive and active nods never become sentry nodes during the HA orchestration.
-- **External Sentry Role** - external sentry have the same purpuse as sentry role for the service. Service sentry information peers are used without the use of an archipel node, metrics, orchestrator etc ...
+- **External Sentry Role** - external sentry have the same purpuse as sentry role for the service. Service sentry information peers are used without the use of an archipel node, heartbeats, orchestrator etc ...
 
 #### 3 nodes federation roles
 
@@ -101,8 +101,8 @@ You must have the 3 operator nodes running to operate and at least one sentry no
 ### Archipel Orchestrator Workflow
 
 - Launch external service in passive mode or sentry node according to node role
-- Send node metrics to Archipel Chain
-- Retrieve other nodes metrics from Archipel Chain
+- Send node heartbeats to Archipel Chain
+- Retrieve other nodes heartbeats from Archipel Chain
 - Retrieve current leader from Archipel Chain and determine its availability
 - If the current leader is alive, do nothing and ensure that the service was launched in passive mode
 - If the current leader is not alive, try to take its place by making a transaction to Archipel Chain

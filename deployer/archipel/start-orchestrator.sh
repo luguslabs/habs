@@ -150,11 +150,12 @@ if [ ! -z "$CONFIG_FILE" ]; then
         check_cmd $? 'retrieve ARCHIPEL_KEY_SEED'
         check_result "$ARCHIPEL_KEY_SEED" 'ARCHIPEL_KEY_SEED'
     fi
-    #get SERVICE
-    if [ -z "$SERVICE" ]; then
-        export SERVICE=$(cat /config/config.json | jq ".service.name" | sed 's/\"//g')
-        check_cmd $? 'retrieve SERVICE'
-        check_result "$SERVICE" 'SERVICE'
+    #get SERVICES
+    if [ -z "$SERVICES" ]; then
+        cat /config/config.json | jq ".services[] | .name" | sed 's/\"//g'
+        export SERVICES=$(cat /config/config.json | jq ".services[] | .name" | sed 's/\"//g')
+        check_cmd $? 'retrieve SERVICES'
+        check_result "$SERVICES" 'SERVICES'
     fi
     #get ARCHIPEL_AUTHORITIES_SR25519_LIST
     if [ -z "$ARCHIPEL_AUTHORITIES_SR25519_LIST" ]; then
@@ -182,6 +183,16 @@ if [ -z "$NODE_ROLE" ]; then
   NODE_ROLE="operator"
 fi
 echo "NODE_ROLE=$NODE_ROLE"
+
+if [ -z "$NODE_GROUP" ]; then
+  echo "Assure old config support. Force config NODE_GROUP to '1'"
+  NODE_GROUP=1
+fi
+
+if [ -z "$NODE_GROUP_ID" ]; then
+  echo "Assure old config support. Force config NODE_GROUP_ID to '1'"
+  NODE_GROUP_ID=1
+fi
 
 if [ -z "$SMS_STONITH_ACTIVE" ]; then
   echo "set default value to false for SMS_STONITH_ACTIVE"
@@ -230,8 +241,8 @@ if [ -z "$ARCHIPEL_SERVICE_MODE" ]; then
   ARCHIPEL_SERVICE_MODE="orchestrator"
 fi
 
-if [ -z "$ARCHIPEL_METRICS_ENABLE" ]; then
-  ARCHIPEL_METRICS_ENABLE="true"
+if [ -z "$ARCHIPEL_HEARTBEATS_ENABLE" ]; then
+  ARCHIPEL_HEARTBEATS_ENABLE="true"
 fi
 
 if [ -z "$ARCHIPEL_ORCHESTRATION_ENABLE" ]; then
@@ -244,13 +255,15 @@ NODES_ROLE=$(echo $NODES_ROLE | sed 's/\"//g')
 export NODE_ENV=production
 export NODE_WS="ws://127.0.0.1:9944"
 export NODE_ROLE=$NODE_ROLE
+export NODE_GROUP=$NODE_GROUP
+export NODE_GROUP_ID=$NODE_GROUP_ID
 export NODES_ROLE=$NODES_ROLE
 export MNEMONIC="$ARCHIPEL_KEY_SEED"
 export NODES_WALLETS="$ARCHIPEL_AUTHORITIES_SR25519_LIST"
 export ARCHIPEL_NAME="$ARCHIPEL_NAME"
 export ALIVE_TIME=12
 export ARCHIPEL_SERVICE_MODE="$ARCHIPEL_SERVICE_MODE"
-export ARCHIPEL_METRICS_ENABLE="$ARCHIPEL_METRICS_ENABLE"
+export ARCHIPEL_HEARTBEATS_ENABLE="$ARCHIPEL_HEARTBEATS_ENABLE"
 export ARCHIPEL_ORCHESTRATION_ENABLE="$ARCHIPEL_ORCHESTRATION_ENABLE"
 export AUTHORITIES_LIST="$ARCHIPEL_AUTHORITIES_SR25519_LIST"
 export SMS_STONITH_ACTIVE="$SMS_STONITH_ACTIVE"

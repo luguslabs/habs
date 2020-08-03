@@ -26,12 +26,13 @@ class Orchestrator {
   constructor (
     chain,
     service,
-    metrics,
+    heartbeats,
     mnemonic,
     aliveTime,
     archipelName,
     serviceMode,
     role,
+    group,
     smsStonithActive,
     smsStonithActiveCallbackMandatory,
     nexmoApiKey,
@@ -53,17 +54,17 @@ class Orchestrator {
     // Create service instance
     this.service = Orchestrator.createServiceInstance(service);
     this.serviceName = service;
-    this.metrics = metrics;
+    this.heartbeats = heartbeats;
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
     this.orchestrationEnabled = true;
     this.serviceMode = serviceMode;
+    this.mode = serviceMode;
     if (serviceMode === 'orchestrator') {
       this.mode = (role === 'operator') ? 'passive' : 'sentry';
-    } else {
-      this.mode = serviceMode;
     }
     this.role = role;
+    this.group = group;
     this.archipelName = archipelName;
     this.smsStonithActive = smsStonithActive;
     this.smsStonithActiveCallbackMandatory = smsStonithActiveCallbackMandatory;
@@ -139,7 +140,7 @@ class Orchestrator {
     const bestNumber = await this.chain.getBestNumber();
     debug('orchestrateService', `bestNumber: ${bestNumber}`);
 
-    if (!this.metrics.anyOneAlive(nodeKey, this.aliveTime, bestNumber)) {
+    if (!this.heartbeats.anyOneAlive(nodeKey, this.aliveTime, this.group, bestNumber)) {
       console.log(
         "Seems that no one is alive. Enforcing 'passive' service mode..."
       );
@@ -156,9 +157,9 @@ class Orchestrator {
       return;
     }
 
-    // If metrics are disabled enforcing passive service mode
-    if (!this.chain.metricSendEnabled || !this.chain.metricSendEnabledAdmin) {
-      console.log('Metric send is disabled. Enforcing passive service mode...');
+    // If heartbeats are disabled enforcing passive service mode
+    if (!this.chain.heartbeatSendEnabled || !this.chain.heartbeatSendEnabledAdmin) {
+      console.log('Heartbeat send is disabled. Enforcing passive service mode...');
       await this.serviceStart('passive');
       return;
     }
@@ -222,7 +223,8 @@ class Orchestrator {
   // SMS stonith algorithm
   async smsShootOldValidatorInTheHead (
     orchestratorAddress,
-    currentLeaderKeyToShoot
+    currentLeaderKeyToShoot,
+    isLeadedGroup
   ) {
     console.log('smsShootOldValidatorInTheHead start...');
 
@@ -231,6 +233,13 @@ class Orchestrator {
 
     if (currentLeaderKeyToShoot.includes(orchestratorAddress)) {
       console.log('currentLeaderKeyToShoot is myself. Shoot aborted');
+      return false;
+    }
+
+    if (!isLeadedGroup) {
+      console.log(
+        'isLeadedGroup is false. Shoot aborted'
+      );
       return false;
     }
 
@@ -329,7 +338,8 @@ class Orchestrator {
   // Take leader place
   async becomeLeader (nodeKey) {
     try {
-      const setLeader = await this.chain.setLeader(nodeKey, this.mnemonic);
+      const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
+      const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
       if (setLeader) {
         console.log('The leadership was taken successfully...');
         console.log('smsStonith is Active = ' + this.smsStonithActive);
@@ -340,7 +350,8 @@ class Orchestrator {
           this.smsStonithCallbackStatus = 'waitingCallBack';
           const shoot = await this.smsShootOldValidatorInTheHead(
             orchestratorAddress,
-            nodeKey
+            nodeKey,
+            isLeadedGroup
           );
           if (shoot) {
             const callbackShootConfirmation = await this.waitSmsCallBackShootConfirmation();
@@ -353,7 +364,7 @@ class Orchestrator {
               );
               this.orchestrationEnabled = false;
               // to allow other node to take leadership :
-              this.chain.metricSendEnabled = false;
+              this.chain.heartbeatSendEnabled = false;
               this.smsStonithCallbackStatus = 'none';
               return false;
             }
@@ -398,22 +409,22 @@ class Orchestrator {
         this.noReadyCount++;
         return true;
         // If service is not ready after noReadyThreshold enforcing passive mode
-        // And disabling metrics send
+        // And disabling heartbeats send
       } else {
         console.log(
-          `Service is not ready for ${this.noReadyThreshold} orchestrations. Disabling metrics send and enforcing passive mode...`
+          `Service is not ready for ${this.noReadyThreshold} orchestrations. Disabling heartbeat send and enforcing passive mode...`
         );
-        this.chain.metricSendEnabled = false;
+        this.chain.heartbeatSendEnabled = false;
         return false;
       }
     }
 
-    // If service is ready and metrics send is disabled we can activate metrics send
-    if (serviceReady && !this.chain.metricSendEnabled) {
+    // If service is ready and heartbeat send is disabled we can activate heartbeats send
+    if (serviceReady && !this.chain.heartbeatSendEnabled) {
       console.log(
-        'Service is ready and metric send was disabled. Enabling it...'
+        'Service is ready and heartbeat send was disabled. Enabling it...'
       );
-      this.chain.metricSendEnabled = true;
+      this.chain.heartbeatSendEnabled = true;
     }
 
     // Reset noReady counter
@@ -430,12 +441,13 @@ class Orchestrator {
   async leadershipManagement (nodeKey) {
     try {
       // Get current leader from chain
-      let currentLeader = await this.chain.getLeader();
+      let currentLeader = await this.chain.getLeader(this.group);
+      const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
       currentLeader = currentLeader.toString();
 
       // If current leader is empty
       // First time Archipel boot
-      if (currentLeader === '') {
+      if (isLeadedGroup === false) {
         console.log('Trying to take leadership...');
         const becomeLeaderResult = await this.becomeLeader(nodeKey);
         return becomeLeaderResult;
@@ -464,11 +476,11 @@ class Orchestrator {
   // Act if other node is leader
   async otherLeaderAction (currentLeader) {
     try {
-      // Get leader metrics known
-      const leaderMetrics = this.metrics.getMetrics(currentLeader);
+      // Get leader heartbeats known
+      const leaderHeartbeat = this.heartbeats.getHeartbeat(currentLeader);
 
-      // If no metrics received we will wait noLivenessThreshold
-      if (leaderMetrics === undefined) {
+      // If no heartbeat received we will wait noLivenessThreshold
+      if (leaderHeartbeat === undefined) {
         // How much checks remains
         const checksNumber =
           this.noLivenessThreshold - this.noLivenessFromLeader;
@@ -481,7 +493,7 @@ class Orchestrator {
           // Incrementing noLivenessFromLeader counter
           this.noLivenessFromLeader++;
           return false;
-          // No metrics received for noLivenessThreshold times. Leader is offline.
+          // No leaderHeart received for noLivenessThreshold times. Leader is offline.
         } else {
           console.log(
             `Can't check leader ${currentLeader} liveness for ${this.noLivenessThreshold} times. Trying to become new leader...`
@@ -494,7 +506,7 @@ class Orchestrator {
 
       const bestNumber = await this.chain.getBestNumber();
       debug('orchestrateService', `bestNumber: ${bestNumber}`);
-      const lastSeenAgo = bestNumber - leaderMetrics.blockNumber;
+      const lastSeenAgo = bestNumber - leaderHeartbeat.blockNumber;
 
       // Checking if leader can be considered alive
       if (lastSeenAgo > this.aliveTime) {

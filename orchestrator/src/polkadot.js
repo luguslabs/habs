@@ -36,6 +36,7 @@ class Polkadot {
       config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
       config.polkadotAdditionalOptions = process.env.POLKADOT_ADDITIONAL_OPTIONS;
       config.nodesRole = process.env.NODES_ROLE;
+      config.nodeId = process.env.NODE_ID;
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
       config.polkadotRpcPort = '9993';
@@ -51,7 +52,7 @@ class Polkadot {
         return;
       }
 
-      if (isEmptyString(process.env.NODE_ID)) {
+      if (isEmptyString(config.nodeId)) {
         throw Error('Polkadot Service need NODE_ID when config file was set.');
       }
 
@@ -60,7 +61,7 @@ class Polkadot {
       // Checking if value was not already set by env vars
       if (isEmptyString(config.polkadotName)) {
         if ('name' in configFromFile) {
-          config.polkadotName = `${configFromFile.name}-node-${process.env.NODE_ID}`;
+          config.polkadotName = `${configFromFile.name}-node-${config.nodeId}`;
         }
       }
 
@@ -73,43 +74,43 @@ class Polkadot {
       }
 
       if (isEmptyString(config.polkadotKeyGran)) {
-        const polkadotKeyGran = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_GRAN');
+        const polkadotKeyGran = configFromFile.services.find(element => element.name === 'polkadot').fields[parseInt(config.nodeId) - 1].find(element => element.env === 'POLKADOT_KEY_GRAN');
         if (polkadotKeyGran !== undefined) {
           config.polkadotKeyGran = polkadotKeyGran.value;
         }
       }
 
       if (isEmptyString(config.polkadotKeyBabe)) {
-        const polkadotKeyBabe = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_BABE');
+        const polkadotKeyBabe = configFromFile.services.find(element => element.name === 'polkadot').fields[parseInt(config.nodeId) - 1].find(element => element.env === 'POLKADOT_KEY_BABE');
         if (polkadotKeyBabe !== undefined) {
           config.polkadotKeyBabe = polkadotKeyBabe.value;
         }
       }
 
       if (isEmptyString(config.polkadotKeyImon)) {
-        const polkadotKeyImon = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_IMON');
+        const polkadotKeyImon = configFromFile.services.find(element => element.name === 'polkadot').fields[parseInt(config.nodeId) - 1].find(element => element.env === 'POLKADOT_KEY_IMON');
         if (polkadotKeyImon !== undefined) {
           config.polkadotKeyImon = polkadotKeyImon.value;
         }
       }
 
       if (isEmptyString(config.polkadotKeyPara)) {
-        const polkadotKeyPara = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_PARA');
+        const polkadotKeyPara = configFromFile.services.find(element => element.name === 'polkadot').fields[parseInt(config.nodeId) - 1].find(element => element.env === 'POLKADOT_KEY_PARA');
         if (polkadotKeyPara !== undefined) {
           config.polkadotKeyPara = polkadotKeyPara.value;
         }
       }
 
       if (isEmptyString(config.polkadotKeyAudi)) {
-        const polkadotKeyAudi = configFromFile.service.fields.find(element => element.env === 'POLKADOT_KEY_AUDI');
+        const polkadotKeyAudi = configFromFile.services.find(element => element.name === 'polkadot').fields[parseInt(config.nodeId) - 1].find(element => element.env === 'POLKADOT_KEY_AUDI');
         if (polkadotKeyAudi !== undefined) {
           config.polkadotKeyAudi = polkadotKeyAudi.value;
         }
       }
 
       if (isEmptyString(config.polkadotReservedNodes)) {
-        if ('service' in configFromFile && 'reservedPeersList' in configFromFile.service) {
-          config.polkadotReservedNodes = configFromFile.service.reservedPeersList;
+        if ('services' in configFromFile && 'reservedPeersList' in configFromFile.services.find(element => element.name === 'polkadot')) {
+          config.polkadotReservedNodes = configFromFile.services.find(element => element.name === 'polkadot').reservedPeersList;
         }
       }
 
@@ -120,8 +121,9 @@ class Polkadot {
       }
 
       if (isEmptyString(config.polkadotNodeKeyFile)) {
-        if ('nodeIds' in configFromFile.service && configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile !== undefined) {
-          config.polkadotNodeKeyFile = configFromFile.service.nodeIds[parseInt(process.env.NODE_ID) - 1].idFile;
+        const polkadotSrvConfig = configFromFile.services.find(element => element.name === 'polkadot');
+        if ('nodeIds' in polkadotSrvConfig && polkadotSrvConfig.nodeIds[parseInt(config.nodeId) - 1].idFile !== undefined) {
+          config.polkadotNodeKeyFile = polkadotSrvConfig.nodeIds[parseInt(config.nodeId) - 1].idFile;
         }
       }
     } catch (error) {
@@ -279,9 +281,7 @@ class Polkadot {
 
   // Check if polkadot is synch and ready to operate (Synch etc ...)
   // Curl result example :  "W{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":1,"shouldHavePeers":true},"id":1}"
-  // TODO ? call also system_networkState
-  // - add metrics "averageDownloadPerSec"
-  // - add metrics "averageUploadPerSec"
+
   async isServiceReadyToStart (mode) {
     try {
       // By default we will check sync container

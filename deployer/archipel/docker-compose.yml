@@ -1,0 +1,20 @@
+version: '3.4'
+services:
+  archipel:
+    image: luguslabs/archipel:test
+    volumes:
+      - 'archipel:/root/chain/data'
+      - 'archipel_service:/service'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - '/home/fbranciard/archipel/cli/config.zip:/config/archipel-config.zip'
+    ports:
+      - '51820:51820/udp'
+      - '3001:3001/tcp'
+    privileged: true
+    env_file:
+      - .env
+    restart: always
+
+volumes:
+  archipel: {}
+  archipel_service: {}

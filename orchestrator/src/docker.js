@@ -132,6 +132,26 @@ class Docker {
     }
   }
 
+  // Prune volumes
+  async pruneVolumes (name) {
+    try {
+      const volume = await this.getVolumeByName(name);
+      if (volume !== undefined) {
+        const options = {
+          Name: name
+        };
+        await this.docker.pruneVolumes(options);
+        return true;
+      } else {
+        debug('pruneVolumes', 'Volume do not exist.');
+        return false;
+      }
+    } catch (error) {
+      debug('pruneVolumes', error);
+      throw error;
+    }
+  }
+
   // Remove 'down' container and start 'up' container
   async prepareAndStart (containerData, upName, downName) {
     try {

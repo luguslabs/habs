@@ -11,10 +11,12 @@ process.env.POLKADOT_KEY_PARA = 'produce hover hurdle lobster december slight ha
 process.env.POLKADOT_KEY_AUDI = 'oak tail stomach fluid trade aunt fire fringe mercy roast style garlic';
 process.env.POLKADOT_NODE_KEY_FILE = 'test-polkadot-node-key-file';
 process.env.POLKADOT_ADDITIONAL_OPTIONS = '--chain kusama --db-cache 512';
-process.env.DEBUG = 'app,chain,docker,metrics,polkadot,service';
+process.env.DEBUG = 'app,chain,docker,heartbeats,polkadot,service';
 process.env.TESTING = 'true';
 process.env.NODES_ROLE = 'operator,operator,operator';
 process.env.NODE_ROLE = 'operator';
+process.env.NODE_GROUP = 1;
+process.env.NODE_GROUP_ID = 1;
 
 module.exports = {
   // All imported modules in your tests should be mocked automatically

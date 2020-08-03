@@ -59,13 +59,16 @@ cargo test -p archipel-runtime
 
 ## Archipel Runtime Functions
 
-- `add_metrics(origin, metrics_value: u32)` - function that allows every node in Archipel federation report its metrics. The metrics report also plays the role of a heartbeat transaction that allows checking node liveness. If a node has not reported its metrics for a certain period, it can be considered as down. If the federation leader is down, the Archipel Orchestrator will react, and a new leader will be elected.
+- `add_heartbeat(origin, group_id: u32)` - function that allows every node in Archipel federation report its heartbeats. The heartbeats report also plays the role of a heartbeat transaction that allows checking node liveness. If a node has not reported its heartbeats for a certain period, it can be considered as down. If the federation leader is down, the Archipel Orchestrator will react, and a new leader will be elected.
 
-  - `metrics_value` - parameter is not used by Archipel orchestrator at the moment. In the future, metrics will be used to enable a more accurate and fine-tuned leader election mechanism.
+- `group_id` - use to filter different archipel group nodes for different HA service
 
-- `set_leader(origin, old_leader: T::AccountId)` - function that is used in the case when the algorithm in the Archipel Orchestrator detects that the federation leader is down. Before starting service in active mode, Archipel Orchestrator must assure that it can take leadership, and everybody is aware of its decision. In this case, `set_leader` transaction is propagated by the Archipel Orchestrator. If this transaction succeeds, the orchestrator can be sure that everybody is aware that it takes leadership in the federation. It guarantees that nobody else will launch the service in active mode. So the orchestrator can safely launch service in active mode.
+- `set_leader(origin, old_leader: T::AccountId, group_id: u32)` - function that is used in the case when the algorithm in the Archipel Orchestrator detects that the federation leader is down. Before starting service in active mode, Archipel Orchestrator must assure that it can take leadership, and everybody is aware of its decision. In this case, `set_leader` transaction is propagated by the Archipel Orchestrator. If this transaction succeeds, the orchestrator can be sure that everybody is aware that it takes leadership in the federation. It guarantees that nobody else will launch the service in active mode. So the orchestrator can safely launch service in active mode.
+
   - `old_leader` - the current leader that is known and considered down by current orchestrator. The use of `old_leader` parameter assures that there are no two orchestrators that can take the leadership at the same time.
   - this function is also be called by orchestrators when the leader's place is free. The first orchestrator that will succeed the transaction will be the leader in Archipel federation.
+
+- `group_id` - use to filter different archipel group nodes for different HA service
 
 ## References
 

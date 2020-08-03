@@ -19,9 +19,9 @@ function launch_orchestrator () {
     --env POLKADOT_KEY_PARA="produce hover hurdle lobster december slight hat note quit bomb drama notice" \
     --env POLKADOT_KEY_AUDI="oak tail stomach fluid trade aunt fire fringe mercy roast style garlic" \
     --env POLKADOT_ADDITIONAL_OPTIONS="--db-cache 512" \
-    --env DEBUG="app,chain,docker,metrics,polkadot,service" \
+    --env DEBUG="app,chain,docker,heartbeats,polkadot,service" \
     --env ALIVE_TIME=12 \
-    --env SERVICE="polkadot" \
+    --env SERVICES="polkadot" \
     --env ARCHIPEL_SERVICE_MODE="orchestrator" \
     luguslabs/archipel-orchestrator:$ARCHIPEL_ORCHESTRATOR_VERSION 
 
