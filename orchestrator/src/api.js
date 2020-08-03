@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mainRoutes = require('./routes/main');
-const metricsRoutes = require('./routes/metrics');
+const heartbeatsRoutes = require('./routes/heartbeats');
 const orchestratorRoutes = require('./routes/orchestrator');
 const serviceRoutes = require('./routes/service');
 
@@ -51,7 +51,7 @@ const initApi = async orchestrator => {
 
   // Use routes
   app.use('/', mainRoutes.routes);
-  app.use('/metrics', metricsRoutes.routes);
+  app.use('/heartbeats', heartbeatsRoutes.routes);
   app.use('/orchestration', orchestratorRoutes.routes);
   app.use('/service', serviceRoutes.routes);
 

@@ -1,7 +1,12 @@
 #Create subkey bin
-FROM rust:buster as builder-subkey
+FROM debian:buster as builder-subkey
 # Install subkey tool
-RUN rustup install stable
+WORKDIR /root/
+RUN	apt-get -y update; \
+    apt-get install -y --no-install-recommends \
+    cmake pkg-config libssl-dev git gcc build-essential clang libclang-dev curl ca-certificates
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup update nightly
 RUN rustup target add wasm32-unknown-unknown --toolchain nightly
 RUN cargo +stable install --force --git https://github.com/paritytech/substrate subkey
@@ -19,14 +24,14 @@ RUN echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.li
 
 # Installing necessary packages
 RUN	apt-get -y update && \
-	apt-get install -y --no-install-recommends \
-		wireguard-tools zip iptables net-tools procps && \
-	echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections && \
+    apt-get install -y --no-install-recommends \
+    wireguard-tools zip iptables net-tools procps && \
+    echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections && \
     apt install -y resolvconf && \
     apt clean
-    
+
 # Copy subkey
-COPY --from=builder-subkey /usr/local/cargo/bin/subkey /usr/local/bin/
+COPY --from=builder-subkey /root/.cargo/bin/subkey /usr/local/bin/
 
 RUN mkdir /home/$user/app
 COPY . /home/$user/app/

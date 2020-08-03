@@ -28,6 +28,21 @@ const readToObj = path => {
   return JSON.parse(fileContent);
 };
 
+// fromModeToNodeStatus
+const fromModeToNodeStatus = mode => {
+  let result = 0;
+  if (mode === 'active') {
+    result = 1;
+  }
+  if (mode === 'passive') {
+    result = 2;
+  }
+  if (mode === 'sentry') {
+    result = 3;
+  }
+  return result;
+};
+
 // Cleanup on exit
 const catchExitSignals = (cleanUpCallback, docker, service) => {
   // catching signals and calling cleanup callback before exit
@@ -97,5 +112,6 @@ module.exports = {
   checkVariable,
   formatOptionList,
   formatOptionCmds,
-  constructNodesList
+  constructNodesList,
+  fromModeToNodeStatus
 };

@@ -138,8 +138,8 @@ function Main (props) {
         </Grid.Row>
         {data &&
         data.status === '200' &&
-        data.metrics &&
-        data.metrics.length === 0 ? (
+        data.heartbeats &&
+        data.heartbeats.length === 0 ? (
             <Grid.Row>
               <Grid.Column>
                 <Segment raised>
@@ -148,7 +148,7 @@ function Main (props) {
                       <Grid.Column className="two wide"></Grid.Column>
                       <Grid.Column className="twelve wide center aligned">
                         <Loader as="h2" active inline indeterminate>
-                        Fetching Archipel Metrics. Please wait...
+                        Fetching Archipel Heartbeats. Please wait...
                         </Loader>
                       </Grid.Column>
                       <Grid.Column className="two wide"></Grid.Column>
@@ -159,14 +159,14 @@ function Main (props) {
             </Grid.Row>
           ) : null}
         {data
-          ? data.metrics.map((metric, index) => (
+          ? data.heartbeats.map((heartbeat, index) => (
             <Grid.Row>
               <Grid.Column>
                 <Segment raised>
                   <Grid columns={4}>
                     <Grid.Row>
                       <Grid.Column className="two wide">
-                        {data.orchestratorAddress === metric.wallet ? (
+                        {data.orchestratorAddress === heartbeat.wallet ? (
                           <Label color="green" ribbon>
                             <Icon name="disk" />
                               Current Node
@@ -176,32 +176,32 @@ function Main (props) {
                       <Grid.Column className="six wide center aligned">
                         <Statistic vertical size="tiny">
                           <Statistic.Value>
-                            {metric.name ? metric.name : ''}
+                            {heartbeat.name ? heartbeat.name : ''}
                           </Statistic.Value>
-                          <Statistic.Label>{metric.wallet}</Statistic.Label>
+                          <Statistic.Label>{heartbeat.wallet}</Statistic.Label>
                         </Statistic>
                       </Grid.Column>
                       <Grid.Column className="six wide center aligned">
                         <Statistic vertical size="tiny">
                           <Statistic.Value>
                             <Icon name="heartbeat" />
-                            {metric.blockNumber ? metric.blockNumber : ''}
+                            {(heartbeat.blockNumber && data.bestNumber) ? (' ' + parseInt(data.bestNumber) - parseInt(heartbeat.blockNumber) + 'Blocks Ago') : ''}
                           </Statistic.Value>
-                          <Statistic.Label>Last Heartbeat Block</Statistic.Label>
+                          <Statistic.Label>Last Heartbeat </Statistic.Label>
                         </Statistic>
                       </Grid.Column>
                       <Grid.Column className="two wide">
-                        {metric.wallet === data.leader ? (
+                        {heartbeat.wallet === data.leader ? (
                           <Label color="orange" ribbon="right" size="large">
                             <Icon name="winner" /> Active
                           </Label>
                         ) : null}
-                        {(metric.wallet !== data.leader && metric.metrics && parseInt(metric.metrics) === 1) ? (
+                        {(heartbeat.wallet !== data.leader && heartbeat.nodeStatus && parseInt(heartbeat.nodeStatus) === 2) ? (
                           <Label color="grey" ribbon="right" size="large">
                             <Icon name="bed" /> Passive
                           </Label>
                         ) : null}
-                        {(metric.wallet !== data.leader && metric.metrics && parseInt(metric.metrics) === 2) ? (
+                        {(heartbeat.wallet !== data.leader && heartbeat.nodeStatus && parseInt(heartbeat.nodeStatus) === 3) ? (
                           <Label color="purple" ribbon="right" size="large">
                             <Icon name="shield" /> Sentry
                           </Label>
@@ -284,11 +284,11 @@ function Main (props) {
                   <Table.Cell>Heartbeat Send</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      JSON.stringify(data.metricSendEnabledAdmin) ===
+                      JSON.stringify(data.heartbeatSendEnabledAdmin) ===
                       'false' ? (
                           <Radio
                             onClick={async () => {
-                              await fetch(encodeURI(url + '/metrics/enable'));
+                              await fetch(encodeURI(url + '/heartbeats/enable'));
                               revalidate();
                             }}
                             toggle
@@ -310,7 +310,7 @@ function Main (props) {
                               cancelButton="No, I'am just a deckhand"
                               confirmButton="Yes! I'am corsair"
                               onConfirm={async () => {
-                                await fetch(encodeURI(url + '/metrics/disable'));
+                                await fetch(encodeURI(url + '/heartbeats/disable'));
                                 setWarningHeartbeatPopup(false);
                                 revalidate();
                               }}
@@ -328,7 +328,7 @@ function Main (props) {
                   <Table.Cell>Heartbeat By Algorithm</Table.Cell>
                   <Table.Cell>
                     {data ? (
-                      JSON.stringify(data.metricSendEnabled) === 'true' ? (
+                      JSON.stringify(data.heartbeatSendEnabled) === 'true' ? (
                         <Icon name="checkmark" />
                       ) : (
                         <Icon name="close" />

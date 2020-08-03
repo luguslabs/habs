@@ -12,7 +12,7 @@ const command = ['nginx-debug', '-g', 'daemon off;'];
 const jestTimeout = 30000;
 let docker;
 
-beforeAll(async () => {
+beforeEach(async () => {
   // Set jest callback timeout
   jest.setTimeout(jestTimeout);
 
@@ -20,7 +20,7 @@ beforeAll(async () => {
   docker = new Docker();
 });
 
-afterAll(async () => {
+afterEach(async () => {
   await docker.removeContainer(activeName);
   await docker.removeContainer(passiveName);
 });

@@ -77,7 +77,7 @@ impl ExtBuilder {
 			.build_storage::<TestArchipel>()
 			.unwrap();
 		let mut ext = TestExternalities::from(storage);
-		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| System::set_block_number(42));
 		ext
 	}
 }

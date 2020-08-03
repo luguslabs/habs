@@ -10,7 +10,7 @@ It stops, starts, activates or deactivates the validator node according to the A
 ```bash
 # .env
 NODE_ENV='development'
-DEBUG='app,chain,docker,metrics,polkadot,service'
+DEBUG='app,chain,docker,heartbeats,polkadot,service'
 
 # Setting Archipel Variables
 NODE_WS='ws://127.0.0.1:9944'
@@ -63,8 +63,8 @@ docker build -t luguslabs/archipel-orchestrator .
 | Path                   | Method | Description                                                                                                                                                                  | Example                                                          |
 | ---------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | /                      | GET    | Get realtime Archipel orchestrator info                                                                                                                                      | curl -s http://172.28.42.2:3000                                  |
-| /metrics/disable       | GET    | Disable metrics send to Archipel chain                                                                                                                                       | curl -s http://172.28.42.2:3000/metrics/disable                  |
-| /metrics/enable        | GET    | Enable metrics send to Archipel chain                                                                                                                                        | curl -s http://172.28.42.2:3000/metrics/disable                  |
+| /heartbeats/disable    | GET    | Disable heartbeats send to Archipel chain                                                                                                                                    | curl -s http://172.28.42.2:3000/heartbeats/disable               |
+| /heartbeats/enable     | GET    | Enable heartbeats send to Archipel chain                                                                                                                                     | curl -s http://172.28.42.2:3000/heartbeats/disable               |
 | /orchestration/disable | GET    | Disable orchestration process <br> **WARNING! RISK!** Service container will remain in the same state all the time!                                                          | curl -s http://172.28.42.2:3000/orchestration/disable            |
 | /orchestration/enable  | GET    | Enable orchestration process                                                                                                                                                 | curl -s http://172.28.42.2:3000/orchestration/enable             |
 | /service/stop          | GET    | Stop and remove service container                                                                                                                                            | curl -s http://172.28.42.2:3000/service/stop                     |

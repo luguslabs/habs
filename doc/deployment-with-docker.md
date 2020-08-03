@@ -136,7 +136,7 @@ docker-compose up -d
 ### Step 8: Check the Archipel Federation with Archipel UI
 
 - Check if every node has any peers
-- Check if node has received metrics from other nodes
+- Check if node has received heartbeats from other nodes
 - Check if one of nodes is in active mode
 
 **Congratulations! Your first Archipel federation is working!**

@@ -54,11 +54,14 @@ decl_storage! {
 		// https://substrate.dev/docs/en/knowledgebase/runtime/storage#declaring-storage-items
 
 		// Heartbeats storage
-		Heartbeats get( fn get_heartbeats): map hasher(blake2_128_concat) T::AccountId => T::BlockNumber;
-		// Metrics storage
-		Metrics get(fn get_metrics): map hasher(blake2_128_concat) T::AccountId => u32;
-		// Current leader storage
-		Leader get(fn get_leader): Option<T::AccountId> = None;
+		Heartbeats get( fn get_heartbeat): map hasher(blake2_128_concat) T::AccountId => T::BlockNumber;
+		// Status storage
+		NodesStatus get( fn get_node_status): map hasher(blake2_128_concat) T::AccountId => u32 = 0;
+		// Groups storage
+		Groups get(fn get_group): map hasher(blake2_128_concat) T::AccountId => u32;
+		// Current leaders storage
+		Leaders get(fn get_leader): map hasher(blake2_128_concat) u32 => T::AccountId;
+		LeadedGroup get(fn get_leaded_group): map hasher(blake2_128_concat) u32 => bool = false;
 		// Accounts storage
 		Accounts get(fn get_account): map hasher(blake2_128_concat) u32 => T::AccountId;
 		AccountsCount get(fn get_accounts_count): u32 = 0;
@@ -74,11 +77,14 @@ decl_event!(
 		AccountId = <T as frame_system::Trait>::AccountId,
 		BlockNumber = <T as system::Trait>::BlockNumber,
     {
-		// Metics updated event
-		MetricsUpdated(AccountId, u32, BlockNumber),
+		// Heartbeat event
+		NewHeartbeat(AccountId, u32, u32, BlockNumber),
+		
+		// New leader event
+		NewLeader(AccountId, u32),
 
-		// Leader changed event
-		NewLeader(AccountId),
+		// Give up Leader event
+		GiveUpLeader(AccountId, u32),
 	}
 );
 
@@ -91,31 +97,55 @@ decl_module! {
 		// Events must be initialized if they are used by the pallet.
 		fn deposit_event() = default;
 
-		#[weight = 10_000 + T::DbWeight::get().reads_writes(1,1)]
-		pub fn set_leader(origin, old_leader: T::AccountId) -> dispatch::DispatchResult {
-            let sender = ensure_signed(origin)?;
+		#[weight = 10_000 + T::DbWeight::get().reads_writes(1,2)]
+		pub fn set_leader(origin, old_leader: T::AccountId, group_id: u32) -> dispatch::DispatchResult {
+            let sender: T::AccountId = ensure_signed(origin)?;
 
-            let leader = Self::get_leader();
+			// If leader is already set by someone in this group
+			if <Leaders<T>>::contains_key(&group_id) {
+				let leader =  Self::get_leader(group_id);
+				// Checking if leader can be set
+				ensure!(sender != old_leader, "You are already leader.");
+				ensure!(old_leader ==  leader, "Incorrect old leader report.");
+			}
 
-            // If leader is already set by someone
-            if let Some(current_leader) = leader {
-                // Checking if leader can be set
-                ensure!(sender != old_leader, "You are already leader.");
-                ensure!(old_leader == current_leader, "Incorrect old leader report.");
-            }
+            // Updating leader for group id
+			<Leaders<T>>::insert(group_id, &sender);
 
-            // Updating leader
-            <Leader<T>>::put(&sender);
+			<LeadedGroup>::insert(group_id, true);
 
             // Triggering leader update event
-            Self::deposit_event(RawEvent::NewLeader(sender));
+            Self::deposit_event(RawEvent::NewLeader(sender, group_id));
 
             Ok(())
 		}
 
-		#[weight = 10_000 + T::DbWeight::get().reads_writes(1,5)]
-        // Add metrics
-        pub fn add_metrics(origin, metrics_value: u32) -> dispatch::DispatchResult {
+		#[weight = 10_000 + T::DbWeight::get().reads_writes(2,2)]
+		pub fn give_up_leadership(origin, group_id: u32) -> dispatch::DispatchResult {
+
+			let sender: T::AccountId = ensure_signed(origin)?;
+
+			let leaded_group = Self::get_leaded_group(group_id);
+
+			ensure!(leaded_group ==  true, "No Leader in this group.");
+
+			let leader =  Self::get_leader(group_id);
+		
+			ensure!(leader ==  sender, "You are not the current leader.");
+
+			<LeadedGroup>::insert(group_id, false);
+
+			<Leaders<T>>::remove(group_id);
+
+			Self::deposit_event(RawEvent::GiveUpLeader(sender, group_id));
+
+			Ok(())
+		}
+
+
+		#[weight = 10_000 + T::DbWeight::get().reads_writes(2,6)]
+        // Add hearthbeats
+        pub fn add_heartbeat(origin, group_id: u32, node_status: u32) -> dispatch::DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			let now = <system::Module<T>>::block_number();
@@ -123,14 +153,17 @@ decl_module! {
             // Adding account in map
             Self::add_account(&sender)?;
 
-            // Adding metrics into metrics map
-            <Metrics<T>>::insert(&sender, metrics_value);
+            // Adding sender into groups map
+            <Groups<T>>::insert(&sender, group_id);
 
-            // Adding Moment into Heartbeats map
-            <Heartbeats<T>>::insert(&sender, now);
+            // Adding Now into Heartbeats map
+			<Heartbeats<T>>::insert(&sender, now);
+			
+			// Adding node status into NodesStatus map
+			<NodesStatus<T>>::insert(&sender, node_status);
 
-            // Triggering metrics update event
-            Self::deposit_event(RawEvent::MetricsUpdated(sender, metrics_value, now));
+            // Triggering heartbeats update event
+            Self::deposit_event(RawEvent::NewHeartbeat(sender, group_id, node_status, now));
 
             Ok(())
         }

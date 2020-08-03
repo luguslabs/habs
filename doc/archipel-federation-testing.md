@@ -56,10 +56,10 @@ Archipel UI will show you the full state of the Archipel Federation.
 It also gives you ability to manipulate orchestrator:
 
 - **disable/enable orchestration**
-- **disable/enable metrics send**
+- **disable/enable heartbeats send**
 - **stop/start service container**
 
-If you don't see any metrics or master elected, **please wait a little bit!**
+If you don't see any heartbeats or master elected, **please wait a little bit!**
 
 By default the Archipel UI uses Archipel Node 1 API endpoint. You can change API endpoint in order to see other nodes state.
 

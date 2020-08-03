@@ -3,7 +3,7 @@ const debug = require('debug')('app');
 const dotenv = require('dotenv');
 
 const { Chain } = require('./chain');
-const { Metrics } = require('./metrics');
+const { Heartbeats } = require('./heartbeats');
 const {
   catchExitSignals,
   checkVariable,
@@ -23,13 +23,15 @@ const {
   NODE_WS,
   MNEMONIC,
   ALIVE_TIME,
-  SERVICE,
+  SERVICES,
   ARCHIPEL_SERVICE_MODE,
-  ARCHIPEL_METRICS_ENABLE,
+  ARCHIPEL_HEARTBEATS_ENABLE,
   ARCHIPEL_ORCHESTRATION_ENABLE,
   NODES_WALLETS,
   ARCHIPEL_NAME,
   NODE_ROLE,
+  NODE_GROUP,
+  NODE_GROUP_ID,
   NODES_ROLE,
   SMS_STONITH_ACTIVE,
   SMS_STONITH_CALLBACK_MANDATORY,
@@ -50,10 +52,12 @@ const checkEnvVars = () => {
     checkVariable(NODE_WS, 'NODE_WS');
     checkVariable(MNEMONIC, 'MNEMONIC');
     checkVariable(ALIVE_TIME, 'ALIVE_TIME');
-    checkVariable(SERVICE, 'SERVICE');
+    checkVariable(SERVICES, 'SERVICES');
     checkVariable(ARCHIPEL_NAME, 'ARCHIPEL_NAME');
     checkVariable(NODES_WALLETS, 'NODES_WALLETS');
     checkVariable(NODE_ROLE, 'NODE_ROLE');
+    checkVariable(NODE_GROUP, 'NODE_GROUP');
+    checkVariable(NODE_GROUP_ID, 'NODE_GROUP_ID');
     checkVariable(NODES_ROLE, 'NODES_ROLE');
     checkVariable(SMS_STONITH_ACTIVE, 'SMS_STONITH_ACTIVE');
     checkVariable(SMS_STONITH_CALLBACK_MANDATORY, 'SMS_STONITH_CALLBACK_MANDATORY');
@@ -79,19 +83,22 @@ async function main () {
     // Construct nodes list
     const nodes = constructNodesList(NODES_WALLETS, ARCHIPEL_NAME);
 
-    // Create Metrics instance
-    const metrics = new Metrics(nodes);
+    // Create Heartbeats instance
+    const heartbeats = new Heartbeats(nodes);
 
+    const servicesList = SERVICES.split(',');
+    // TODO support multiple service ... only servicesList[0] for now
     // Create orchestrator instance
     const orchestrator = new Orchestrator(
       chain,
-      SERVICE,
-      metrics,
+      servicesList[0],
+      heartbeats,
       MNEMONIC,
       ALIVE_TIME,
       ARCHIPEL_NAME,
       ARCHIPEL_SERVICE_MODE,
       NODE_ROLE,
+      NODE_GROUP_ID,
       SMS_STONITH_ACTIVE,
       SMS_STONITH_CALLBACK_MANDATORY,
       NEXMO_API_KEY.replace(/"/g, ''),
@@ -103,8 +110,8 @@ async function main () {
       OUTLET_PHONE_NUMBER_LIST.replace(/"/g, ''),
       AUTHORITIES_LIST);
 
-    if (ARCHIPEL_METRICS_ENABLE.includes('false')) {
-      orchestrator.chain.metricSendEnabledAdmin = false;
+    if (ARCHIPEL_HEARTBEATS_ENABLE.includes('false')) {
+      orchestrator.chain.heartbeatSendEnabledAdmin = false;
     }
     if (ARCHIPEL_ORCHESTRATION_ENABLE.includes('false')) {
       orchestrator.orchestrationEnabled = false;
@@ -126,14 +133,12 @@ async function main () {
     }
 
     // Listen events
-    chain.listenEvents(metrics, orchestrator, MNEMONIC);
+    chain.listenEvents(heartbeats, orchestrator, MNEMONIC);
 
-    // Add metrics and orchestrate every 10 seconds
+    // Add heartbeats and orchestrate every 10 seconds
     setIntervalAsync(async () => {
       try {
-        // If metric send is enabled sending metrics.1 or 2 tricks for UI badge.
-        const metricsValue = (NODE_ROLE === 'operator') ? 1 : 2;
-        await chain.addMetrics(metricsValue, MNEMONIC);
+        await chain.addHeartbeat(NODE_GROUP_ID, orchestrator.mode, MNEMONIC);
         // Orchestrating service
         await orchestrator.orchestrateService();
       } catch (error) {

@@ -5,13 +5,14 @@ const router = express.Router();
 // Get orchestrator info
 const getOrchestratorInfo = async orchestrator => {
   // Get all necessary orchestrator data
-  const metrics = orchestrator.metrics.getAllMetrics();
+  const heartbeats = orchestrator.heartbeats.getAllHeartbeats();
   const orchestratorAddress = await orchestrator.getOrchestratorAddress();
   const isConnected = orchestrator.chain.isConnected();
   const peerId = await orchestrator.chain.getPeeId();
   const peerNumber = await orchestrator.chain.getPeerNumber();
+  const bestNumber = await orchestrator.chain.getBestNumber();
   const synchState = await orchestrator.chain.getSyncState();
-  const currentLeader = await orchestrator.chain.getLeader();
+  const currentLeader = await orchestrator.chain.getLeader(orchestrator.group);
   const isServiceReadyToStart = await orchestrator.isServiceReadyToStart(orchestrator.mode);
   const launchedContainer = await orchestrator.service.checkLaunchedContainer();
 
@@ -23,6 +24,7 @@ const getOrchestratorInfo = async orchestrator => {
     isConnected: isConnected,
     peerId: peerId,
     peerNumber: peerNumber,
+    bestNumber: bestNumber,
     synchState: synchState,
     leader: currentLeader,
     service: orchestrator.serviceName,
@@ -30,9 +32,9 @@ const getOrchestratorInfo = async orchestrator => {
     isServiceReadyToStart: isServiceReadyToStart,
     serviceMode: orchestrator.mode,
     serviceContainer: launchedContainer,
-    metricSendEnabledAdmin: orchestrator.chain.metricSendEnabledAdmin,
-    metricSendEnabled: orchestrator.chain.metricSendEnabled,
-    metrics: metrics
+    heartbeatSendEnabledAdmin: orchestrator.chain.heartbeatSendEnabledAdmin,
+    heartbeatSendEnabled: orchestrator.chain.heartbeatSendEnabled,
+    heartbeats: heartbeats
   };
   return result;
 };

@@ -1,13 +1,13 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const debug = require('debug')('chain');
 
-const { getKeysFromSeed } = require('./utils');
+const { getKeysFromSeed, fromModeToNodeStatus } = require('./utils');
 
 class Chain {
   constructor (wsProvider, role) {
     this.wsProvider = wsProvider;
-    this.metricSendEnabled = true;
-    this.metricSendEnabledAdmin = true;
+    this.heartbeatSendEnabled = true;
+    this.heartbeatSendEnabledAdmin = true;
     this.role = role;
   }
 
@@ -52,7 +52,7 @@ class Chain {
   }
 
   // Listen events
-  async listenEvents (metrics, orchestrator, mnemonic) {
+  async listenEvents (heartbeats, orchestrator, mnemonic) {
     try {
       const keys = await getKeysFromSeed(mnemonic);
       // Subscribe to events
@@ -73,10 +73,10 @@ class Chain {
               }
             }
           }
-          // Add metrics if Metrics updated event was received
-          if (event.section.toString() === 'archipelModule' && event.method.toString() === 'MetricsUpdated') {
-            debug('listenEvents', `Received metrics updated event from ${event.data[0].toString()}`);
-            metrics.addMetrics(event.data[0].toString(), event.data[1].toString(), event.data[2].toString());
+          // Add heartbeat if NewHeartbeat event was received
+          if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewHeartbeat') {
+            debug('listenEvents', `Received NewHeartbeat event from ${event.data[0].toString()}`);
+            heartbeats.addHeartbeat(event.data[0].toString(), event.data[1].toString(), event.data[2].toString(), event.data[3].toString());
           }
         });
       });
@@ -91,11 +91,11 @@ class Chain {
     try {
       // Get peers number
       let peersNumber = await this.getPeerNumber();
-      debug('addMetrics', `Node has ${peersNumber} peers.`);
+      debug('canSendTransactions', `Node has ${peersNumber} peers.`);
 
       // Get sync state
       let syncState = await this.getSyncState();
-      debug('addMetrics', `Node is sync: ${syncState}`);
+      debug('canSendTransactions', `Node is sync: ${syncState}`);
 
       if (peersNumber === 0 || syncState === true) {
         console.log('peersNumber is 0 or synch in progress. Wait 5 sec and retry');
@@ -116,22 +116,23 @@ class Chain {
     }
   }
 
-  // Send metrics
-  async addMetrics (metrics, mnemonic) {
+  // Send heartbeat
+  async addHeartbeat (groupId, mode, mnemonic) {
     try {
-      // Checking if metrics send is enabled
-      console.log('Checking if metrics send is enabled...');
-      if (!this.metricSendEnabled || !this.metricSendEnabledAdmin) {
-        console.log('Metrics send is disabled...');
+      // Checking if heartbeats send is enabled
+      console.log('Checking if heartbeats send is enabled...');
+      if (!this.heartbeatSendEnabled || !this.heartbeatSendEnabledAdmin) {
+        console.log('Heartbeat send is disabled...');
         return;
       }
 
+      const nodeStatus = await fromModeToNodeStatus(mode);
       // If node state permits to send transactions
       const sendTransaction = await this.canSendTransactions();
 
       // If node has any peers and is not in synchronizing chain
       if (sendTransaction) {
-        console.log('Archipel node has some peers and is synchronized so adding metrics...');
+        console.log('Archipel node has some peers and is synchronized so adding heartbeats...');
 
         // Get keys from mnemonic
         const keys = await getKeysFromSeed(mnemonic);
@@ -139,25 +140,25 @@ class Chain {
         const accountNonce = await this.api.query.system.account(keys.address);
         const nonce = accountNonce.nonce;
         // Nonce show
-        debug('addMetrics', `Nonce: ${nonce}`);
+        debug('addHeartbeat', `Nonce: ${nonce} groupId ${groupId} mode ${mode} nodeStatus ${nodeStatus}`);
 
         // create, sign and send transaction
         return new Promise((resolve, reject) => {
           this.api.tx.archipelModule
           // Create transaction
-            .addMetrics(metrics)
+            .addHeartbeat(groupId, nodeStatus)
           // Sign transaction
             .sign(keys, { nonce })
           // Send transaction
             .send(({ events = [], status }) => {
             // Debug show transaction status
-              this.transactionShowStatus(status, 'addMetrics');
+              this.transactionShowStatus(status, 'addHeartbeat');
               if (status.isFinalized) {
                 events.forEach(async ({ event: { data, method, section } }) => {
-                  if (section.toString() === 'archipelModule' && method.toString() === 'MetricsUpdated') {
+                  if (section.toString() === 'archipelModule' && method.toString() === 'NewHeartbeat') {
                   // Show transaction data for Debug
-                    debug('addMetrics', 'Transaction was successfully sent and generated an event.');
-                    debug('addMetrics', `JSON Data: [${JSON.parse(data.toString())}]`);
+                    debug('addHeartbeat', 'Transaction was successfully sent and generated an event.');
+                    debug('addHeartbeat', `JSON Data: [${JSON.parse(data.toString())}]`);
                     resolve(true);
                   }
                 });
@@ -174,29 +175,50 @@ class Chain {
         return false;
       }
     } catch (error) {
-      debug('addMetrics', error);
+      debug('addHeartbeat', error);
       throw error;
     }
   }
 
   // Get current leader from Runtime
-  async getLeader () {
+  async getLeader (groupId) {
     try {
-      return await this.api.query.archipelModule.leader();
+      return await this.api.query.archipelModule.leaders(groupId);
     } catch (error) {
       debug('getLeader', error);
       return false;
     }
   };
 
-  // Get metrics from Runtime
-  async getMetrics (key) {
+  // Get leadedGroup status from Runtime
+  async isLeadedGroup (groupId) {
     try {
-      return await this.api.query.archipelModule.metrics(key);
+      return JSON.parse(await this.api.query.archipelModule.leadedGroup(groupId));
     } catch (error) {
-      debug('getMetrics', error);
+      debug('isLeadedGroup', error);
+      return false;
+    }
+  };
+
+  // Get heartbeat from Runtime
+  async getHeartbeat (key) {
+    try {
+      return await this.api.query.archipelModule.heartbeats(key);
+    } catch (error) {
+      debug('getHeartbeat', error);
       console.log(error);
       return false;
+    }
+  }
+
+  // Get Node Status from Runtime
+  async getNodeStatus (key) {
+    try {
+      return parseInt(await this.api.query.archipelModule.nodesStatus(key));
+    } catch (error) {
+      debug('getNodeStatus', error);
+      console.log(error);
+      return 0;
     }
   }
 
@@ -234,7 +256,7 @@ class Chain {
   }
 
   // Set leader
-  async setLeader (oldLeader, mnemonic) {
+  async setLeader (oldLeader, groupId, mnemonic) {
     try {
       // Get keys from mnemonic
       const keys = await getKeysFromSeed(mnemonic);
@@ -250,7 +272,7 @@ class Chain {
         // create, sign and send transaction
         this.api.tx.archipelModule
           // create transaction
-          .setLeader(oldLeader)
+          .setLeader(oldLeader, groupId)
           // Sign and transaction
           .sign(keys, { nonce })
           // Send transaction
@@ -276,6 +298,53 @@ class Chain {
       });
     } catch (error) {
       debug('setLeader', error);
+      throw error;
+    }
+  }
+
+  // Give Up Leadership
+  async giveUpLeadership (groupId, mnemonic) {
+    try {
+      // Get keys from mnemonic
+      const keys = await getKeysFromSeed(mnemonic);
+
+      // Get account nonce
+      const accountNonce = await this.api.query.system.account(keys.address);
+      const nonce = accountNonce.nonce;
+
+      // Nonce show
+      debug('giveUpLeadership', `Nonce: ${nonce}`);
+
+      return new Promise((resolve, reject) => {
+        // create, sign and send transaction
+        this.api.tx.archipelModule
+          // create transaction
+          .giveUpLeadership(groupId)
+          // Sign and transaction
+          .sign(keys, { nonce })
+          // Send transaction
+          .send(({ events = [], status }) => {
+            // Debug show transaction status
+            this.transactionShowStatus(status, 'giveUpLeadership');
+            if (status.isFinalized) {
+              events.forEach(async ({ event: { data, method, section } }) => {
+                if (section.toString() === 'archipelModule' && method.toString() === 'GiveUpLeader') {
+                  // Show transaction data for Debug
+                  console.log('Transaction was successfully sent and generated an event.');
+                  console.log(`JSON Data: [${JSON.parse(data.toString())}]`);
+                  resolve(true);
+                }
+              });
+              resolve(false);
+            }
+            // If transaction is not ok resolving promise to false
+            if (status.isDropped || status.isInvalid || status.isUsurped) {
+              resolve(false);
+            }
+          }).catch(err => reject(err));
+      });
+    } catch (error) {
+      debug('giveUpLeadership', error);
       throw error;
     }
   }
