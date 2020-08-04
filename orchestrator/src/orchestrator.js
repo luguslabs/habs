@@ -443,6 +443,8 @@ class Orchestrator {
       // Get current leader from chain
       let currentLeader = await this.chain.getLeader(this.group);
       const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
+
+      debug('orchestrateService', `Is Group  ${this.group} a Leaded Group ? => ${isLeadedGroup} `);
       currentLeader = currentLeader.toString();
 
       // If current leader is empty

@@ -54,7 +54,7 @@ if [ ! -z "$CONFIG_FILE" ]; then
     #set variables from config file
     #get NODES_ROLE
     if [ -z "$NODES_ROLE" ]; then
-        NODES_ROLE=$(cat /config/config.json | jq ".nodesRole")
+        NODES_ROLE=$(cat /config/config.json | jq ".nodesRole" | sed 's/\"//g')
         check_cmd $? 'retrieve NODES_ROLE'
         if [ "$NODES_ROLE" == "null" ]; then
             echo "Assure old config support. Force config NODES_ROLE to 'operator,operator,operator'"
@@ -65,9 +65,25 @@ if [ ! -z "$CONFIG_FILE" ]; then
         NODE_ROLE=${rolesArray[index]}
     fi
 
+    if [ -z "$NODE_GROUP" ]; then
+        NODES_GROUP=$(cat /config/config.json | jq ".nodesGroup" | sed 's/\"//g')
+        check_cmd $? 'retrieve NODES_GROUP'
+        IFS=',' read -ra groupsArray <<< "$NODES_GROUP"
+        index=$(( $NODE_ID - 1 ))
+        NODE_GROUP=${groupsArray[index]}
+    fi
+
+    if [ -z "$NODE_GROUP_ID" ]; then
+        NODES_GROUP_ID=$(cat /config/config.json | jq ".nodesGroupId" | sed 's/\"//g')
+        check_cmd $? 'retrieve NODES_GROUP_ID'
+        IFS=',' read -ra groupIdsArray <<< "$NODES_GROUP_ID"
+        index=$(( $NODE_ID - 1 ))
+        NODE_GROUP_ID=${groupIdsArray[index]}
+    fi
+
     #get nexmoApiKey
     if [ -z "$NEXMO_API_KEY" ]; then
-        NEXMO_API_KEY_LIST=$(cat /config/config.json | jq ".nexmoApiKey")
+        NEXMO_API_KEY_LIST=$(cat /config/config.json | jq ".nexmoApiKey" | sed 's/\"//g')
         check_cmd $? 'retrieve NEXMO_API_KEY_LIST'
         if [ "$NEXMO_API_KEY_LIST" != "null" ]; then
             IFS=',' read -ra apikeysArray <<< "$NEXMO_API_KEY_LIST"
@@ -81,7 +97,7 @@ if [ ! -z "$CONFIG_FILE" ]; then
 
     #get nexmoApiSecret
     if [ -z "$NEXMO_API_SECRET" ]; then
-        NEXMO_API_SECRET_LIST=$(cat /config/config.json | jq ".nexmoApiSecret")
+        NEXMO_API_SECRET_LIST=$(cat /config/config.json | jq ".nexmoApiSecret" | sed 's/\"//g')
         check_cmd $? 'retrieve NEXMO_API_SECRET_LIST'
         if [ "$NEXMO_API_SECRET_LIST" != "null" ]; then
             IFS=',' read -ra apiSecretArray <<< "$NEXMO_API_SECRET_LIST"
@@ -95,7 +111,7 @@ if [ ! -z "$CONFIG_FILE" ]; then
 
     #get nexmoSignatureMethod
     if [ -z "$NEXMO_API_SIGNATURE_METHOD" ]; then
-        NEXMO_API_SIGNATURE_METHOD_LIST=$(cat /config/config.json | jq ".nexmoApiSignatureMethod")
+        NEXMO_API_SIGNATURE_METHOD_LIST=$(cat /config/config.json | jq ".nexmoApiSignatureMethod" | sed 's/\"//g')
         check_cmd $? 'retrieve NEXMO_API_SIGNATURE_METHOD_LIST'
         if [ "$NEXMO_API_SIGNATURE_METHOD_LIST" != "null" ]; then
             IFS=',' read -ra signatureMethodsArray <<< "$NEXMO_API_SIGNATURE_METHOD_LIST"
@@ -109,7 +125,7 @@ if [ ! -z "$CONFIG_FILE" ]; then
 
     #get nexmoSignatureSecret
     if [ -z "$NEXMO_API_SIGNATURE_SECRET" ]; then
-        NEXMO_API_SIGNATURE_SECRET_LIST=$(cat /config/config.json | jq ".nexmoApiSignatureSecret")
+        NEXMO_API_SIGNATURE_SECRET_LIST=$(cat /config/config.json | jq ".nexmoApiSignatureSecret" | sed 's/\"//g')
         check_cmd $? 'retrieve NEXMO_API_SIGNATURE_SECRET_LIST'
         if [ "$NEXMO_API_SIGNATURE_SECRET_LIST" != "null" ]; then
             IFS=',' read -ra signatureSecretsArray <<< "$NEXMO_API_SIGNATURE_SECRET_LIST"
@@ -123,7 +139,7 @@ if [ ! -z "$CONFIG_FILE" ]; then
 
     #get NexmoPhoneNumber
     if [ -z "$NEXMO_PHONE_NUMBER" ]; then
-        NEXMO_PHONE_NUMBER_LIST=$(cat /config/config.json | jq ".nexmoPhoneNumber")
+        NEXMO_PHONE_NUMBER_LIST=$(cat /config/config.json | jq ".nexmoPhoneNumber" | sed 's/\"//g')
         check_cmd $? 'retrieve NEXMO_PHONE_NUMBER_LIST'
         if [ "$NEXMO_PHONE_NUMBER_LIST" != "null" ]; then
             IFS=',' read -ra phoneNumbersArray <<< "$NEXMO_PHONE_NUMBER_LIST"
@@ -136,7 +152,7 @@ if [ ! -z "$CONFIG_FILE" ]; then
     fi
 
     if [ -z "$OUTLET_PHONE_NUMBER_LIST" ]; then
-        OUTLET_PHONE_NUMBER_LIST=$(cat /config/config.json | jq ".outletPhoneNumber")
+        OUTLET_PHONE_NUMBER_LIST=$(cat /config/config.json | jq ".outletPhoneNumber" | sed 's/\"//g')
         check_cmd $? 'retrieve OUTLET_PHONE_NUMBERS'
         if [ "$OUTLET_PHONE_NUMBERS" != "null" ]; then
             OUTLET_PHONE_NUMBER_LIST=$OUTLET_PHONE_NUMBER_LIST

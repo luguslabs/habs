@@ -33,7 +33,7 @@ class Heartbeats {
     debug('anyOneAlive', `excludeNode ${excludeNode} aliveTime ${aliveTime} group ${group} bestNumber ${bestNumber}.`);
     for (const [key, value] of this.heartbeats.entries()) {
       if (key !== excludeNode) {
-        debug('anyOneAlive', `${key} is alive.`);
+        debug('anyOneAlive', `heartbeat found. key:${key}, group:${value.group}, blockNumber:${value.blockNumber}.`);
         if (value.group === group) {
           const lastSeenAgo = bestNumber - value.blockNumber;
           if (lastSeenAgo < aliveTime) {
