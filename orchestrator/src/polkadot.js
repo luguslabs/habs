@@ -466,7 +466,12 @@ class Polkadot {
       // Launch service in specific mode
       let containerName = '';
       if (mode === 'active') {
-        const validatorCmdsList = ['--name', `${config.polkadotName.slice(0, -2)}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only'];
+        let name = config.polkadotName;
+        if (!isEmptyString(config.polkadotAdditionalOptions) && config.polkadotAdditionalOptions.includes('kusama')) {
+          // slice for never change name for 1000 validator program check
+          name = config.polkadotName.slice(0, -2);
+        }
+        const validatorCmdsList = ['--name', `${name}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only'];
         if (!isEmptyString(config.polkadotReservedNodes)) {
           const sentryPeers = await this.extractPeers(config.polkadotReservedNodes, config.nodesRole, 'sentry');
           validatorCmdsList.push(...formatOptionList('--sentry-nodes', sentryPeers));
