@@ -1,6 +1,6 @@
 {
   "name": "archipel-orchestrator",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "description": "Archipel Orchestrator is the decision making component in Archipel federation.",
   "main": "src/app.js",
   "scripts": {

@@ -2,11 +2,29 @@
 
 ## Unreleased
 
+<!--New features/improvements/fixes go here-->
+
+## [v2.0.0](https://github.com/luguslabs/archipel/releases/tag/v2.0.0)
+
+Upgrade to latest substrate.
+Fix grandpa consensus. ( min 4 nodes in federation)
+Support multiple validators HA on 1 chain.
+Support sentry nodes ( inside archipel federation) or/and external sentry node ( deployed outside a federation).
+Better control for nodes states with ARCHIPEL_SERVICE_MODE=active|passive|sentry|orchestrator
+
 ### Issues
 
+[#239](https://github.com/luguslabs/archipel/issues/239): anyOneAlive : do not filter by group
+[#237](https://github.com/luguslabs/archipel/issues/237): Missing groupId extract from zip config
+[#235](https://github.com/luguslabs/archipel/issues/235): Current archipel nodes number not enough for grandpa Block finalized consensus
+[#233](https://github.com/luguslabs/archipel/issues/233): Peers ID change. upgrade to archipel chain substrate 2.0.0-rc5
+[#230](https://github.com/luguslabs/archipel/issues/230): Uppercase to add when check message sms webhook signature
+[#227](https://github.com/luguslabs/archipel/issues/227): Secure sms API Vonage Nexmo webhook in new endpoint and add message signature check
+[#223](https://github.com/luguslabs/archipel/issues/223): Add ARCHIPEL_SERVICE_MODE env variable proposal
+[#224](https://github.com/luguslabs/archipel/issues/224): Add role external Sentry in zip config
+[#219](https://github.com/luguslabs/archipel/issues/219): Add STONITH with sms reboot sent to electrical outlet
+[#216](https://github.com/luguslabs/archipel/issues/216): Add sentry specific role
 [#220](https://github.com/luguslabs/archipel/issues/220): Update test config for polkadot v8.0.1
-
-<!--New features/improvements/fixes go here-->
 
 ## [v1.0.4](https://github.com/luguslabs/archipel/releases/tag/v1.0.4)
 
