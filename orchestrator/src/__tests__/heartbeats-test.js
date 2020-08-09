@@ -40,5 +40,5 @@ test('Test anyone is alive. Other wallet in other group', () => {
   heartbeats.addHeartbeat('wallet1', 42, 1, 10);
   heartbeats.addHeartbeat('wallet2', 43, 2, 10);
 
-  expect(heartbeats.anyOneAlive('wallet1', 10, 42, 15 )).toBe(false);
+  expect(heartbeats.anyOneAlive('wallet1', 10, 42, 15 )).toBe(true);
 });

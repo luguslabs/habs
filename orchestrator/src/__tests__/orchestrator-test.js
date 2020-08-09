@@ -332,7 +332,7 @@ test('No leader and someone is alive. So service starts in active mode.', async 
 
 });
 
-test('No leader and someone is alive but in another group (2 and not 1). So service stay in passive mode.',  async ()  => {
+test('No leader and someone is alive but in another group (2 and not 1). Service go in active mode anyway.',  async ()  => {
 
 
   await orchestrator.serviceStart('passive');
@@ -351,12 +351,20 @@ test('No leader and someone is alive but in another group (2 and not 1). So serv
   await orchestrator.orchestrateService();
 
   const isLeadedGroupFalse2 = await chain.isLeadedGroup(1);
-  expect(isLeadedGroupFalse2).toBe(false);
+  expect(isLeadedGroupFalse2).toBe(true);
 
-  const containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+  const keys1 = await getKeysFromSeed(mnemonic1);
+  const leader = await chain.getLeader(1);
+  expect(leader.toString()).toBe(keys1.address);
+
+  const containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
   const container = await docker.getContainer(containerName);
   const containerInspect = await container.inspect();
   expect(containerInspect.State.Running).toBe(true);
+
+  //clean test
+  const status= await chain.giveUpLeadership(1, mnemonic1);
+  expect(status).toBe(true);
 
   await orchestrator.serviceCleanUp();
 

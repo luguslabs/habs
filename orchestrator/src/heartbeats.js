@@ -34,12 +34,10 @@ class Heartbeats {
     for (const [key, value] of this.heartbeats.entries()) {
       if (key !== excludeNode) {
         debug('anyOneAlive', `heartbeat found. key:${key}, group:${value.group}, blockNumber:${value.blockNumber}.`);
-        if (value.group === group) {
-          const lastSeenAgo = bestNumber - value.blockNumber;
-          if (lastSeenAgo < aliveTime) {
-            debug('anyOneAlive', `${key} is alive.`);
-            return true;
-          }
+        const lastSeenAgo = bestNumber - value.blockNumber;
+        if (lastSeenAgo < aliveTime) {
+          debug('anyOneAlive', `${key} is alive.`);
+          return true;
         }
       }
     }
