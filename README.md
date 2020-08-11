@@ -57,7 +57,7 @@ All nodes inside a federation, run Archipel Chain. In the current implementation
 The idea is that in the Archipel federation, all participants are trusted. They can be friends or family or other trusted social links. That allows us to have a fast chain consensus.
 
 The chain uses [babe/grandpa](https://wiki.polkadot.network/docs/en/learn-consensus) consensus provided by Substrate framework. To sum up, as soon as more than 2/3 of authorities attest to a chain containing a certain block, all blocks leading up to that one are finalized at once.
-That means that this high availability solution needs (2/3 + 1) nodes to operate properly. In other word, the automatic orchestrator support (1/3 - 1) node down at the same time. If you set up 9 authorities, you can tolerate 2 nodes down, 9 authorities you can tolerate 3 nodes down and so forth... Choose your "ponzi" High availability level that suits your cost/benefit/security requirement.
+That means that this high availability solution needs (2/3 + 1) nodes to operate properly. In other word, the automatic orchestrator support (1/3 - 1) node down at the same time. If you set up 9 authorities, you can tolerate 2 nodes down, 12 authorities you can tolerate 3 nodes down and so forth... Choose your "ponzi" High availability level that suits your cost/benefit/security requirement.
 If your node down threshold is reached, heartbeat events will not longer been received by nodes and all nodes will automatically switch to passive mode. You can then continue to "survive" by manually order and force node to operate with the env variable `ARCHIPEL_SERVICE_MODE` with `active|passive|sentry` value instead of the default `orchestrator` one.
 
 More information on [chain/README.md](chain/README.md)
