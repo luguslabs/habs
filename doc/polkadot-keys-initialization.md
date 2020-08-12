@@ -159,13 +159,13 @@ Here how to extract the value from env varibale :
 - KUSAMA
 
 ```bash
-export ROTATE_KEY=$(cat kusama-session-gran-ed25519.keys | grep Public | cut -d":" -f2)$(cat kusama-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-para-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)
+export ROTATE_KEY=$(cat kusama-session-gran-ed25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat kusama-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat kusama-session-para-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat kusama-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)
 ```
 
 - POLKADOT
 
 ```bash
-export ROTATE_KEY=$(cat polkadot-session-gran-ed25519.keys | grep Public | cut -d":" -f2)$(cat polkadot-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat polkadot-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat polkadot-session-para-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat polkadot-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)
+export ROTATE_KEY=$(cat polkadot-session-gran-ed25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat polkadot-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat polkadot-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat polkadot-session-para-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat polkadot-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)
 ```
 
 ### Check 5 sesssion keys correctly installed on your node with ROTATE_KEY value check
