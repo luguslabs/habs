@@ -12,7 +12,7 @@
 What will be launched:
 
 - **4 Archipel nodes** (Archipel Substrate Validator Node + Orchestrator)
-- **3 Polkadot KUSAMA Nodes**
+- **4 Polkadot KUSAMA Nodes**
 
   - 1 Validator Node
   - 2 Passive Nodes
@@ -88,9 +88,9 @@ docker ps
 
 You must see multiple containers launched:
 
-- **3 Archipel nodes**: archipel1, archipel2, archipel3, archipel4
+- **4 Archipel nodes**: archipel1, archipel2, archipel3, archipel4
 - **Archipel UI**: archipel-ui
-- **3 Polkadot KUSAMA nodes**
+- **4 Polkadot KUSAMA nodes**
   - 1 Validator Node: node1-polkadot-validator
   - 2 Passives Nodes: node2-polkadot-sync, node3-polkadot-sync
   - 1 Sentry Nodes: node4-polkadot-sentry
@@ -99,10 +99,10 @@ You must see multiple containers launched:
 
 https://telemetry.polkadot.io/#/Kusama
 
-- You must see 3 archipel nodes running
-  - test-archipel-node-1-{active or passive}
-  - test-archipel-node-2-{active or passive}
-  - test-archipel-node-3-{active or passive}
+- You must see 4 archipel nodes running
+  - test-archipel-node-active
+  - test-archipel-node-2-passive
+  - test-archipel-node-3-passive
   - test-archipel-node-4-sentry
 - Active node = Validator Node
 - Passive node = Full node ready to backup the validator Node in clase of failure
@@ -144,7 +144,9 @@ docker ps
  <img src=./images/archipel-testing-docker-ps-2.png width = 1000>
 </p>
 
-### 3.3 Wait for Archipel Orchestration (Generally takes about 1 minute)
+### 3.3 Wait for Archipel Orchestration
+
+**Wait 15 blocks for Archipel Orchestration (Generally takes about 2 minutes)**
 
 ### 3.4 Track orchestration
 
@@ -160,6 +162,8 @@ You can use Node 2 API : **http://172.28.42.3:3000** at **http://localhost:3002*
 </p>
 
 **Telemetry**
+
+You must still see test-archipel-node-active ( but only 3 nodes test-archipel-node\* instead of 4).
 
 https://telemetry.polkadot.io/#/Kusama
 
@@ -226,10 +230,3 @@ The old active node was restarted in passive mode.
 - removes all containers launched by test scripts and all directories created by containers
 
 ## Play: Feel free to play with Archipel!
-
-**Warning!** Archipel must have minimum **2 nodes** alive to have an active service (validator) running!
-
-- If you stop 2 nodes the third node will remain in passive mode!
-- If you stop 2 passive nodes, the active node will switch in passive mode!
-
-We are considering that if 1 node is alone in Archipel Federation, there is a problem, so it should not continue to validate.
