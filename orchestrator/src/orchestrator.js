@@ -35,6 +35,7 @@ class Orchestrator {
     group,
     smsStonithActive,
     smsStonithActiveCallbackMandatory,
+    smsStonithActiveCallbackMaxDelay,
     nexmoApiKey,
     nexmoApiSecret,
     nexmoApiSignatureMethod,
@@ -68,6 +69,7 @@ class Orchestrator {
     this.archipelName = archipelName;
     this.smsStonithActive = smsStonithActive;
     this.smsStonithActiveCallbackMandatory = smsStonithActiveCallbackMandatory;
+    this.smsStonithActiveCallbackMaxDelay = smsStonithActiveCallbackMaxDelay;
     this.nexmoApiKey = nexmoApiKey;
     this.nexmoApiSecret = nexmoApiSecret;
     this.nexmoApiSignatureMethod = nexmoApiSignatureMethod;
@@ -186,11 +188,12 @@ class Orchestrator {
     console.log(
       'currentLeaderKeyToShoot is [' + currentLeaderKeyToShoot + ']'
     );
-    console.log('this.outletPhoneNumberList is ' + this.outletPhoneNumberList);
-    console.log('this.authoritiesList is ' + this.authoritiesList);
+
     const outletPhoneNumberArray = this.outletPhoneNumberList.split(',');
     const authoritiesListArray = this.authoritiesList.split(',');
     if (parseInt(outletPhoneNumberArray.length) > parseInt(authoritiesListArray.length)) {
+      console.log('this.outletPhoneNumberList is ' + this.outletPhoneNumberList);
+      console.log('this.authoritiesList is ' + this.authoritiesList);
       console.log(
         'No Phone to call : wrong size be tween outletPhoneNumberArray and authoritiesListArray '
       );
@@ -199,10 +202,7 @@ class Orchestrator {
     let indexToShoot = -1;
 
     for (var i = 0, len = authoritiesListArray.length; i < len; i++) {
-      console.log('authoritiesListArray index ' + i);
-      console.log('authoritiesListArray item ' + authoritiesListArray[i]);
       if (authoritiesListArray[i].trim() === currentLeaderKeyToShoot) {
-        console.log('indexToShoot  is ' + i);
         indexToShoot = i;
       }
     }
@@ -302,10 +302,10 @@ class Orchestrator {
 
   async waitSmsCallBackShootConfirmation () {
     console.log('waitSmsCallBackShootConfirmation start');
-    for (var i = 0, len = 10; i < len; i++) {
+    for (var i = 0, len = this.smsStonithActiveCallbackMaxDelay; i < len; i++) {
       if (this.smsStonithCallbackStatus === 'waitingCallBack') {
-        console.log('waitSmsCallBackShootConfirmation : try again in 2 sec');
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        console.log('waitSmsCallBackShootConfirmation : try again in 1 sec.' + i + '/' + this.smsStonithActiveCallbackMaxDelay);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       } else {
         break;
       }
@@ -315,7 +315,7 @@ class Orchestrator {
       this.smsStonithCallbackStatus === 'none'
     ) {
       console.log(
-        'waitSmsCallBackShootConfirmation . sms not received after 20 sec'
+        'waitSmsCallBackShootConfirmation . sms not received after ' + this.smsStonithActiveCallbackMaxDelay + ' sec'
       );
       return false;
     } else {
