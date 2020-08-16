@@ -37,6 +37,7 @@ class Polkadot {
       config.polkadotAdditionalOptions = process.env.POLKADOT_ADDITIONAL_OPTIONS;
       config.nodesRole = process.env.NODES_ROLE;
       config.nodeId = process.env.NODE_ID;
+      config.polkadotSessionKeyToCheck = process.env.POLKADOT_SESSION_KEY_TO_CHECK;
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
       config.polkadotRpcPort = '9993';
@@ -251,6 +252,30 @@ class Polkadot {
     } catch (error) {
       debug('polkadotKeysImport', error);
       console.error('Error: Can\'t add keys. We will retry the next time.');
+      console.error(error);
+    }
+  }
+
+  async checkSessionKeyOnNode (containerName, sessionKey) {
+    try {
+      console.log('check Session Key valid On Node for session key value :');
+      console.log(sessionKey);
+      // Constructing command check session key
+      const command = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+    `{
+      "jsonrpc":"2.0",
+      "id":1,
+      "method":"author_hasSessionKeys",
+      "params": [
+        "${sessionKey}"
+      ]
+    }`];
+      // Importing key by executing command in docker container
+      const result = await this.docker.dockerExecute(containerName, command);
+      console.log(`Command hasSessionKeys result: "${result}"`);
+    } catch (error) {
+      debug('checkSessionKeyOnNode', error);
+      console.error('Error: Can\'t check session key');
       console.error(error);
     }
   }
@@ -535,6 +560,9 @@ class Polkadot {
         // Waiting for 10 seconds to be sure that node was started
         await new Promise(resolve => setTimeout(resolve, 10000));
         await this.polkadotKeysImport(containerName);
+      }
+      if (config.polkadotSessionKeyToCheck) {
+        await this.checkSessionKeyOnNode(containerName, config.polkadotSessionKeyToCheck);
       }
     } catch (error) {
       debug('polkadotStart', error);
