@@ -52,19 +52,25 @@ To federate several nodes and have a shared state to elect a leader, we created 
 
 We created a Substrate runtime that collects all nodes heartbeats and sets federation leadership. This helps Archipel orchestrator to select the best leader appropriately in the federation. We call this specific blockchain the Archipel Substrate Chain or Archipel Chain.
 
-All nodes inside a federation, run Archipel Chain. In the current implementation, an Archipel must be composed of at least 3 nodes. That means that to operate, you have to set up at least 3 nodes. Try to set up nodes in different locations.
+All nodes inside a federation, run Archipel Chain. In the current implementation, an Archipel must be composed of at least 4 nodes. That means that to operate, you have to set up at least 4 nodes. Try to set up nodes in different locations.
 
 The idea is that in the Archipel federation, all participants are trusted. They can be friends or family or other trusted social links. That allows us to have a fast chain consensus.
 
-The chain uses [babe/grandpa](https://wiki.polkadot.network/docs/en/learn-consensus) consensus provided by Substrate framework. To sum up, as soon as more than 2/3 of authorities attest to a chain containing a certain block, all blocks leading up to that one are finalized at once.
-That means that this high availability solution needs (2/3 + 1) nodes to operate properly. In other word, the automatic orchestrator support (1/3 - 1) node down at the same time. If you set up 9 authorities, you can tolerate 2 nodes down, 12 authorities you can tolerate 3 nodes down and so forth... Choose your "ponzi" High availability level that suits your cost/benefit/security requirement.
-If your node down threshold is reached, heartbeat events will not longer been received by nodes and all nodes will automatically switch to passive mode. You can then continue to "survive" by manually order and force node to operate with the env variable `ARCHIPEL_SERVICE_MODE` with `active|passive|sentry` value instead of the default `orchestrator` one.
+
+The Archipel chain, needed for orchestration state, uses [babe/grandpa consensus](https://wiki.polkadot.network/docs/en/learn-consensus#what-is-grandpababe) provided by the Substrate framework. To sum up, as soon as more than 2/3 of authorities attest to a chain containing a certain block, all blocks leading up to that one are finalized at once. When finalized, blockchains events are received by Archipel nodes. That means that this high-availability solution needs (⅔ nodes + 1) Archipel nodes up to operate properly. In other words, the automatic smart orchestrator supports (⅓ nodes - 1) Archipel nodes down at the same time within the federation. If you setup n=9 Archipel nodes authorities, you can tolerate 2 nodes down, 12 authorities you can tolerate 3 nodes down, and so forth... 
+
+**Choose your High aAvailability security level through the number of nodes that suit your cost/benefit/security requirements.**
+If your number of nodes down reaches the threshold limit ( you have to monitor, man). The chain will be stalled, cannot finalize state, and heartbeat events will no longer be received by nodes. In this specific case, orchestrators react and all service nodes ( Polkadot in our case ) will automatically switch to passive mode as a precautionary measure. You can then continue to "survive" with your validator duty: administrators must manually force the service node to operate under active|passive|sentry role instead of the default automatic orchestrator mode. At this manual stage, with ARCHIPEL_SERVICE_MODE forced to ‘active’,  you still benefit from the orchestrator that will monitor your Polkadot validator node to be always up and restart it if it crashes.
+
 
 More information on [chain/README.md](chain/README.md)
 
 ## [Archipel Orchestrator](orchestrator/)
 
 Orchestrator is the component that is responsible for decision making in an Archipel Federation.
+
+On each DAppNode instance and for their instance, orchestrators daemon pilot start, stop, restart of the Polkadot node in ‘active’ (validator), ‘passive’ (sync only), or ‘sentry’ mode.
+All orchestrators need a shared state between them to operate properly. This shared state is provided by [a customized Substrate chain ](https://github.com/luguslabs/archipel/tree/master/chain) created from [Substrate node template v2.0.0-alpha.5](https://github.com/substrate-developer-hub/substrate-node-template/tree/v2.0.0-alpha.5). This is what is called: Archipel chain. 
 
 ### External services modes
 
