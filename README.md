@@ -56,12 +56,10 @@ All nodes inside a federation, run Archipel Chain. In the current implementation
 
 The idea is that in the Archipel federation, all participants are trusted. They can be friends or family or other trusted social links. That allows us to have a fast chain consensus.
 
-
-The Archipel chain, needed for orchestration state, uses [babe/grandpa consensus](https://wiki.polkadot.network/docs/en/learn-consensus#what-is-grandpababe) provided by the Substrate framework. To sum up, as soon as more than 2/3 of authorities attest to a chain containing a certain block, all blocks leading up to that one are finalized at once. When finalized, blockchains events are received by Archipel nodes. That means that this high-availability solution needs (⅔ nodes + 1) Archipel nodes up to operate properly. In other words, the automatic smart orchestrator supports (⅓ nodes - 1) Archipel nodes down at the same time within the federation. If you setup n=9 Archipel nodes authorities, you can tolerate 2 nodes down, 12 authorities you can tolerate 3 nodes down, and so forth... 
+The Archipel chain, needed for orchestration state, uses [babe/grandpa consensus](https://wiki.polkadot.network/docs/en/learn-consensus#what-is-grandpababe) provided by the Substrate framework. To sum up, as soon as more than 2/3 of authorities attest to a chain containing a certain block, all blocks leading up to that one are finalized at once. When finalized, blockchains events are received by Archipel nodes. That means that this high-availability solution needs (⅔ nodes + 1) Archipel nodes up to operate properly. In other words, the automatic smart orchestrator supports (⅓ nodes - 1) Archipel nodes down at the same time within the federation. If you setup n=9 Archipel nodes authorities, you can tolerate 2 nodes down, 12 authorities you can tolerate 3 nodes down, and so forth...
 
 **Choose your High aAvailability security level through the number of nodes that suit your cost/benefit/security requirements.**
-If your number of nodes down reaches the threshold limit ( you have to monitor, man). The chain will be stalled, cannot finalize state, and heartbeat events will no longer be received by nodes. In this specific case, orchestrators react and all service nodes ( Polkadot in our case ) will automatically switch to passive mode as a precautionary measure. You can then continue to "survive" with your validator duty: administrators must manually force the service node to operate under active|passive|sentry role instead of the default automatic orchestrator mode. At this manual stage, with ARCHIPEL_SERVICE_MODE forced to ‘active’,  you still benefit from the orchestrator that will monitor your Polkadot validator node to be always up and restart it if it crashes.
-
+If your number of nodes down reaches the threshold limit ( you have to monitor, man). The chain will be stalled, cannot finalize state, and heartbeat events will no longer be received by nodes. In this specific case, orchestrators react and all service nodes ( Polkadot in our case ) will automatically switch to passive mode as a precautionary measure. You can then continue to "survive" with your validator duty: administrators must manually force the service node to operate under active|passive|sentry role instead of the default automatic orchestrator mode. At this manual stage, with ARCHIPEL_SERVICE_MODE forced to ‘active’, you still benefit from the orchestrator that will monitor your Polkadot validator node to be always up and restart it if it crashes.
 
 More information on [chain/README.md](chain/README.md)
 
@@ -70,7 +68,7 @@ More information on [chain/README.md](chain/README.md)
 Orchestrator is the component that is responsible for decision making in an Archipel Federation.
 
 On each DAppNode instance and for their instance, orchestrators daemon pilot start, stop, restart of the Polkadot node in ‘active’ (validator), ‘passive’ (sync only), or ‘sentry’ mode.
-All orchestrators need a shared state between them to operate properly. This shared state is provided by [a customized Substrate chain ](https://github.com/luguslabs/archipel/tree/master/chain) created from [Substrate node template v2.0.0-alpha.5](https://github.com/substrate-developer-hub/substrate-node-template/tree/v2.0.0-alpha.5). This is what is called: Archipel chain. 
+All orchestrators need a shared state between them to operate properly. This shared state is provided by [a customized Substrate chain ](https://github.com/luguslabs/archipel/tree/master/chain) created from [Substrate node template v2.0.0-alpha.5](https://github.com/substrate-developer-hub/substrate-node-template/tree/v2.0.0-alpha.5). This is what is called: Archipel chain.
 
 ### External services modes
 
@@ -79,39 +77,6 @@ Archipel federation support only 4 nodes to n nodes.
 - **Operator Role** - the service will be launched in active mode if the node is elected or in passive mode in the others cases.
 - **Sentry Role** - the service will be launched in sentry mode and protect active and passive nodes from public exposition.
 - **External Sentry Role** - external sentry have the same purpuse as sentry role for the service. Service sentry information peers are used without the use of an archipel node, heartbeats, orchestrator etc ...
-
-#### Min 4 nodes federation
-
-3 nodes are operators, 1 sentry
-| Node | Role |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| archipel-node-1-{active or passive} | operator |
-| archipel-node-2-{active or passive} | operator |
-| archipel-node-3-{active or passive} | operator |
-| archipel-node-4-{active or passive} | sentry |
-
-You must have a minimum of the 4 archipel nodes to assure consensus substrate finality. ( tolarate 1/3 -1 )
-
-#### 13 nodes federation example to operate 3 differents validators services
-
-This is the default config generated by the archipel cli.
-
-3 x 3 nodes (1,2,3) are operator. 4 nodes ( 1,2,3,4) are sentry.
-| Node | Role | Group validator |
-| ---- | ---- |---------------- |
-| archipel-node-1 | sentry or externalSentry | all |
-| archipel-node-2 | sentry or externalSentry | all |
-| archipel-node-3 | sentry or externalSentry | all |
-| archipel-node-4 | sentry or externalSentry | all |
-| archipel-node-5-{active or passive} | operator | validator A |
-| archipel-node-6-{active or passive} | operator | validator A |
-| archipel-node-7-{active or passive} | operator | validator A |
-| archipel-node-8-{active or passive} | operator | validator B |
-| archipel-node-9-{active or passive} | operator | validator B |
-| archipel-node-10-{active or passive} | operator | validator B |
-| archipel-node-11-{active or passive} | operator | validator C |
-| archipel-node-12-{active or passive} | operator | validator C |
-| archipel-node-13-{active or passive} | operator | validator C |
 
 ### Archipel Orchestrator Workflow
 
@@ -140,6 +105,30 @@ The N Polkadot validators ( using group filter ) node can be launched with this 
 We are also planning to support other services.
 
 More information on [orchestrator/README.md](orchestrator/README.md)
+
+### Simple federation example
+
+3 nodes are operators, 1 sentry
+| Node | Role |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| archipel-node-1-{active or passive} | operator |
+| archipel-node-2-{active or passive} | operator |
+| archipel-node-3-{active or passive} | operator |
+| archipel-node-4-{active or passive} | sentry |
+
+<p align="center">
+ <img src=doc/images/ArchipelSimpleFederation.png width = 1000>
+</p>
+
+You must have a minimum of the 4 archipel nodes to assure consensus substrate finality. ( tolarate 1/3 -1 )
+
+### Complex federation example
+
+Example of complex federation with 2 groups (HA for 2 differents validators) with 3 external sentry, 1 normal sentry and 5 active/passive nodes.
+
+<p align="center">
+ <img src=doc/images/ArchipelComplexFederation.png width = 1000>
+</p>
 
 ## [Archipel CLI](cli/)
 
