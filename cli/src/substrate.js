@@ -6,7 +6,7 @@ const generateSubstrateKeys = async (keysNumber) => {
   for (let i = 0; i < keysNumber; i++) {
     const key = {};
 
-    const subKeyResult = await execAsync('subkey -n substrate generate');
+    const subKeyResult = await execAsync('subkey generate --network substrate');
     key.seed = subKeyResult
       .match(/`.*`/)
       .toString()
@@ -21,7 +21,7 @@ const generateSubstrateKeys = async (keysNumber) => {
       .toString();
 
     const subKeyResultEd = await execAsync(
-      `subkey -n substrate --ed25519 inspect "${key.seed}"`
+      `subkey inspect-key --scheme Ed25519 --network substrate "${key.seed}"`
     );
     key.ed25519Address = subKeyResultEd
       .match(/SS58 Address:.*/)
@@ -56,7 +56,7 @@ const generateNodeIds = async (service, nodesNumber) => {
 // Validate a seed
 const validateSeed = async (seed) => {
   const subKeyCommand = await execAsync(
-    `subkey -n substrate --ed25519 inspect "${seed}"`
+    `subkey inspect-key --scheme Ed25519 --network substrate "${seed}"`
   );
   return !subKeyCommand.includes('Invalid');
 };
