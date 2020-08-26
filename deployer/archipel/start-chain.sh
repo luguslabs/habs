@@ -357,7 +357,8 @@ then
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
             --validator \
-            --no-prometheus \
+            --prometheus-external \
+            --prometheus-port 9616 \
             --port $ARCHIPEL_LISTEN_PORT \
             --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
             --no-telemetry \
@@ -368,7 +369,8 @@ else
             --chain=/root/chain/archipelSpecRaw.json \
             --base-path /root/chain/data \
             --validator \
-            --no-prometheus \
+            --prometheus-external \
+            --prometheus-port 9616 \
             --port $ARCHIPEL_LISTEN_PORT \
             --node-key-file /config/$ARCHIPEL_NODE_KEY_FILE \
             --telemetry-url "$ARCHIPEL_TELEMETRY_URL_CMD $ARCHIPEL_TELEMETRY_LOGLEVEL_CMD" \

@@ -490,30 +490,31 @@ class Polkadot {
 
       // Launch service in specific mode
       let containerName = '';
+      const cmdsList = ['--prometheus-external', '--prometheus-port', '9615'];
       if (mode === 'active') {
         let name = config.polkadotName;
         if (!isEmptyString(config.polkadotAdditionalOptions) && config.polkadotAdditionalOptions.includes('kusama')) {
           // slice for never change name for 1000 validator program check
           name = config.polkadotName.slice(0, -2);
         }
-        const validatorCmdsList = ['--name', `${name}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only'];
+        cmdsList.push(...['--name', `${name}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only']);
         if (!isEmptyString(config.polkadotReservedNodes)) {
           const sentryPeers = await this.extractPeers(config.polkadotReservedNodes, config.nodesRole, 'sentry');
-          validatorCmdsList.push(...formatOptionList('--sentry-nodes', sentryPeers));
+          cmdsList.push(...formatOptionList('--sentry-nodes', sentryPeers));
         }
         await this.docker.startServiceContainer(
           'active',
           config.polkadotPrefix + 'polkadot-validator',
           config.polkadotPrefix + 'polkadot-sync',
           config.polkadotImage,
-          validatorCmdsList,
+          cmdsList,
           '/polkadot',
           this.polkadotVolume,
           this.networkMode
         );
         containerName = config.polkadotPrefix + 'polkadot-validator';
       } else if (mode === 'passive') {
-        const cmdsList = ['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions];
+        cmdsList.push(...['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions]);
         if (!isEmptyString(config.polkadotReservedNodes)) {
           if (!config.nodesRole.includes('sentry')) {
             // if no sentry roles in config. add passive nodes as sentry for validator.
@@ -535,7 +536,7 @@ class Polkadot {
         );
         containerName = config.polkadotPrefix + 'polkadot-sync';
       } else if (mode === 'sentry') {
-        const cmdsList = ['--name', `${config.polkadotName}-sentry`, ...this.commonPolkadotOptions];
+        cmdsList.push(...['--name', `${config.polkadotName}-sentry`, ...this.commonPolkadotOptions]);
         if (!isEmptyString(config.polkadotReservedNodes)) {
           const operatorPeers = await this.extractPeers(config.polkadotReservedNodes, config.nodesRole, 'operator');
           cmdsList.push(...formatOptionList('--sentry', operatorPeers));
