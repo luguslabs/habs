@@ -548,6 +548,18 @@ class Orchestrator {
     }
   }
 
+  // Restore Service Database
+  async serviceRestoreDB() {
+    try {
+      orchestrator.orchestrationEnabled = false;
+      await this.service.restoreDB();
+      orchestrator.orchestrationEnabled = true;
+    } catch (error) {
+      debug('serviceRestoreDB', error);
+      throw error;
+    }
+  }
+
   // Cleanup a service
   async serviceCleanUp () {
     try {

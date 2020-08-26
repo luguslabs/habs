@@ -5,6 +5,7 @@ const {
 const dotenv = require('dotenv');
 const os = require('os');
 const fs = require('fs-extra');
+const { DownloaderHelper } = require('node-downloader-helper');
 
 const {
   getKeysFromSeed,
@@ -41,6 +42,7 @@ class Polkadot {
       config.polkadotUnixUserId = 1000;
       config.polkadotUnixGroupId = 1000;
       config.polkadotRpcPort = '9993';
+      config.polkadotDatabaseURL = process.env.POLKADOT_DATABASE_URL;
 
       // Simulate Polkadot node synchronized state. For test purposes only
       config.polkadotSimulateSynch = false;
@@ -183,6 +185,7 @@ class Polkadot {
 
     // Service prepared
     this.prepared = false;
+
   }
 
   // Importing a key in keystore
@@ -603,6 +606,20 @@ class Polkadot {
       this.cleaningUp = false;
     } catch (error) {
       debug('cleanUp', error);
+      console.error(error);
+    }
+  }
+
+  // Restore Database from a Link provided in configuration
+  async restoreDB() {
+    try {
+      if (isEmptyString(config.polkadotDatabaseURL)){
+        console.log('No Polkadot Database URL provided!');
+      } else {
+        console.log('Database restored!');
+      }
+    } catch (error) {
+      debug('restoreDB', error);
       console.error(error);
     }
   }

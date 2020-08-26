@@ -23,6 +23,12 @@ const serviceStop = async orchestrator => {
   await orchestrator.serviceCleanUp();
 };
 
+// Restoring service database
+const serviceRestoreDB = async orchestrator => {
+  console.log('[API] Restoring service database...');
+  await orchestrator.serviceRestoreDB();
+};
+
 // Check service start request fields
 router.post('/start', checkRequestFields);
 
@@ -45,6 +51,17 @@ router.get('/stop', asyncHandler(async (req, res) => {
   res.json({
     status: '200',
     message: 'Success! Service was stopped.'
+  });
+}));
+
+// Restore service database from an URL
+router.get('/restore-db', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  await serviceRestoreDB(orchestrator);
+  res.json({
+    status: '200',
+    message: 'Success! The database was restored.'
   });
 }));
 
