@@ -162,7 +162,7 @@ then
       exit 1
 fi
 
-ARCHIPEL_SS58_ADDRESS_ED25519=$(subkey --ed25519 inspect "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_SS58_ADDRESS_ED25519=$(subkey inspect-key --network substrate --scheme Ed25519 "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
 if [ -z "$ARCHIPEL_SS58_ADDRESS_ED25519" ]
 then
@@ -170,7 +170,7 @@ then
       exit 1
 fi
 
-ARCHIPEL_SS58_ADDRESS_SR25519=$(subkey --sr25519 inspect "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_SS58_ADDRESS_SR25519=$(subkey inspect-key --network substrate --scheme Sr25519 "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
 if [ -z "$ARCHIPEL_SS58_ADDRESS_SR25519" ]
 then
@@ -178,7 +178,7 @@ then
       exit 1
 fi
 
-ARCHIPEL_PUBLIC_KEY_ED25519=$(subkey --ed25519 inspect "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_PUBLIC_KEY_ED25519=$(subkey inspect-key --network substrate --scheme Ed25519 "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
 if [ -z "$ARCHIPEL_PUBLIC_KEY_ED25519" ]
 then
@@ -186,7 +186,7 @@ then
       exit 1
 fi
 
-ARCHIPEL_PUBLIC_KEY_SR25519=$(subkey --sr25519 inspect "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_PUBLIC_KEY_SR25519=$(subkey inspect-key --network substrate --scheme Sr25519 "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 if [ -z "$ARCHIPEL_PUBLIC_KEY_SR25519" ]
 then
       echo "\$ARCHIPEL_PUBLIC_KEY_SR25519 no found using subkey"
@@ -228,8 +228,8 @@ mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 cat /root/chain/archipelSpec.json | jq  '.id = "archipel"'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 
-# add SS58 Adress to aura.authorities 
- cat /root/chain/archipelSpec.json | jq '.genesis.runtime.aura.authorities = []'  > /tmp/archipelSpecTmp.json
+# add SS58 Adress to palletAura.authorities
+ cat /root/chain/archipelSpec.json | jq '.genesis.runtime.palletAura.authorities = []'  > /tmp/archipelSpecTmp.json
  mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 indexArray=0
 for AUTH in $ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN
@@ -238,7 +238,7 @@ do
       NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
       if [ "$NODE_ROLE" == "sentry" ] || [ "$NODE_ROLE" == "operator" ]
       then
-            cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.aura.authorities += [$AUTH]'  > /tmp/archipelSpecTmp.json
+            cat /root/chain/archipelSpec.json | jq --arg AUTH $AUTH '.genesis.runtime.palletAura.authorities += [$AUTH]'  > /tmp/archipelSpecTmp.json
             mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
       else
             echo "skip add in ARCHIPEL_AUTHORITIES_SR25519_LIST_CLEAN because NODE_ROLE=$NODE_ROLE "
@@ -246,8 +246,8 @@ do
       indexArray=$(( $indexArray + 1 ))
 done
 
-# add SS58 Adress to grandpa.authorities 
-cat /root/chain/archipelSpec.json | jq '.genesis.runtime.grandpa.authorities = ["REPLACE_AUTHORITIES_HERE"]'  > /tmp/archipelSpecTmp.json
+# add SS58 Adress to palletGrandpa.authorities
+cat /root/chain/archipelSpec.json | jq '.genesis.runtime.palletGrandpa.authorities = ["REPLACE_AUTHORITIES_HERE"]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 LIST_TO_INJECT=""
 indexArray=0
@@ -270,7 +270,7 @@ LIST_TO_INJECT=${LIST_TO_INJECT%?}
 sed -i "s/\"REPLACE_AUTHORITIES_HERE\"/`echo $LIST_TO_INJECT`/g" /root/chain/archipelSpec.json
 
 # add SS58 Adress Balances 
-cat /root/chain/archipelSpec.json | jq '.genesis.runtime.balances.balances = ["REPLACE_BALANCES_HERE"]'  > /tmp/archipelSpecTmp.json
+cat /root/chain/archipelSpec.json | jq '.genesis.runtime.palletBalances.balances = ["REPLACE_BALANCES_HERE"]'  > /tmp/archipelSpecTmp.json
 mv /tmp/archipelSpecTmp.json /root/chain/archipelSpec.json
 LIST_TO_INJECT=""
 indexArray=0

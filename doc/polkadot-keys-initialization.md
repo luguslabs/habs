@@ -72,65 +72,65 @@ then, this full aggregate key must submit on chain before beeing able to validat
 - Gran session key
 
 ```bash
-subkey -n kusama --ed25519 generate > kusama-session-gran-ed25519.keys
+subkey generate --network kusama --scheme Ed25519  > kusama-session-gran-ed25519.keys
 cat kusama-session-gran-ed25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-gran.seed
 ```
 
 - Babe session key
 
 ```bash
-subkey -n kusama --sr25519 generate > kusama-session-babe-sr25519.keys
+subkey generate --network kusama --scheme Sr25519 > kusama-session-babe-sr25519.keys
 cat kusama-session-babe-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-babe.seed
 ```
 
 - Imon session key
 
 ```bash
-subkey -n kusama --sr25519 generate > kusama-session-imon-sr25519.keys
+subkey generate --network kusama --scheme Sr25519 > kusama-session-imon-sr25519.keys
 cat kusama-session-imon-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-imon.seed
 ```
 
 - Para session key
 
 ```bash
-subkey -n kusama --sr25519 generate > kusama-session-para-sr25519.keys
+subkey generate --network kusama --scheme Sr25519 > kusama-session-para-sr25519.keys
 cat kusama-session-para-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-para.seed
 ```
 
 - Audi session key
 
 ```bash
-subkey -n kusama --sr25519 generate > kusama-session-audi-sr25519.keys
+subkey generate --network kusama --scheme Sr25519 > kusama-session-audi-sr25519.keys
 cat kusama-session-audi-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-audi.seed
 ```
 
 #### Polkadot Full steps session keys creation KUSAMA
 
 ```bash
-subkey -n kusama --ed25519 generate > kusama-session-gran-ed25519.keys
+subkey generate --network kusama --scheme Ed25519 > kusama-session-gran-ed25519.keys
 cat kusama-session-gran-ed25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-gran.seed
-subkey -n kusama --sr25519 generate > kusama-session-babe-sr25519.keys
+subkey generate --network kusama --scheme Sr25519 > kusama-session-babe-sr25519.keys
 cat kusama-session-babe-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-babe.seed
-subkey -n kusama --sr25519 generate > kusama-session-imon-sr25519.keys
+subkey generate --network kusama --scheme Sr25519 > kusama-session-imon-sr25519.keys
 cat kusama-session-imon-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-imon.seed
-subkey -n kusama --sr25519 generate > kusama-session-para-sr25519.keys
+subkey generate --network kusama --scheme Sr25519 > kusama-session-para-sr25519.keys
 cat kusama-session-para-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-para.seed
-subkey -n kusama --sr25519 generate > kusama-session-audi-sr25519.keys
+subkey generate --network kusama --scheme Sr25519 > kusama-session-audi-sr25519.keys
 cat kusama-session-audi-sr25519.keys | grep phrase | cut -d"\`" -f2 > kusama-session-audi.seed
 ```
 
 #### Polkadot Full steps session keys creation Polkadot
 
 ```bash
-subkey -n polkadot --ed25519 generate > polkadot-session-gran-ed25519.keys
+subkey generate --network polkadot --scheme Ed25519 > polkadot-session-gran-ed25519.keys
 cat polkadot-session-gran-ed25519.keys | grep phrase | cut -d"\`" -f2 > polkadot-session-gran.seed
-subkey -n polkadot --sr25519 generate > polkadot-session-babe-sr25519.keys
+subkey generate --network polkadot --scheme Sr25519 > polkadot-session-babe-sr25519.keys
 cat polkadot-session-babe-sr25519.keys | grep phrase | cut -d"\`" -f2 > polkadot-session-babe.seed
-subkey -n polkadot --sr25519 generate > polkadot-session-imon-sr25519.keys
+subkey generate --network polkadot --scheme Sr25519 > polkadot-session-imon-sr25519.keys
 cat polkadot-session-imon-sr25519.keys | grep phrase | cut -d"\`" -f2 > polkadot-session-imon.seed
-subkey -n polkadot --sr25519 generate > polkadot-session-para-sr25519.keys
+subkey generate --network polkadot --scheme Sr25519 > polkadot-session-para-sr25519.keys
 cat polkadot-session-para-sr25519.keys | grep phrase | cut -d"\`" -f2 > polkadot-session-para.seed
-subkey -n polkadot --sr25519 generate > polkadot-session-audi-sr25519.keys
+subkey generate --network polkadot --scheme Sr25519 > polkadot-session-audi-sr25519.keys
 cat polkadot-session-audi-sr25519.keys | grep phrase | cut -d"\`" -f2 > polkadot-session-audi.seed
 ```
 
