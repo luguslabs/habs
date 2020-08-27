@@ -587,7 +587,7 @@ class Orchestrator {
       });
 
       this.download.on('retry', (attempt, retryOpts) => {
-        const errorMsg = `Download Error! Retry #${attempt}/${retryOpts.maxAttempts}. Delay ${retryOpts.delay} ms.`;
+        const errorMsg = `Download Error! Retry #${attempt}. Delay ${retryOpts.delay} ms.`;
         console.log(errorMsg);
         this.downloadError = errorMsg;
       });
@@ -603,6 +603,8 @@ class Orchestrator {
           const error = `Download was finished but is incomplete.`;
           console.log(error);
           this.downloadError = error;
+          this.downloadRunning = false;
+          this.downloadSuccess = false;
           return;
         }
 
@@ -637,7 +639,8 @@ class Orchestrator {
           console.log(info);
           return info;
         }
-
+        
+        this.downloadError = '';
         console.log(`Starting download from ${backupURL}...`);
         this.download.start();
         this.downloadSuccess = false;
