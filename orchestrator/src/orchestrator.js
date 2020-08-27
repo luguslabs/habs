@@ -599,19 +599,25 @@ class Orchestrator {
 
       // Download success handler
       this.download.on('end', (downloadInfo) => {
-        if (!downloadInfo.incomplete) {
-          const backupURL = this.service.getBackupURL();
-          const fileName = backupURL.split('/').pop();
-
-          if (this.downloadRunning){
-            this.downloadSuccess = true;
-            console.log(`File was successfully downloaded and saved to /${fileName}...`);
-            this.downloadRunning = false;
-          }
-        } else {
-          console.log(`Download was finished but is incomplete.`)
+        if (downloadInfo.incomplete) {
+          const error = `Download was finished but is incomplete.`;
+          console.log(error);
+          this.downloadError = error;
+          return;
         }
+
+        const backupURL = this.service.getBackupURL();
+        const fileName = backupURL.split('/').pop();
+
+        if (!this.downloadRunning){
+          return;
+        }
+
+        this.downloadSuccess = true;
+        console.log(`File was successfully downloaded and saved to /${fileName}...`);
+        this.downloadRunning = false;
         this.downloadError = '';
+
       });
 
       // Info about action
@@ -620,58 +626,67 @@ class Orchestrator {
       // Starting download
       if (action == 'download-start') {
         // If download if not already running starting it
-        if(!this.downloadRunning) {
-          console.log(`Starting download from ${backupURL}...`);
-          this.download.start();
-          this.downloadSuccess = false;
-          this.downloadRunning = true;
-          this.downloadPause = false;
-          info = 'Download was started!'
+        if (this.databaseRestoreRunning) {
+          info = 'You cannot download while the database restore is running!'
           console.log(info);
-        } else {
+          return info;
+        }
+
+        if(this.downloadRunning) {
           info = 'Download is already running!'
           console.log(info);
+          return info;
         }
+
+        console.log(`Starting download from ${backupURL}...`);
+        this.download.start();
+        this.downloadSuccess = false;
+        this.downloadRunning = true;
+        this.downloadPause = false;
+        info = 'Download was started!'
+        console.log(info);
         return info;
       // Stopping download
       } else if (action == 'download-stop') {
-        if(this.downloadRunning) {
-          console.log('Stopping the download...');
-          await this.download.stop();
-          this.downloadRunning = false;
-          this.downloadPaused = false;
-          info = 'Download was stopped!'
-          console.log(info);
-        } else {
+        if(!this.downloadRunning) {
           info = 'Download is not running!';
           console.log(info);
+          return info;
         }
+        console.log('Stopping the download...');
+        await this.download.stop();
+        this.downloadRunning = false;
+        this.downloadPaused = false;
+        info = 'Download was stopped!'
+        console.log(info);
         return info;
       // Pausing download
       } else if (action == 'download-pause') {
-        if(this.downloadRunning && !this.downloadPaused){
-          console.log('Pausing the download...');
-          await this.download.pause();
-          this.downloadPaused = true;
-          info = 'Download was paused!'
-          console.log(info);
-        } else {
+        if(!this.downloadRunning || this.downloadPaused){
           info = 'Download is not running or already paused!';
           console.log(info);
+          return info;
         }
+
+        console.log('Pausing the download...');
+        await this.download.pause();
+        this.downloadPaused = true;
+        info = 'Download was paused!'
+        console.log(info);
         return info;
       // Resuming download
       } else if (action == 'download-resume') {
-        if(this.downloadRunning && this.downloadPaused){
-          console.log('Resuming the download...');
-          this.downloadPaused = false;
-          this.download.resume();
-          info = 'Download was resumed!'
-          console.log(info);
-        } else {
+        if(!this.downloadRunning || !this.downloadPaused){
           info = 'Download is not running or not paused!';
           console.log(info);
+          return info;
         }
+        console.log('Resuming the download...');
+        this.downloadPaused = false;
+        this.download.resume();
+        info = 'Download was resumed!'
+        console.log(info);
+     
         return info;
 
       // Send download stats only
@@ -688,19 +703,21 @@ class Orchestrator {
       
       // Restore service database 
       } else if (action == 'restore') {
-        if(!this.downloadRunning && this.downloadSuccess){
-          if (!this.databaseRestoreRunning) {
-          await this.restoreDB();
-          info = 'Database restore was launched!'
-          console.log(info);
-          } else {
-            info = 'Database restore is already running...'
-            console.log(info);
-          }
-        } else {
+        if(this.downloadRunning || !this.downloadSuccess){
           info = 'You must successfully download the database file before restore!'
           console.log(info);
+          return info;
         }
+          
+        if (this.databaseRestoreRunning) {
+          info = 'Database restore is already running.'
+          console.log(info);
+          return info;
+        }
+
+        await this.restoreDB();
+        info = 'Database restore was launched!'
+        console.log(info);
         return info;
 
       // Restore database process statistics
