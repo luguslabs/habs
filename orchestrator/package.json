@@ -28,6 +28,7 @@
     "express-async-handler": "^1.1.4",
     "fs-extra": "^8.1.0",
     "nexmo": "^2.7.0",
+    "node-downloader-helper": "^1.0.13",
     "set-interval-async": "^1.0.30"
   },
   "devDependencies": {
