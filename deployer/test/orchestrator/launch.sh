@@ -9,7 +9,7 @@ function launch_orchestrator () {
     -v $1_service:/service \
     -v /var/run/docker.sock:/var/run/docker.sock \
     --env POLKADOT_DATABASE_PATH="/service/.local/share/polkadot/chains/polkadot" \
-    --env POLKADOT_BACKUP_URL="https://storage.googleapis.com/dotdb/db.tar.gz" \
+    --env POLKADOT_BACKUP_URL="http://192.168.1.42/db.tar.gz" \
     --env NODE_WS="$2" \
     --env MNEMONIC="$3" \
     --env ARCHIPEL_NAME="$3" \

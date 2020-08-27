@@ -25,7 +25,7 @@ const serviceStop = async orchestrator => {
 
 // Restoring service database
 const serviceRestoreDB = async (orchestrator, action) => {
-  console.log('[API] Restoring service database...');
+  console.log(`[API] Service restore database ${action}...`);
   return await orchestrator.serviceRestoreDB(action);
 };
 

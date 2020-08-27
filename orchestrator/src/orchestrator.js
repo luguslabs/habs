@@ -91,6 +91,7 @@ class Orchestrator {
     this.databaseRestoreRunning = false;
     this.databaseRestoreSuccess = false;
     this.databaseRestoreError = '';
+    this.databaseRestoreProgress = 0;
   }
 
   // Orchestrate service
@@ -708,6 +709,7 @@ class Orchestrator {
         stats['databaseRestoreRunning'] = this.databaseRestoreRunning;
         stats['databaseRestoreSuccess'] = this.databaseRestoreSuccess;
         stats['databaseRestoreError'] = this.databaseRestoreError;
+        stats['databaseRestoreProgress'] = this.databaseRestoreProgress;
         return JSON.stringify(stats);
 
       } else {
@@ -740,6 +742,7 @@ class Orchestrator {
       // Extacting downloaded archive to dataBasePath directory
       console.log(`Extracting /${fileName} into ${dataBasePath}.`);
       const extract = jaguar.extract(`/${fileName}`, dataBasePath);
+      this.databaseRestoreProgress = 0;
 
       // Extract events
       extract.on('file', (name) => {
@@ -748,6 +751,7 @@ class Orchestrator {
 
       extract.on('progress', (percent) => {
           console.log(`Extracting progress: ${percent} %`);
+          this.databaseRestoreProgress = percent;
       });
 
       extract.on('error', (error) => {
