@@ -43,6 +43,8 @@ class Polkadot {
       config.polkadotUnixGroupId = 1000;
       config.polkadotRpcPort = '9993';
       config.polkadotDatabaseURL = process.env.POLKADOT_DATABASE_URL;
+      config.polkadotDatabasePath = process.env.POLKADOT_DATABASE_PATH;
+      config.polkadotBackupURL = process.env.POLKADOT_BACKUP_URL;
 
       // Simulate Polkadot node synchronized state. For test purposes only
       config.polkadotSimulateSynch = false;
@@ -150,9 +152,9 @@ class Polkadot {
       checkVariable(config.polkadotKeyAudi, 'Polkadot Key Audi');
 
       // Check if polkadot node key file exists
-      if (fs.existsSync('/service') && isEmptyString(config.polkadotNodeKeyFile)) {
-        throw Error('Polkadot Service needs polkadotNodeKeyFile variable set.');
-      }
+      //if (fs.existsSync('/service') && isEmptyString(config.polkadotNodeKeyFile)) {
+      //  throw Error('Polkadot Service needs polkadotNodeKeyFile variable set.');
+      //}
     } catch (error) {
       debug('checkConfig', error);
       throw error;
@@ -609,6 +611,34 @@ class Polkadot {
       console.error(error);
     }
   }
+
+  getDatabasePath() {
+    try {
+      if(!isEmptyString(config.polkadotDatabasePath)){
+        return config.polkadotDatabasePath;
+      } else {
+        throw Error("Polkadot database path was not set. Please set POLKADOT_DATABASE_PATH env variable.")
+      }
+    } catch (error) {
+      debug('getPolkadotDatabasePath', error);
+      console.error(error);
+    }
+  }
+
+  getBackupURL() {
+    try {
+      if(!isEmptyString(config.polkadotBackupURL)){
+        return config.polkadotBackupURL;
+      } else {
+        throw Error("Polkadot backup URL was not set. Please set POLKADOT_BACKUP_URL env variable.")
+      }
+    } catch (error) {
+      debug('getPolkadotBackupURL', error);
+      console.error(error);
+    }
+  }
+
+
 }
 
 module.exports = {

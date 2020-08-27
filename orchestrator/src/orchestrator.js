@@ -5,6 +5,8 @@ const { Polkadot } = require('./polkadot');
 const { Docker } = require('./docker');
 const Nexmo = require('nexmo');
 const { DownloaderHelper } = require('node-downloader-helper');
+const jaguar = require('jaguar');
+const fsExtra = require('fs-extra');
 
 class Orchestrator {
   // Check if service is supported and create service instance
@@ -83,6 +85,12 @@ class Orchestrator {
     this.downloadRunning = false;
     this.downloadPaused = false;
     this.download = false;
+    this.downloadSuccess = false;
+    this.downloadError = '';
+    this.downloadState = 'NONE';
+    this.databaseRestoreRunning = false;
+    this.databaseRestoreSuccess = false;
+    this.databaseRestoreError = '';
   }
 
   // Orchestrate service
@@ -555,66 +563,107 @@ class Orchestrator {
   // Restore Service Database
   async serviceRestoreDB(action) {
     try {
-      console.log('Preparing Archipel for base download...');
+      const backupURL = this.service.getBackupURL();
+
       // Create download object if is not already created
       if (!this.download) {
-        this.download = new DownloaderHelper('http://www.ovh.net/files/1Gio.dat', __dirname, {override: true, retry: {maxRetries: 5, delay: 5000}});
+        this.download = new DownloaderHelper(backupURL, '/', {override: true, retry: {maxRetries: 5, delay: 5000}});
       }
 
-      // Download error
-      this.download.on('error', this.downloadError);
-      this.download.on('timeout', this.downloadTimeout);
-      this.download.on('retry', this.downloadRetry);
-      this.download.on('stateChanged', this.downloadStateChanged);
+      // Download events
+      this.download.on('error', (error) => { 
+        const errorMsg = `Download Error! Error: ${error}.`;
+        console.log(errorMsg);
+        this.downloadError = errorMsg;
+        this.downloadRunning = false;
+      });
 
-      // Download success
-      this.download.on('end', this.downloadSuccess);
+      this.download.on('timeout', () => {
+        const errorMsg = `Download Error! Timeout!`;
+        console.log(errorMsg);
+        this.downloadError = errorMsg;
+        this.downloadRunning = false;
+      });
+
+      this.download.on('retry', (attempt, retryOpts) => {
+        const errorMsg = `Download Error! Retry #${attempt}/${retryOpts.maxAttempts}. Delay ${retryOpts.delay} ms.`;
+        console.log(errorMsg);
+        this.downloadError = errorMsg;
+      });
+
+      this.download.on('stateChanged', (state) => {
+        console.log(`Download State Changed! State: ${state}.`);
+        this.downloadState = state;
+      });
+
+      // Download success handler
+      this.download.on('end', (downloadInfo) => {
+        if (!downloadInfo.incomplete) {
+          const backupURL = this.service.getBackupURL();
+          const fileName = backupURL.split('/').pop();
+
+          if (this.downloadRunning){
+            this.downloadSuccess = true;
+            console.log(`File was successfully downloaded and saved to /${fileName}...`);
+            this.downloadRunning = false;
+          }
+        } else {
+          console.log(`Download was finished but is incomplete.`)
+        }
+        this.downloadError = '';
+      });
 
       // Info about action
       let info = '';
 
       // Starting download
-      if (action == 'start') {
+      if (action == 'download-start') {
         // If download if not already running starting it
         if(!this.downloadRunning) {
-          console.log('Starting download...');
-          await this.downloadStartPrepare();
+          console.log(`Starting download from ${backupURL}...`);
           this.download.start();
+          this.downloadSuccess = false;
+          this.downloadRunning = true;
+          this.downloadPause = false;
           info = 'Download was started!'
           console.log(info);
         } else {
           info = 'Download is already running!'
           console.log(info);
         }
+        return info;
       // Stopping download
-      } else if (action == 'stop') {
+      } else if (action == 'download-stop') {
         if(this.downloadRunning) {
           console.log('Stopping the download...');
           await this.download.stop();
-          await this.downloadStopPrepare();
+          this.downloadRunning = false;
+          this.downloadPaused = false;
           info = 'Download was stopped!'
           console.log(info);
         } else {
           info = 'Download is not running!';
           console.log(info);
         }
+        return info;
       // Pausing download
-      } else if (action == 'pause') {
+      } else if (action == 'download-pause') {
         if(this.downloadRunning && !this.downloadPaused){
           console.log('Pausing the download...');
           await this.download.pause();
-          await this.downloadPausePrepare();
+          this.downloadPaused = true;
           info = 'Download was paused!'
           console.log(info);
         } else {
           info = 'Download is not running or already paused!';
           console.log(info);
         }
+        return info;
       // Resuming download
-      } else if (action == 'resume') {
+      } else if (action == 'download-resume') {
         if(this.downloadRunning && this.downloadPaused){
           console.log('Resuming the download...');
-          await this.downloadResumePrepare();
+          this.downloadPaused = false;
           this.download.resume();
           info = 'Download was resumed!'
           console.log(info);
@@ -622,13 +671,48 @@ class Orchestrator {
           info = 'Download is not running or not paused!';
           console.log(info);
         }
-      } else if (action == 'stats') {
-        console.log('Sending stats only!')
-      } else {
-        throw Error("Unknown action.")
-      }
+        return info;
 
-      return info + ' Stats: ' + JSON.stringify(await this.download.getStats());
+      // Send download stats only
+      } else if (action == 'download-stats') {
+        console.log('Sending stats only!');
+        const stats = await this.download.getStats();
+        stats['downloadRunning'] = this.downloadRunning;
+        stats['downloadPaused'] = this.downloadPaused;
+        stats['downloadSuccess'] = this.downloadSuccess;
+        stats['downloadState'] = this.downloadState;
+        stats['downloadError'] = this.downloadError;
+
+        return JSON.stringify(stats);
+      
+      // Restore service database 
+      } else if (action == 'restore') {
+        if(!this.downloadRunning && this.downloadSuccess){
+          if (!this.databaseRestoreRunning) {
+          await this.restoreDB();
+          info = 'Database restore was launched!'
+          console.log(info);
+          } else {
+            info = 'Database restore is already running...'
+            console.log(info);
+          }
+        } else {
+          info = 'You must successfully download the database file before restore!'
+          console.log(info);
+        }
+        return info;
+
+      // Restore database process statistics
+      } else if (action == 'restore-stats') {
+        let stats = {};
+        stats['databaseRestoreRunning'] = this.databaseRestoreRunning;
+        stats['databaseRestoreSuccess'] = this.databaseRestoreSuccess;
+        stats['databaseRestoreError'] = this.databaseRestoreError;
+        return JSON.stringify(stats);
+
+      } else {
+        throw Error("Unknown action.");
+      }
 
     } catch (error) {
       debug('serviceRestoreDB', error);
@@ -636,63 +720,70 @@ class Orchestrator {
     }
   }
 
-  // Download error handler
-  async downloadError(error){
-    console.log(`Download Error! Error: ${error}.`);
-    await this.downloadStopPrepare();
-  }
-
-  // Download timeout handler
-  async downloadTimeout(){
-    console.log(`Download Error! Timeout!`);
-    await this.downloadStopPrepare();
-  }
-
-  // Download state changed handler
-  downloadStateChanged(state){
-    console.log(`Download State Changed! State: ${state}.`);
-  }
-
-  // Triggered when download will be retries
-  downloadRetry(attemt, retryOpts) {
-    console.log(`Download Error! Retry #${attempt}/${retryOpts.maxAttempts}. Delay ${retryOpts.delay} ms.`);
-  }
-
   // Triggered if download was successfull
-  async downloadSuccess() {
-    if (this.downloadRunning){
-      console.log('File was successfully downloaded...');
-      await downloadStopPrepare();
+  async restoreDB() {
+    try {
+
+      // Turn off orchestrator and stop service container
+      await this.restoreStartPrepare();
+
+      const dataBasePath = this.service.getDatabasePath();
+      const backupURL = this.service.getBackupURL();
+      const fileName = backupURL.split('/').pop();
+
+      console.log(`Restoring database from file /${fileName}...`);
+
+      // Removing all from dataBasePath directory
+      console.log(`Removing all files from ${dataBasePath} directory...`);
+      fsExtra.emptyDirSync(`${dataBasePath}`);
+
+      // Extacting downloaded archive to dataBasePath directory
+      console.log(`Extracting /${fileName} into ${dataBasePath}.`);
+      const extract = jaguar.extract(`/${fileName}`, dataBasePath);
+
+      // Extract events
+      extract.on('file', (name) => {
+          console.log(`Extracting file: ${name}...`);
+      });
+
+      extract.on('progress', (percent) => {
+          console.log(`Extracting progress: ${percent} %`);
+      });
+
+      extract.on('error', (error) => {
+        const errorMsg = `Extracting file error: ${error}`;
+          console.log(errorMsg);
+          this.databaseRestoreError = errorMsg;
+          // If error we will relaunch orchestration and service in passive mode
+          this.restoreStopPrepare();
+      });
+
+      extract.on('end', () => {
+          console.log(`Extracting file success!!`);
+          this.databaseRestoreSuccess = true;
+          // If success we will relaunch orchestration and service in passive mode
+          this.restoreStopPrepare();
+          this.databaseRestoreError = '';
+      });
+
+    } catch (error) {
+      debug('restoreDB', error);
+      throw error;
     }
   }
 
-  // Prepare the orchestrator is download was paused
-  async downloadPausePrepare() {
-    this.downloadPaused = true;
-    this.orchestrationEnabled = true;
-    this.chain.heartbeatSendEnabled = true;
-    await this.serviceStart('passive');
-  }
-
-  // Prepare the orchestrator if download will be resumed
-  async downloadResumePrepare() {
-    this.downloadPaused = false;
-    this.orchestrationEnabled = false;
-    this.chain.heartbeatSendEnabled = false;
-    await this.serviceCleanUp();
-  }
-
   // Prepare the orchestrator if download will be started
-  async downloadStartPrepare() {
+  async restoreStartPrepare() {
+    this.databaseRestoreRunning = true;
+    this.databaseRestoreSuccess = false;
     this.orchestrationEnabled = false;
     this.chain.heartbeatSendEnabled = false;
     await this.serviceCleanUp();
-    this.downloadRunning = true;
   }
 
   // Prepare the orchestrator if download will be stopped
-  async downloadStopPrepare() {
-    this.downloadRunning = false;
+  async restoreStopPrepare() {
+    this.databaseRestoreRunning = false;
     this.orchestrationEnabled = true;
     this.chain.heartbeatSendEnabled = true;
     await this.serviceStart('passive');

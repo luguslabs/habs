@@ -55,46 +55,69 @@ router.get('/stop', asyncHandler(async (req, res) => {
 }));
 
 // Start a restore of service database
-router.get('/restore-db-start', asyncHandler(async (req, res) => {
+router.get('/restore-db-download-start', asyncHandler(async (req, res) => {
   // Get orchestrator instance
   const orchestrator = req.app.get('orchestrator');
-  const stats = await serviceRestoreDB(orchestrator, 'start');
+  const stats = await serviceRestoreDB(orchestrator, 'download-start');
   res.json({
     status: '200',
-    message: 'Request Success! ' + stats
+    message: stats
   });
 }));
 
 // Stop the restore of service database
-router.get('/restore-db-stop', asyncHandler(async (req, res) => {
+router.get('/restore-db-download-stop', asyncHandler(async (req, res) => {
   // Get orchestrator instance
   const orchestrator = req.app.get('orchestrator');
-  const stats = await serviceRestoreDB(orchestrator, 'stop');
+  const stats = await serviceRestoreDB(orchestrator, 'download-stop');
   res.json({
     status: '200',
-    message: 'Request Success! ' + stats
+    message: stats
   });
 }));
 
 // Pause the restore of service database
-router.get('/restore-db-pause', asyncHandler(async (req, res) => {
+router.get('/restore-db-download-pause', asyncHandler(async (req, res) => {
   // Get orchestrator instance
   const orchestrator = req.app.get('orchestrator');
-  const stats = await serviceRestoreDB(orchestrator, 'pause');
+  const stats = await serviceRestoreDB(orchestrator, 'download-pause');
   res.json({
     status: '200',
-    message: 'Request Success! ' + stats
+    message: stats
   });
 }));
 
 // Resume the restore of service database
-router.get('/restore-db-resume', asyncHandler(async (req, res) => {
+router.get('/restore-db-download-resume', asyncHandler(async (req, res) => {
   // Get orchestrator instance
   const orchestrator = req.app.get('orchestrator');
-  const stats = await serviceRestoreDB(orchestrator, 'resume');
+  const stats = await serviceRestoreDB(orchestrator, 'download-resume');
   res.json({
     status: '200',
-    message: 'Request Success! ' + stats
+    message: stats
+  });
+}));
+
+
+// Get stats of service database restore
+router.get('/restore-db-download-stats', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  const stats = await serviceRestoreDB(orchestrator, 'download-stats');
+  res.json({
+    status: '200',
+    message: stats
+  });
+}));
+
+// Retore the database after download
+router.get('/restore-db', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  const stats = await serviceRestoreDB(orchestrator, 'restore');
+  res.json({
+    status: '200',
+    message: stats
   });
 }));
 
@@ -102,10 +125,10 @@ router.get('/restore-db-resume', asyncHandler(async (req, res) => {
 router.get('/restore-db-stats', asyncHandler(async (req, res) => {
   // Get orchestrator instance
   const orchestrator = req.app.get('orchestrator');
-  const stats = await serviceRestoreDB(orchestrator, 'stats');
+  const stats = await serviceRestoreDB(orchestrator, 'restore-stats');
   res.json({
     status: '200',
-    message: 'Request Success! ' + stats
+    message: stats
   });
 }));
 
