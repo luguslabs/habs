@@ -1,5 +1,5 @@
 #!/bin/bash
-ARCHIPEL_CHAIN_VERSION="2.0.0"
+ARCHIPEL_CHAIN_VERSION="test"
 # Launch Archipel node in docker container
 function launch_node () {
   echo "Starting $1..."

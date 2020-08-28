@@ -78,6 +78,10 @@ class Polkadot {
         config.polkadotPrefix = 'node-';
       }
 
+      if (isEmptyString(config.polkadotDatabasePath)){
+        config.polkadotDatabasePath = '/service/.local/share/polkadot/chains/polkadot';
+      }
+
       if (isEmptyString(config.polkadotKeyGran)) {
         const polkadotKeyGran = configFromFile.services.find(element => element.name === 'polkadot').fields[parseInt(config.nodeId) - 1].find(element => element.env === 'POLKADOT_KEY_GRAN');
         if (polkadotKeyGran !== undefined) {
