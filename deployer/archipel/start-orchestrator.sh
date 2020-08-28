@@ -298,8 +298,6 @@ export NEXMO_API_CHECK_MSG_SIGNATURE="$NEXMO_API_CHECK_MSG_SIGNATURE"
 export NEXMO_PHONE_NUMBER="$NEXMO_PHONE_NUMBER"
 export OUTLET_PHONE_NUMBER_LIST="$OUTLET_PHONE_NUMBER_LIST"
 
-
-
 # Generate env file in shared volume for Archipel UI to auto-detect the local API endpoint
 ARCHIPEL_CONTAINER_IP=$(awk 'END{print $1}' /etc/hosts)
 echo "Generate env file /config/archipel-ui.env in shared volume for Archipel UI to auto-detect the local API endpoint"

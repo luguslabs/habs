@@ -8,10 +8,32 @@ function launch_orchestrator () {
     --network archipel \
     -v $1_service:/service \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    --env POLKADOT_DATABASE_PATH="/service/.local/share/polkadot/chains/polkadot" \
+    --env POLKADOT_BACKUP_URL="http://192.168.1.42/db.tar.gz" \
     --env NODE_WS="$2" \
     --env MNEMONIC="$3" \
+    --env ARCHIPEL_NAME="$3" \
     --env POLKADOT_NAME="$4" \
     --env POLKADOT_PREFIX="$5" \
+    --env NODE_ROLE="operator" \
+    --env NODE_GROUP=1 \
+    --env NODE_GROUP_ID=1 \
+    --env NODES_ROLE="operator,operator,operator" \
+    --env SMS_STONITH_ACTIVE="false" \
+    --env SMS_STONITH_CALLBACK_MANDATORY="false" \
+    --env SMS_STONITH_CALLBACK_MAX_DELAY=120 \
+    --env NEXMO_API_CHECK_MSG_SIGNATURE="false" \
+    --env ARCHIPEL_SERVICE_MODE="orchestrator" \
+    --env ARCHIPEL_HEARTBEATS_ENABLE="true" \
+    --env NEXMO_API_KEY="null" \
+    --env NEXMO_API_SECRET="null" \
+    --env NEXMO_API_SIGNATURE_METHOD="null" \
+    --env NEXMO_API_SIGNATURE_SECRET="null" \
+    --env NEXMO_PHONE_NUMBER="null" \
+    --env OUTLET_PHONE_NUMBER_LIST="null" \
+    --env ARCHIPEL_ORCHESTRATION_ENABLE="true" \
+    --env AUTHORITIES_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
+    --env NODES_WALLETS="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s" \
     --env POLKADOT_IMAGE="parity/polkadot:latest" \
     --env POLKADOT_KEY_GRAN="april shift pupil quit mandate school cost oven gospel castle brain student" \
     --env POLKADOT_KEY_BABE="region run sunset rule light gap cool element angle example laundry stadium" \

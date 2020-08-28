@@ -23,6 +23,12 @@ const serviceStop = async orchestrator => {
   await orchestrator.serviceCleanUp();
 };
 
+// Restoring service database
+const serviceRestoreDB = async (orchestrator, action) => {
+  console.log(`[API] Service restore database ${action}...`);
+  return await orchestrator.serviceRestoreDB(action);
+};
+
 // Check service start request fields
 router.post('/start', checkRequestFields);
 
@@ -45,6 +51,84 @@ router.get('/stop', asyncHandler(async (req, res) => {
   res.json({
     status: '200',
     message: 'Success! Service was stopped.'
+  });
+}));
+
+// Start a restore of service database
+router.get('/restore-db-download-start', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  const stats = await serviceRestoreDB(orchestrator, 'download-start');
+  res.json({
+    status: '200',
+    message: stats
+  });
+}));
+
+// Stop the restore of service database
+router.get('/restore-db-download-stop', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  const stats = await serviceRestoreDB(orchestrator, 'download-stop');
+  res.json({
+    status: '200',
+    message: stats
+  });
+}));
+
+// Pause the restore of service database
+router.get('/restore-db-download-pause', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  const stats = await serviceRestoreDB(orchestrator, 'download-pause');
+  res.json({
+    status: '200',
+    message: stats
+  });
+}));
+
+// Resume the restore of service database
+router.get('/restore-db-download-resume', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  const stats = await serviceRestoreDB(orchestrator, 'download-resume');
+  res.json({
+    status: '200',
+    message: stats
+  });
+}));
+
+
+// Get stats of service database restore
+router.get('/restore-db-download-stats', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  const stats = await serviceRestoreDB(orchestrator, 'download-stats');
+  res.json({
+    status: '200',
+    message: stats
+  });
+}));
+
+// Retore the database after download
+router.get('/restore-db', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  const stats = await serviceRestoreDB(orchestrator, 'restore');
+  res.json({
+    status: '200',
+    message: stats
+  });
+}));
+
+// Get stats of service database restore
+router.get('/restore-db-stats', asyncHandler(async (req, res) => {
+  // Get orchestrator instance
+  const orchestrator = req.app.get('orchestrator');
+  const stats = await serviceRestoreDB(orchestrator, 'restore-stats');
+  res.json({
+    status: '200',
+    message: stats
   });
 }));
 

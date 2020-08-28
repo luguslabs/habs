@@ -34,6 +34,10 @@ POLKADOT_RESERVED_NODES="/ip4/$POLKADOT_NODE1_IP/tcp/30333/p2p/$NODE1_POLKADOT_L
 POLKADOT_TELEMETRY_URL=""
 POLKADOT_NODE_KEY_FILE="key1-polkadot-node-key-file"
 POLKADOT_ADDITIONAL_OPTIONS="--chain kusama --db-cache 512"
+
+# Polkadot database restore variables
+POLKADOT_DATABASE_PATH="/service/.local/share/polkadot/chains/polkadot"
+POLKADOT_BACKUP_URL="http://192.168.1.42/db.tar.gz"
 ```
 
 ### Run
@@ -69,6 +73,13 @@ docker build -t luguslabs/archipel-orchestrator .
 | /orchestration/enable  | GET    | Enable orchestration process                                                                                                                                                 | curl -s http://172.28.42.2:3000/orchestration/enable             |
 | /service/stop          | GET    | Stop and remove service container                                                                                                                                            | curl -s http://172.28.42.2:3000/service/stop                     |
 | /service/start         | POST   | Start service container in specific mode. <br> **Fields:** - mode ('active' or 'passive') <br> **Warning!** The service will be relaunched by orchestrator if it is enabled. | curl --data "mode=passive" http://172.28.42.2:3000/service/start |
+| /service/restore-db   | GET | Stop orchestration, stop service, extract downloaded service database, relaunch orchestrator and restart service with new database | curl -s http://172.28.42.2:3000/service/restore-db |
+| /service/restore-db-stats | GET | Get database restore process statistics | curl -s http://172.28.42.2:3000/service/restore-db-stats |
+| /service/restore-db-download-start | GET | Start service database download | curl -s http://172.28.42.2:3000/service/restore-db-download-start |
+| /service/restore-db-download-stop | GET | Stop service database download | curl -s http://172.28.42.2:3000/service/restore-db-download-stop |
+| /service/restore-db-download-pause | GET | Pause service database download | curl -s http://172.28.42.2:3000/service/restore-db-download-pause |
+| /service/restore-db-download-resume | GET | Resume service database download | curl -s http://172.28.42.2:3000/service/restore-db-download-resume |
+| /service/restore-db-download-stats | GET | Get download database statistcs | curl -s http://172.28.42.2:3000/service/restore-db-download-stats |
 
 - **Warning!** Don't expose Archipel Orchestrator API publicly! There is no authentication!
 
