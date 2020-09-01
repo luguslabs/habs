@@ -4,6 +4,21 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v2.0.1](https://github.com/luguslabs/archipel/releases/tag/v2.0.1)
+
+[DOC]Improve documentation.
+[CHAIN] upgrade to Substrate-rc6
+[SECURIY] Fix STONTH delay and add check sessions keys valid in keystore
+[API] Add restore data chain from backup file
+
+### Issues
+
+[#255](https://github.com/luguslabs/archipel/issues/255): [API] Restore backup polkadot chain data with Archipel API on chain setKeys value
+[#251](https://github.com/luguslabs/archipel/issues/251): [CHAIN] upgrade to Substrate-rc6
+[#248](https://github.com/luguslabs/archipel/issues/248): [SECURIY] check valid session keys on Polkadot node versus on chain setKeys value
+[#247](https://github.com/luguslabs/archipel/issues/247): [SECURIY] SMS STONITH Callback delay too short
+[#245](https://github.com/luguslabs/archipel/issues/245): [DOC] doc Fix ROTATE_KEY creation from sukey last format
+
 ## [v2.0.0](https://github.com/luguslabs/archipel/releases/tag/v2.0.0)
 
 Upgrade to latest substrate.
