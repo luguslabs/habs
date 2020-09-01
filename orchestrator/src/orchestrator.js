@@ -803,6 +803,7 @@ class Orchestrator {
     this.orchestrationEnabled = false;
     this.chain.heartbeatSendEnabled = false;
     await this.serviceCleanUp();
+    this.service.importedKeys = [];
   }
 
   // Prepare the orchestrator if download will be stopped
