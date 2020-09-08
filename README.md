@@ -7,6 +7,12 @@
 
 Welcome to **Archipel** monorepository!
 
+# Archipel Polkadot validators are Live!
+
+Check blog post for more information : https://medium.com/luguslabs/archipel-polkadot-validators-are-live-eec9c76c32bb
+
+And all previous blog posts at https://medium.com/luguslabs/
+
 ## What is Archipel ?
 
 Archipel is a high availability solution for blockchain services.
