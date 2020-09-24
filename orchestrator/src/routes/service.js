@@ -98,7 +98,6 @@ router.get('/restore-db-download-resume', asyncHandler(async (req, res) => {
   });
 }));
 
-
 // Get stats of service database restore
 router.get('/restore-db-download-stats', asyncHandler(async (req, res) => {
   // Get orchestrator instance

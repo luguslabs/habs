@@ -5,7 +5,6 @@ const {
 const dotenv = require('dotenv');
 const os = require('os');
 const fs = require('fs-extra');
-const { DownloaderHelper } = require('node-downloader-helper');
 
 const {
   getKeysFromSeed,
@@ -78,7 +77,7 @@ class Polkadot {
         config.polkadotPrefix = 'node-';
       }
 
-      if (isEmptyString(config.polkadotDatabasePath)){
+      if (isEmptyString(config.polkadotDatabasePath)) {
         config.polkadotDatabasePath = '/service/.local/share/polkadot/chains/polkadot';
       }
 
@@ -154,11 +153,6 @@ class Polkadot {
       checkVariable(config.polkadotKeyPara, 'Polkadot Key Para');
       checkVariable(config.polkadotKeyImon, 'Polkadot Key Imon');
       checkVariable(config.polkadotKeyAudi, 'Polkadot Key Audi');
-
-      // Check if polkadot node key file exists
-      //if (fs.existsSync('/service') && isEmptyString(config.polkadotNodeKeyFile)) {
-      //  throw Error('Polkadot Service needs polkadotNodeKeyFile variable set.');
-      //}
     } catch (error) {
       debug('checkConfig', error);
       throw error;
@@ -191,7 +185,6 @@ class Polkadot {
 
     // Service prepared
     this.prepared = false;
-
   }
 
   // Importing a key in keystore
@@ -506,11 +499,7 @@ class Polkadot {
           // slice for never change name for 1000 validator program check
           name = config.polkadotName.slice(0, -2);
         }
-        cmdsList.push(...['--name', `${name}-active`, ...this.commonPolkadotOptions, '--validator', '--reserved-only']);
-        if (!isEmptyString(config.polkadotReservedNodes)) {
-          const sentryPeers = await this.extractPeers(config.polkadotReservedNodes, config.nodesRole, 'sentry');
-          cmdsList.push(...formatOptionList('--sentry-nodes', sentryPeers));
-        }
+        cmdsList.push(...['--name', `${name}-active`, ...this.commonPolkadotOptions, '--validator']);
         await this.docker.startServiceContainer(
           'active',
           config.polkadotPrefix + 'polkadot-validator',
@@ -522,45 +511,21 @@ class Polkadot {
           this.networkMode
         );
         containerName = config.polkadotPrefix + 'polkadot-validator';
-      } else if (mode === 'passive') {
-        cmdsList.push(...['--name', `${config.polkadotName}-passive`, ...this.commonPolkadotOptions]);
-        if (!isEmptyString(config.polkadotReservedNodes)) {
-          if (!config.nodesRole.includes('sentry')) {
-            // if no sentry roles in config. add passive nodes as sentry for validator.
-            cmdsList.push(...formatOptionList('--sentry', config.polkadotReservedNodes));
-          } else {
-            // specific sentry nodes are present in config. So passive peers are never exposed and stay private with --reserved-only
-            cmdsList.push('--reserved-only');
-          }
-        }
+      } else if ((mode === 'passive') || (mode === 'sentry')) {
+        // sentry is deprectaed. It is now like passive node but without keys.
+        cmdsList.push(...['--name', `${config.polkadotName}-${mode}`, ...this.commonPolkadotOptions]);
+        const contrainerNameSuffix = (mode === 'passive') ? 'polkadot-sync' : 'polkadot-sentry';
+        containerName = config.polkadotPrefix + contrainerNameSuffix;
         await this.docker.startServiceContainer(
           'passive',
           config.polkadotPrefix + 'polkadot-validator',
-          config.polkadotPrefix + 'polkadot-sync',
+          containerName,
           config.polkadotImage,
           cmdsList,
           '/polkadot',
           this.polkadotVolume,
           this.networkMode
         );
-        containerName = config.polkadotPrefix + 'polkadot-sync';
-      } else if (mode === 'sentry') {
-        cmdsList.push(...['--name', `${config.polkadotName}-sentry`, ...this.commonPolkadotOptions]);
-        if (!isEmptyString(config.polkadotReservedNodes)) {
-          const operatorPeers = await this.extractPeers(config.polkadotReservedNodes, config.nodesRole, 'operator');
-          cmdsList.push(...formatOptionList('--sentry', operatorPeers));
-        }
-        await this.docker.startServiceContainer(
-          'sentry',
-          config.polkadotPrefix + 'polkadot-validator',
-          config.polkadotPrefix + 'polkadot-sentry',
-          config.polkadotImage,
-          cmdsList,
-          '/polkadot',
-          this.polkadotVolume,
-          this.networkMode
-        );
-        containerName = config.polkadotPrefix + 'polkadot-sentry';
       } else {
         throw new Error(`Mode '${mode}' is unknown.`);
       }
@@ -617,12 +582,12 @@ class Polkadot {
     }
   }
 
-  getDatabasePath() {
+  getDatabasePath () {
     try {
-      if(!isEmptyString(config.polkadotDatabasePath)){
+      if (!isEmptyString(config.polkadotDatabasePath)) {
         return config.polkadotDatabasePath;
       } else {
-        throw Error("Polkadot database path was not set. Please set POLKADOT_DATABASE_PATH env variable.")
+        throw Error('Polkadot database path was not set. Please set POLKADOT_DATABASE_PATH env variable.');
       }
     } catch (error) {
       debug('getPolkadotDatabasePath', error);
@@ -630,20 +595,18 @@ class Polkadot {
     }
   }
 
-  getBackupURL() {
+  getBackupURL () {
     try {
-      if(!isEmptyString(config.polkadotBackupURL)){
+      if (!isEmptyString(config.polkadotBackupURL)) {
         return config.polkadotBackupURL;
       } else {
-        throw Error("Polkadot backup URL was not set. Please set POLKADOT_BACKUP_URL env variable.")
+        throw Error('Polkadot backup URL was not set. Please set POLKADOT_BACKUP_URL env variable.');
       }
     } catch (error) {
       debug('getPolkadotBackupURL', error);
       console.error(error);
     }
   }
-
-
 }
 
 module.exports = {

@@ -363,7 +363,7 @@ class Chain {
   // Check if connected to node
   isConnected () {
     try {
-      return this.provider.isConnected().toString() !== 'false';
+      return this.provider.isConnected.toString() !== 'false';
     } catch (error) {
       debug('isConnected', error);
       throw error;
