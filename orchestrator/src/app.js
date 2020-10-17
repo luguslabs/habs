@@ -88,12 +88,10 @@ async function main () {
     // Create Heartbeats instance
     const heartbeats = new Heartbeats(nodes);
 
-    const servicesList = SERVICES.split(',');
-    // TODO support multiple service ... only servicesList[0] for now
     // Create orchestrator instance
     const orchestrator = new Orchestrator(
       chain,
-      servicesList[0],
+      SERVICES,
       heartbeats,
       MNEMONIC,
       ALIVE_TIME,

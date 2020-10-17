@@ -42,7 +42,7 @@ cat archipel-node1-sr25519.keys | grep phrase | cut -d"\`" -f2 > archipel-node1.
 now you can extract ed25519 keys format from phrase of `archipel-node1.seed` with :
 
 ```bash
-subkey inspect-key --network substrate --scheme Ed25519 "$(<archipel-node1.seed)" > archipel-node1-ed25519.keys
+subkey inspect --network substrate --scheme Ed25519 "$(<archipel-node1.seed)" > archipel-node1-ed25519.keys
 ```
 
 repeat the same commands above for node 2 and node 3. Or use this shortcut loop :
@@ -50,7 +50,7 @@ repeat the same commands above for node 2 and node 3. Or use this shortcut loop 
 ### Archipel Full steps keys creation
 
 ```bash
-for i in `seq 1 3`; do echo "create keys archipel-node$i" && subkey generate --network substrate > archipel-node$i-sr25519.keys && cat archipel-node$i-sr25519.keys | grep phrase | cut -d"\`" -f2 > archipel-node$i.seed && subkey inspect-key --network substrate --scheme Ed25519 "$(<archipel-node$i.seed)" > archipel-node$i-ed25519.keys ; done
+for i in `seq 1 3`; do echo "create keys archipel-node$i" && subkey generate --network substrate > archipel-node$i-sr25519.keys && cat archipel-node$i-sr25519.keys | grep phrase | cut -d"\`" -f2 > archipel-node$i.seed && subkey inspect --network substrate --scheme Ed25519 "$(<archipel-node$i.seed)" > archipel-node$i-ed25519.keys ; done
 ```
 
 ### Archipel keys creation expected result

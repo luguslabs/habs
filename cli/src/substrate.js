@@ -21,7 +21,7 @@ const generateSubstrateKeys = async (keysNumber) => {
       .toString();
 
     const subKeyResultEd = await execAsync(
-      `subkey inspect-key --scheme Ed25519 --network substrate "${key.seed}"`
+      `subkey inspect --scheme Ed25519 --network substrate "${key.seed}"`
     );
     key.ed25519Address = subKeyResultEd
       .match(/SS58 Address:.*/)
@@ -42,7 +42,7 @@ const generateNodeIds = async (service, nodesNumber) => {
   for (let i = 0; i < nodesNumber; i++) {
     const node = {};
     const subKeyCommand = await execAsync(
-      `subkey generate-node-key /tmp/archipel-bootstrap/${service}-node-id-${i}`
+      `subkey generate-node-key --file /tmp/archipel-bootstrap/${service}-node-id-${i}`
     );
     const subKeyResult = subKeyCommand.match(/[A-Za-z0-9+=/]*/).toString();
     node.peerId = subKeyResult;
@@ -56,7 +56,7 @@ const generateNodeIds = async (service, nodesNumber) => {
 // Validate a seed
 const validateSeed = async (seed) => {
   const subKeyCommand = await execAsync(
-    `subkey inspect-key --scheme Ed25519 --network substrate "${seed}"`
+    `subkey inspect --scheme Ed25519 --network substrate "${seed}"`
   );
   return !subKeyCommand.includes('Invalid');
 };
