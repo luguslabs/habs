@@ -14,7 +14,7 @@ const getOrchestratorInfo = async orchestrator => {
   const synchState = await orchestrator.chain.getSyncState();
   const currentLeader = await orchestrator.chain.getLeader(orchestrator.group);
   const isServiceReadyToStart = await orchestrator.isServiceReadyToStart(orchestrator.mode);
-  const launchedContainer = await orchestrator.service.checkLaunchedContainer();
+  const launchedContainer = await orchestrator.services[0].checkLaunchedContainer();
 
   // Constructing info object
   const result = {
