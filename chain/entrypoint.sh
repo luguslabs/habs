@@ -47,7 +47,7 @@ then
       exit 1
 fi
 
-ARCHIPEL_SS58_ADDRESS_ED25519=$(subkey inspect-key --scheme Ed25519 "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_SS58_ADDRESS_ED25519=$(subkey inspect --scheme Ed25519 "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
 if [ -z "$ARCHIPEL_SS58_ADDRESS_ED25519" ]
 then
@@ -55,7 +55,7 @@ then
       exit 1
 fi
 
-ARCHIPEL_SS58_ADDRESS_SR25519=$(subkey inspect-key --scheme Sr25519 "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_SS58_ADDRESS_SR25519=$(subkey inspect --scheme Sr25519 "$ARCHIPEL_KEY_SEED" | grep SS58 | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
 if [ -z "$ARCHIPEL_SS58_ADDRESS_SR25519" ]
 then
@@ -63,7 +63,7 @@ then
       exit 1
 fi
 
-ARCHIPEL_PUBLIC_KEY_ED25519=$(subkey inspect-key --scheme Ed25519 "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_PUBLIC_KEY_ED25519=$(subkey inspect --scheme Ed25519 "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 
 if [ -z "$ARCHIPEL_PUBLIC_KEY_ED25519" ]
 then
@@ -71,7 +71,7 @@ then
       exit 1
 fi
 
-ARCHIPEL_PUBLIC_KEY_SR25519=$(subkey inspect-key --scheme Sr25519 "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
+ARCHIPEL_PUBLIC_KEY_SR25519=$(subkey inspect --scheme Sr25519 "$ARCHIPEL_KEY_SEED" | grep Public | cut -d":" -f2 | sed -e 's/^[[:space:]]*//')
 if [ -z "$ARCHIPEL_PUBLIC_KEY_SR25519" ]
 then
       echo "\$ARCHIPEL_PUBLIC_KEY_SR25519 no found using subkey"

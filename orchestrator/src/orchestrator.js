@@ -28,7 +28,7 @@ class Orchestrator {
 
   constructor (
     chain,
-    service,
+    services,
     heartbeats,
     mnemonic,
     aliveTime,
@@ -55,9 +55,14 @@ class Orchestrator {
     // Service not ready and node is in active mode
     this.noReadyCount = 0;
     this.noReadyThreshold = 30; // ~ 300 seconds
-    // Create service instance
-    this.service = Orchestrator.createServiceInstance(service);
-    this.serviceName = service;
+    // Create service instances
+    const servicesList = services.split(',');
+    this.services = [];
+    this.servicesName = [];
+    for (const service of servicesList) {
+      this.services.push(Orchestrator.createServiceInstance(service));
+      this.servicesName.push(service)
+    }
     this.heartbeats = heartbeats;
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
@@ -543,7 +548,13 @@ class Orchestrator {
   // Check isServiceReadyToStart
   async isServiceReadyToStart (mode) {
     try {
-      return await this.service.isServiceReadyToStart(mode);
+      for (const service of this.services) {
+        const ready = await service.isServiceReadyToStart(mode);
+        if(!ready){
+          return false;
+        }
+      }
+      return true;
     } catch (error) {
       debug('isServiceReadyToStart', error);
       throw error;
@@ -553,7 +564,9 @@ class Orchestrator {
   // Start service
   async serviceStart (mode) {
     try {
-      await this.service.start(mode);
+      for (const service of this.services) {
+        await service.start(mode);
+      }
       this.mode = mode;
     } catch (error) {
       debug('serviceStart', error);
@@ -564,7 +577,7 @@ class Orchestrator {
   // Restore Service Database
   async serviceRestoreDB (action) {
     try {
-      const backupURL = this.service.getBackupURL();
+      const backupURL = this.services[0].getBackupURL();
 
       // Create download object if is not already created
       if (!this.download) {
@@ -608,7 +621,7 @@ class Orchestrator {
           return;
         }
 
-        const backupURL = this.service.getBackupURL();
+        const backupURL = this.services[0].getBackupURL();
         const fileName = backupURL.split('/').pop();
 
         if (!this.downloadRunning) {
@@ -740,8 +753,8 @@ class Orchestrator {
       // Turn off orchestrator and stop service container
       await this.restoreStartPrepare();
 
-      const dataBasePath = this.service.getDatabasePath();
-      const backupURL = this.service.getBackupURL();
+      const dataBasePath = this.services[0].getDatabasePath();
+      const backupURL = this.services[0].getBackupURL();
       const fileName = backupURL.split('/').pop();
 
       console.log(`Restoring database from file /${fileName}...`);
@@ -793,7 +806,7 @@ class Orchestrator {
     this.orchestrationEnabled = false;
     this.chain.heartbeatSendEnabled = false;
     await this.serviceCleanUp();
-    this.service.importedKeys = [];
+    this.services[0].importedKeys = [];
   }
 
   // Prepare the orchestrator if download will be stopped
@@ -807,7 +820,9 @@ class Orchestrator {
   // Cleanup a service
   async serviceCleanUp () {
     try {
-      await this.service.cleanUp();
+      for (const service of this.services) {
+        await service.cleanUp();
+      }
     } catch (error) {
       debug('serviceCleanUp', error);
       console.error(error);
