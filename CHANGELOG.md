@@ -4,6 +4,14 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v2.1.0](https://github.com/luguslabs/archipel/releases/tag/v2.1.0)
+
+### Issues
+
+[#241](https://github.com/luguslabs/archipel/issues/241) : Deprecation Sentry node
+[#256](https://github.com/luguslabs/archipel/issues/256) : Remove sentry cmd lines in polkadot launch
+[#258](https://github.com/luguslabs/archipel/issues/258) : Upgrade to substrate 2.0 and subkey 2.0 => **breaking change on archipel zip config**. Need to recreate zip config with archipel-cli 2.1.0
+
 ## [v2.0.1](https://github.com/luguslabs/archipel/releases/tag/v2.0.1)
 
 [DOC]Improve documentation.
