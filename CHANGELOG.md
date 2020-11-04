@@ -4,6 +4,12 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v2.1.1](https://github.com/luguslabs/archipel/releases/tag/v2.1.1)
+
+### Issues
+
+[#261](https://github.com/luguslabs/archipel/issues/261) : Add fix polkadot validator name
+
 ## [v2.1.0](https://github.com/luguslabs/archipel/releases/tag/v2.1.0)
 
 ### Issues
