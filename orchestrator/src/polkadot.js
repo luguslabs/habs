@@ -26,6 +26,7 @@ class Polkadot {
       config.polkadotName = process.env.POLKADOT_NAME;
       config.polkadotImage = process.env.POLKADOT_IMAGE;
       config.polkadotPrefix = process.env.POLKADOT_PREFIX;
+      config.polkadotValidatorName = process.env.POLKADOT_VALIDATOR_NAME;
       config.polkadotKeyGran = process.env.POLKADOT_KEY_GRAN;
       config.polkadotKeyBabe = process.env.POLKADOT_KEY_BABE;
       config.polkadotKeyImon = process.env.POLKADOT_KEY_IMON;
@@ -498,6 +499,10 @@ class Polkadot {
         if (!isEmptyString(config.polkadotAdditionalOptions) && config.polkadotAdditionalOptions.includes('kusama')) {
           // slice for never change name for 1000 validator program check
           name = config.polkadotName.slice(0, -2);
+        }
+        if (!isEmptyString(config.polkadotValidatorName)) {
+          //force validator name
+          name = config.polkadotValidatorName;
         }
         cmdsList.push(...['--name', `${name}-active`, ...this.commonPolkadotOptions, '--validator']);
         await this.docker.startServiceContainer(
