@@ -64,11 +64,13 @@ WORKDIR /root/
 COPY ./deployer/archipel/start-chain.sh /usr/local/bin/
 COPY ./deployer/archipel/start-orchestrator.sh /usr/local/bin/
 COPY ./deployer/archipel/start-wireguard.sh /usr/local/bin/
+COPY ./deployer/archipel/wg-resolv-dns.sh /usr/local/bin/
 COPY ./deployer/archipel/supervisord.conf /etc/supervisord/
 
 RUN chmod +x /usr/local/bin/start-chain.sh
 RUN chmod +x /usr/local/bin/start-orchestrator.sh
 RUN chmod +x /usr/local/bin/start-wireguard.sh
+RUN chmod +x /usr/local/bin/wg-resolv-dns.sh
 
 EXPOSE 51820/udp
 
