@@ -504,7 +504,7 @@ class Polkadot {
           //force validator name
           name = config.polkadotValidatorName;
         }
-        cmdsList.push(...['--name', `${name}-active`, ...this.commonPolkadotOptions, '--validator']);
+        cmdsList.push(...['--name', `${name}`, ...this.commonPolkadotOptions, '--validator']);
         await this.docker.startServiceContainer(
           'active',
           config.polkadotPrefix + 'polkadot-validator',
