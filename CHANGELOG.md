@@ -4,6 +4,13 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v2.1.2](https://github.com/luguslabs/archipel/releases/tag/v2.1.2)
+
+### Issues
+
+[#264](https://github.com/luguslabs/archipel/pull/264) : Wireguard dns resolv fix
+[#266](https://github.com/luguslabs/archipel/issues/266) : remove "-active" hard coded suffix in polkadot node name in polkadot.js
+
 ## [v2.1.1](https://github.com/luguslabs/archipel/releases/tag/v2.1.1)
 
 ### Issues
