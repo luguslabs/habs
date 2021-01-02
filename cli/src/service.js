@@ -1,6 +1,7 @@
 const { generateNodeIds } = require('./substrate');
 
 const { validatePolkadotConfig, polkadotFields } = require('./polkadot');
+const { validateCentrifugeConfig, centrifugeFields } = require('./centrifuge');
 
 // Validate service config
 const validateServicesConfig = async (configData) => {
@@ -12,6 +13,10 @@ const validateServicesConfig = async (configData) => {
     if (serviceName === 'polkadot') {
       for (const fields of service.fields) {
         await validatePolkadotConfig(fields);
+      }
+    } else if(serviceName === 'centrifuge'){
+      for (const fields of service.fields) {
+        await validateCentrifugeConfig(fields);
       }
     } else {
       throw Error(`Service ${configData.service} is not supported yet.`);
@@ -41,6 +46,22 @@ const generateServicesTemplate = (servicesName, instances) => {
       }
       service = { ...service, ...fieldsList };
       template.services.push(service);
+    } else if(value === 'centrifuge'){
+      let service = {};
+      service.name = value;
+      let fieldsList = {};
+      fieldsList.fields = [];
+      var i;
+      for (i = 0; i < instances; i++) {
+        const fields = centrifugeFields.map((el) => el.name);
+        const fieldsObject = fields.reduce((result, item) => {
+          result[item] = '';
+          return result;
+        }, {});
+        fieldsList.fields.push(fieldsObject);
+      }
+      service = { ...service, ...fieldsList };
+      template.services.push(service);
     } else {
       throw Error(`Service ${value} is not supported yet.`);
     }
@@ -60,6 +81,23 @@ const generateServicesConfig = async (configData, federationSize) => {
       service.fields = await generateServiceFieldsConfig(
         serviceData,
         polkadotFields
+      );
+      // Generate Service Node Ids
+      service.nodeIds = await generateNodeIds(serviceData.name, federationSize);
+      // Create reserved peers list
+      service.reservedPeersList = await service.nodeIds
+        .reduce((listArray, currentValue, currentIndex) => {
+          return listArray.concat(
+            `/ip4/10.0.1.${currentIndex + 1}/tcp/30333/p2p/${
+              currentValue.peerId
+            },`
+          );
+        }, '')
+        .slice(0, -1);
+    } else if(serviceData.name === 'centrifuge'){
+      service.fields = await generateServiceFieldsConfig(
+        serviceData,
+        centrifugeFields
       );
       // Generate Service Node Ids
       service.nodeIds = await generateNodeIds(serviceData.name, federationSize);

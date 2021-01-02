@@ -501,7 +501,7 @@ class Polkadot {
           name = config.polkadotName.slice(0, -2);
         }
         if (!isEmptyString(config.polkadotValidatorName)) {
-          //force validator name
+          // force validator name
           name = config.polkadotValidatorName;
         }
         cmdsList.push(...['--name', `${name}`, ...this.commonPolkadotOptions, '--validator']);

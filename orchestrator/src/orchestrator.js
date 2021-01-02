@@ -2,6 +2,8 @@ const debug = require('debug')('service');
 
 const { getKeysFromSeed } = require('./utils');
 const { Polkadot } = require('./polkadot');
+const { Trustlines } = require('./trustlines');
+const { Centrifuge } = require('./centrifuge');
 const { Docker } = require('./docker');
 const Nexmo = require('nexmo');
 const { DownloaderHelper } = require('node-downloader-helper');
@@ -17,6 +19,16 @@ class Orchestrator {
         const docker = new Docker();
         // Create and return Polkadot instance
         return new Polkadot(docker);
+      } else if (serviceName === 'trustlines') {
+        // Create docker instance
+        const docker = new Docker();
+        // Create and return Polkadot instance
+        return new Trustlines(docker);
+      } else if (serviceName === 'centrifuge') {
+        // Create docker instance
+        const docker = new Docker();
+        // Create and return Centrifuge instance
+        return new Centrifuge(docker);
       } else {
         throw Error(`Service ${serviceName} is not supported yet.`);
       }
@@ -61,7 +73,7 @@ class Orchestrator {
     this.servicesName = [];
     for (const service of servicesList) {
       this.services.push(Orchestrator.createServiceInstance(service));
-      this.servicesName.push(service)
+      this.servicesName.push(service);
     }
     this.heartbeats = heartbeats;
     this.mnemonic = mnemonic;
@@ -550,7 +562,7 @@ class Orchestrator {
     try {
       for (const service of this.services) {
         const ready = await service.isServiceReadyToStart(mode);
-        if(!ready){
+        if (!ready) {
           return false;
         }
       }
