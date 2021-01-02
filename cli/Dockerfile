@@ -7,9 +7,10 @@ RUN	apt-get -y update; \
     cmake pkg-config libssl-dev git gcc build-essential clang libclang-dev curl ca-certificates
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN rustup update nightly-2020-10-06
+RUN rustup toolchain install nightly-2020-10-06
+RUN rustup default nightly-2020-10-06
 RUN rustup target add wasm32-unknown-unknown --toolchain nightly-2020-10-06
-RUN cargo +stable install --force --git https://github.com/paritytech/substrate subkey
+RUN cargo +nightly-2020-10-06 install --force --git https://github.com/paritytech/substrate subkey
 
 FROM node:10-buster
 
