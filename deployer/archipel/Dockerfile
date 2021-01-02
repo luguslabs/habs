@@ -48,6 +48,11 @@ RUN	apt-get -y update && \
 	apt install -y resolvconf && \
 	apt clean
 
+#installl a static curl
+RUN wget https://github.com/moparisthebest/static-curl/releases/download/v7.74.0/curl-amd64
+RUN mv curl-amd64 /usr/local/bin/curl-static
+RUN chmod +x /usr/local/bin/curl-static
+
 ####################################
 # import orchestrator
 ####################################

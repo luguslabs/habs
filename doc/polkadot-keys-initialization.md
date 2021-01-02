@@ -5,7 +5,7 @@ Those keys will be used for the node identities in the federation and use for au
 
 ## Subkey Tool
 
-Archipel and polkadot use [Substrate](https://substrate.dev/) framework. This framwork has a utility tool to generate keys. You will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/ecosystem/subkey#installation). Then check subkey installation and options available :
+Archipel and polkadot use [Substrate](https://substrate.dev/) framework. This framwork has a utility tool to generate keys. You will use it to facilitate the keys generation. The first step is to [download and install subkey](https://substrate.dev/docs/en/knowledgebase/integrate/subkey). Then check subkey installation and options available :
 
 ```bash
 subkey --version
@@ -134,6 +134,19 @@ subkey generate --network polkadot --scheme Sr25519 > polkadot-session-audi-sr25
 cat polkadot-session-audi-sr25519.keys | grep phrase | cut -d"\`" -f2 > polkadot-session-audi.seed
 ```
 
+#### Centrifuge Full steps session keys creation
+
+```bash
+subkey generate --network centrifuge --scheme Ed25519 > centrifuge-session-gran-ed25519.keys
+cat centrifuge-session-gran-ed25519.keys | grep phrase | cut -d"\`" -f2 > centrifuge-session-gran.seed
+subkey generate --network centrifuge --scheme Sr25519 > centrifuge-session-babe-sr25519.keys
+cat centrifuge-session-babe-sr25519.keys | grep phrase | cut -d"\`" -f2 > centrifuge-session-babe.seed
+subkey generate --network centrifuge --scheme Sr25519 > centrifuge-session-imon-sr25519.keys
+cat centrifuge-session-imon-sr25519.keys | grep phrase | cut -d"\`" -f2 > centrifuge-session-imon.seed
+subkey generate --network centrifuge --scheme Sr25519 > centrifuge-session-audi-sr25519.keys
+cat centrifuge-session-audi-sr25519.keys | grep phrase | cut -d"\`" -f2 > centrifuge-session-audi.seed
+```
+
 ### Matching Polkadot sessions files keys with Archipel env variables
 
 ```bash
@@ -159,13 +172,19 @@ Here how to extract the value from env varibale :
 - KUSAMA
 
 ```bash
-export ROTATE_KEY=$(cat kusama-session-gran-ed25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat kusama-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat kusama-session-para-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat kusama-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)
+export ROTATE_KEY=$(cat kusama-session-gran-ed25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-para-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat kusama-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)
 ```
 
 - POLKADOT
 
 ```bash
-export ROTATE_KEY=$(cat polkadot-session-gran-ed25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat polkadot-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat polkadot-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat polkadot-session-para-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)$(cat polkadot-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 6-)
+export ROTATE_KEY=$(cat polkadot-session-gran-ed25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat polkadot-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat polkadot-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat polkadot-session-para-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat polkadot-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)
+```
+
+- CENTRIFUGE
+
+```bash
+export ROTATE_KEY=$(cat centrifuge-session-gran-ed25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat centrifuge-session-babe-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat centrifuge-session-imon-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)$(cat centrifuge-session-audi-sr25519.keys | grep Public | cut -d":" -f2 | cut -c 4-)
 ```
 
 ### Check 5 sesssion keys correctly installed on your node with ROTATE_KEY value check
