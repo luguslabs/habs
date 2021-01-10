@@ -4,7 +4,7 @@
 
 <!--New features/improvements/fixes go here-->
 
-## [v2.2.0](https://github.com/luguslabs/archipel/releases/tag/v2.1.2)
+## [v2.2.0](https://github.com/luguslabs/archipel/releases/tag/v2.2.0)
 
 ### Issues
 
