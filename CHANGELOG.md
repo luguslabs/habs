@@ -4,6 +4,13 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v2.2.0](https://github.com/luguslabs/archipel/releases/tag/v2.1.2)
+
+### Issues
+
+[#268](https://github.com/luguslabs/archipel/issues/268) : Multi service support. Add Centrifuge node and Trustlines node support
+[#270](https://github.com/luguslabs/archipel/issues/270) : Dockerfile compile. Fix rust nigltly target.
+
 ## [v2.1.2](https://github.com/luguslabs/archipel/releases/tag/v2.1.2)
 
 ### Issues

@@ -19,7 +19,10 @@ Archipel is a high availability solution for blockchain services.
 
 ## Services Supported
 
-- Polkadot Validator Node
+- Polkadot Node
+- Kusama Node
+- Centrifuge Node
+- Trustlines Node
 
 ## Why Archipel ?
 
@@ -81,7 +84,7 @@ All orchestrators need a shared state between them to operate properly. This sha
 Archipel federation support only 4 nodes to n nodes.
 
 - **Operator Role** - the service will be launched in active mode if the node is elected or in passive mode in the others cases.
-- **Sentry Role** - the service will be launched in sentry mode and protect active and passive nodes from public exposition.
+- **Sentry Role** - the service will be launched in sentry mode and protect active and passive nodes from public exposition. (Deprecated mode)
 - **External Sentry Role** - external sentry have the same purpuse as sentry role for the service. Service sentry information peers are used without the use of an archipel node, heartbeats, orchestrator etc ...
 
 ### Archipel Orchestrator Workflow
@@ -105,7 +108,7 @@ The N Polkadot validators ( using group filter ) node can be launched with this 
 
 - **1 Active mode** - Polkadot node in with validator option. Never exposed as sentry
 - **2 Passive mode** - Polkadot node in the sync-only mode and with reserved peers only. Never exposed as sentry
-- **n Sentry mode** - Polkadot node in the sentry mode for passive and active others nodes.
+- **n Sentry mode(Deprecated mode)** - Polkadot node in the sentry mode for passive and active others nodes.
 - **n external Sentry** - External Polkadot node with sentry option (not in the archipel federation).
 
 We are also planning to support other services.
@@ -120,7 +123,7 @@ More information on [orchestrator/README.md](orchestrator/README.md)
 | archipel-node-1-{active or passive} | operator |
 | archipel-node-2-{active or passive} | operator |
 | archipel-node-3-{active or passive} | operator |
-| archipel-node-4-{active or passive} | sentry |
+| archipel-node-4-{active or passive} | sentry(Deprecated mode) |
 
 <p align="center">
  <img src=doc/images/ArchipelSimpleFederation.png width = 1000>
