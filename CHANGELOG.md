@@ -4,6 +4,12 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v2.2.1](https://github.com/luguslabs/archipel/releases/tag/v2.2.1)
+
+### Issues
+
+[#272](https://github.com/luguslabs/archipel/issues/272) : 6 session keys instead of 5 for Kusama an polkadot
+
 ## [v2.2.0](https://github.com/luguslabs/archipel/releases/tag/v2.2.0)
 
 ### Issues
