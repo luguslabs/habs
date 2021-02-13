@@ -31,6 +31,7 @@ class Polkadot {
       config.polkadotKeyBabe = process.env.POLKADOT_KEY_BABE;
       config.polkadotKeyImon = process.env.POLKADOT_KEY_IMON;
       config.polkadotKeyPara = process.env.POLKADOT_KEY_PARA;
+      config.polkadotKeyAsgn = process.env.POLKADOT_KEY_ASGN;
       config.polkadotKeyAudi = process.env.POLKADOT_KEY_AUDI;
       config.polkadotReservedNodes = process.env.POLKADOT_RESERVED_NODES;
       config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
@@ -110,6 +111,13 @@ class Polkadot {
         }
       }
 
+      if (isEmptyString(config.polkadotKeyAsgn)) {
+        const polkadotKeyAsgn = configFromFile.services.find(element => element.name === 'polkadot').fields[parseInt(config.nodeId) - 1].find(element => element.env === 'POLKADOT_KEY_ASGN');
+        if (polkadotKeyAsgn !== undefined) {
+          config.polkadotKeyAsgn = polkadotKeyAsgn.value;
+        }
+      }
+
       if (isEmptyString(config.polkadotKeyAudi)) {
         const polkadotKeyAudi = configFromFile.services.find(element => element.name === 'polkadot').fields[parseInt(config.nodeId) - 1].find(element => element.env === 'POLKADOT_KEY_AUDI');
         if (polkadotKeyAudi !== undefined) {
@@ -153,6 +161,7 @@ class Polkadot {
       checkVariable(config.polkadotKeyBabe, 'Polkadot Key Babe');
       checkVariable(config.polkadotKeyPara, 'Polkadot Key Para');
       checkVariable(config.polkadotKeyImon, 'Polkadot Key Imon');
+      checkVariable(config.polkadotKeyAsgn, 'Polkadot Key Asgn');
       checkVariable(config.polkadotKeyAudi, 'Polkadot Key Audi');
     } catch (error) {
       debug('checkConfig', error);
@@ -246,11 +255,12 @@ class Polkadot {
     try {
       console.log('Importing keys to keystore...');
 
-      // Importing 5 validator keys into keystore
+      // Importing 6 validator keys into keystore
       await this.importAKey(containerName, config.polkadotKeyGran, 'ed25519', 'gran');
       await this.importAKey(containerName, config.polkadotKeyBabe, 'sr25519', 'babe');
       await this.importAKey(containerName, config.polkadotKeyImon, 'sr25519', 'imon');
       await this.importAKey(containerName, config.polkadotKeyPara, 'sr25519', 'para');
+      await this.importAKey(containerName, config.polkadotKeyAsgn, 'sr25519', 'asgn');
       await this.importAKey(containerName, config.polkadotKeyAudi, 'sr25519', 'audi');
     } catch (error) {
       debug('polkadotKeysImport', error);
