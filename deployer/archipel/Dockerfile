@@ -19,7 +19,8 @@ RUN ./target/release/archipel build-spec --disable-default-bootnode --chain loca
 ###########################
 # Build subkey tool step
 ###########################
-RUN cargo +nightly-2020-10-06 install --force --git https://github.com/paritytech/substrate subkey
+RUN git clone https://github.com/paritytech/substrate
+RUN cd substrate && git checkout v2.0.1 && cargo build -p subkey --release
 
 ####################################
 # Create Archipel docker image
@@ -34,7 +35,7 @@ RUN mkdir chain
 COPY --from=builder-chain /root/target/release/archipel ./chain
 COPY --from=builder-chain /root/archipelTemplateSpec.json ./chain
 COPY --from=builder-chain /root/archipelTemplateSpecRaw.json ./chain
-COPY --from=builder-chain /root/.cargo/bin/subkey /usr/local/bin/
+COPY --from=builder-chain /root/substrate/target/release/subkey /usr/local/bin/
 
 # Add debian unstable repo for wireguard packages
 RUN echo "deb http://deb.debian.org/debian/ unstable main" > /etc/apt/sources.list.d/unstable-wireguard.list && \

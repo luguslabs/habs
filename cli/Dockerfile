@@ -10,7 +10,13 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup toolchain install nightly-2020-10-06
 RUN rustup default nightly-2020-10-06
 RUN rustup target add wasm32-unknown-unknown --toolchain nightly-2020-10-06
-RUN cargo +nightly-2020-10-06 install --force --git https://github.com/paritytech/substrate subkey
+
+###########################
+# Build subkey tool step
+###########################
+RUN git clone https://github.com/paritytech/substrate
+RUN cd substrate && git checkout v2.0.1 && cargo build -p subkey --release
+
 
 FROM node:10-buster
 
@@ -32,7 +38,7 @@ RUN	apt-get -y update && \
     apt clean
 
 # Copy subkey
-COPY --from=builder-subkey /root/.cargo/bin/subkey /usr/local/bin/
+COPY --from=builder-subkey /root/substrate/target/release/subkey /usr/local/bin/
 
 RUN mkdir /home/$user/app
 COPY . /home/$user/app/

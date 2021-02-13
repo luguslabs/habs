@@ -20,7 +20,8 @@ RUN ./target/release/archipel build-spec --disable-default-bootnode --chain loca
 ###########################
 # Build subkey tool step
 ###########################
-RUN cargo +nightly-2020-10-06 install --force --git https://github.com/paritytech/substrate subkey
+RUN git clone https://github.com/paritytech/substrate
+RUN cd substrate && git checkout v2.0.1 && cargo build -p subkey --release
 
 ####################################
 # Create Archipel chain docker image
@@ -31,7 +32,7 @@ RUN mkdir chain
 COPY --from=builder /root/target/release/archipel ./chain
 COPY --from=builder /root/archipelTemplateSpec.json ./chain
 COPY --from=builder /root/archipelTemplateSpecRaw.json ./chain
-COPY --from=builder /root/.cargo/bin/subkey /usr/local/bin/
+COPY --from=builder /root/substrate/target/release/subkey /usr/local/bin/
 RUN	apt-get -y update; \
 	apt-get install -y --no-install-recommends \
 	libssl-dev curl jq
