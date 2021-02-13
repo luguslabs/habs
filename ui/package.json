@@ -6,7 +6,7 @@
   "license": "apache 2",
   "dependencies": {
     "@rehooks/local-storage": "^2.3.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "axios-hooks": "^1.9.0",
     "big.js": "^5.2.2",
     "isomorphic-unfetch": "^3.0.0",
