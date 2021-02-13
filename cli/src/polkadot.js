@@ -30,6 +30,12 @@ const polkadotFields = [
     },
     {
       type: 'text',
+      name: 'asgnKey',
+      label: 'Asgn Key',
+      env: 'POLKADOT_KEY_ASGN',
+    },
+    {
+      type: 'text',
       name: 'audiKey',
       label: 'Audi Key',
       env: 'POLKADOT_KEY_AUDI',
@@ -50,6 +56,9 @@ const validatePolkadotConfig = async fieldData => {
   }
   if (!await validateSeed(fieldData.paraKey)) {
     throw Error('paraKey seed is not valid.');
+  }
+  if (!await validateSeed(fieldData.asgnKey)) {
+    throw Error('asgnKey seed is not valid.');
   }
   if (!await validateSeed(fieldData.audiKey)) {
     throw Error('audiKey seed is not valid.');

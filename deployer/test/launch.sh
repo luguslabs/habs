@@ -36,6 +36,7 @@ function launch_archipel () {
     --env POLKADOT_KEY_BABE="region run sunset rule light gap cool element angle example laundry stadium" \
     --env POLKADOT_KEY_IMON="screen sustain clog husband assist noble artist sea fringe afford coil hawk" \
     --env POLKADOT_KEY_PARA="produce hover hurdle lobster december slight hat note quit bomb drama notice" \
+    --env POLKADOT_KEY_ASGN="rough open marine belt rib violin december gesture word fall catalog side" \
     --env POLKADOT_KEY_AUDI="oak tail stomach fluid trade aunt fire fringe mercy roast style garlic" \
     --env POLKADOT_RESERVED_NODES="$8" \
     --env POLKADOT_TELEMETRY_URL="$9" \
