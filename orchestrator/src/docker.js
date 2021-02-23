@@ -271,12 +271,12 @@ class Docker {
     }
   }
 
-  async getContainerById (id) {
+  async getContainerById (nameOrId) {
     try {
       const containers = await this.docker.listContainers({ all: true });
       // return containers;
       return containers.find(element => {
-        return element.Id.startsWith(id) ? element : false;
+        return element.Id.startsWith(nameOrId) || (element.Names.length > 0 && element.Names[0].includes(nameOrId)) ? element : false;
       });
     } catch (error) {
       debug('getContainerById', error);
@@ -284,9 +284,10 @@ class Docker {
     }
   }
 
-  async getMountThatContains (id, str) {
+  async getMountThatContains (nameOrId, str) {
     try {
-      const container = await this.getContainerById(id);
+      const container = await this.getContainerById(nameOrId);
+
       if (container) {
         return container.Mounts.find(element => {
           return element.Source.includes(str) ? element : false;

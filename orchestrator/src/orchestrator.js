@@ -718,11 +718,11 @@ class Orchestrator {
       } else if (action === 'download-stats') {
         console.log('Sending stats only!');
         const stats = await this.download.getStats();
-        stats['downloadRunning'] = this.downloadRunning;
-        stats['downloadPaused'] = this.downloadPaused;
-        stats['downloadSuccess'] = this.downloadSuccess;
-        stats['downloadState'] = this.downloadState;
-        stats['downloadError'] = this.downloadError;
+        stats.downloadRunning = this.downloadRunning;
+        stats.downloadPaused = this.downloadPaused;
+        stats.downloadSuccess = this.downloadSuccess;
+        stats.downloadState = this.downloadState;
+        stats.downloadError = this.downloadError;
         return JSON.stringify(stats);
       // Restore service database
       } else if (action === 'restore') {
@@ -745,10 +745,10 @@ class Orchestrator {
       // Restore database process statistics
       } else if (action === 'restore-stats') {
         const stats = {};
-        stats['databaseRestoreRunning'] = this.databaseRestoreRunning;
-        stats['databaseRestoreSuccess'] = this.databaseRestoreSuccess;
-        stats['databaseRestoreError'] = this.databaseRestoreError;
-        stats['databaseRestoreProgress'] = this.databaseRestoreProgress;
+        stats.databaseRestoreRunning = this.databaseRestoreRunning;
+        stats.databaseRestoreSuccess = this.databaseRestoreSuccess;
+        stats.databaseRestoreError = this.databaseRestoreError;
+        stats.databaseRestoreProgress = this.databaseRestoreProgress;
         return JSON.stringify(stats);
       } else {
         throw Error('Unknown action.');
