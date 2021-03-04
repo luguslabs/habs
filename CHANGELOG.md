@@ -4,6 +4,12 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v2.2.2](https://github.com/luguslabs/archipel/releases/tag/v2.2.2)
+
+### Issues
+
+Split heartbeat and orchetsrator threads.
+
 ## [v2.2.1](https://github.com/luguslabs/archipel/releases/tag/v2.2.1)
 
 ### Issues
