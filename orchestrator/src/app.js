@@ -136,10 +136,18 @@ async function main () {
     // Listen events
     chain.listenEvents(heartbeats, orchestrator, MNEMONIC);
 
-    // Add heartbeats and orchestrate every 10 seconds
+    // Add heartbeats every 10 seconds
     setIntervalAsync(async () => {
       try {
         await chain.addHeartbeat(NODE_GROUP_ID, orchestrator.mode, MNEMONIC);
+      } catch (error) {
+        console.error(error);
+      }
+    }, 10000);
+    
+    // Orchestrate every 10 seconds
+    setIntervalAsync(async () => {
+      try {
         // Orchestrating service
         await orchestrator.orchestrateService();
       } catch (error) {
