@@ -144,7 +144,7 @@ async function main () {
         console.error(error);
       }
     }, 10000);
-    
+
     // Orchestrate every 10 seconds
     setIntervalAsync(async () => {
       try {
