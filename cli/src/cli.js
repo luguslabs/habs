@@ -14,7 +14,7 @@ const runCli = async args => {
   try {
     // Set cli version
     program
-      .version('2.2.1');
+      .version('2.2.3');
 
     // Init command
     program

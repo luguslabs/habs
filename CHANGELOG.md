@@ -4,6 +4,10 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v2.2.3](https://github.com/luguslabs/archipel/releases/tag/v2.2.3)
+
+[#274](https://github.com/luguslabs/archipel/issues/274) : remove hard coded --execution flag
+
 ## [v2.2.2](https://github.com/luguslabs/archipel/releases/tag/v2.2.2)
 
 ### Issues
