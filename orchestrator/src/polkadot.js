@@ -440,8 +440,6 @@ class Polkadot {
     // Common polkadot options
     this.commonPolkadotOptions = [
       '--pruning=archive',
-      '--wasm-execution',
-      'Compiled',
       '--rpc-cors',
       'http://localhost',
       '--rpc-port',
