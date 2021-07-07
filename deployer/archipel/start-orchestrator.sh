@@ -63,6 +63,14 @@ if [ ! -z "$CONFIG_FILE" ]; then
         IFS=',' read -ra rolesArray <<< "$NODES_ROLE"
         index=$(( $NODE_ID - 1 ))
         NODE_ROLE=${rolesArray[index]}
+
+        #if node role is no service this process will sleep eternally
+        if [ "$NODE_ROLE" == "noservice" ]; then
+          echo "This node is a NO SERVICE node."
+          echo "So this process will sleep eternally."
+          sleep infinity
+          exit 1
+        fi
     fi
 
     if [ -z "$NODE_GROUP" ]; then
