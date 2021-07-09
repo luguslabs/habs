@@ -11,11 +11,9 @@ const {
 } = require('./utils');
 const { Orchestrator } = require('./orchestrator');
 const {
-  initApi
-} = require('./api');
-const {
+  initApi,
   initApiSms
-} = require('./apiSms');
+} = require('./api');
 const { Stonith } = require('./stonith');
 
 // Import env variables from .env file
