@@ -2,13 +2,13 @@ const debug = require('debug')('service');
 
 const { getKeysFromSeed } = require('./utils');
 const { Service } = require('./service');
+const { Stonith } = require('./stonith');
 
 class Orchestrator {
   constructor (
     config,
     chain,
-    heartbeats,
-    stonith) {
+    heartbeats) {
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
@@ -18,7 +18,7 @@ class Orchestrator {
     this.noReadyCount = 0;
     this.noReadyThreshold = 30; // ~ 300 seconds
 
-    this.stonith = stonith;
+    this.stonith = new Stonith(this);
     // Create service instance
     this.service = new Service(config.service, this.chain, config.serviceMode);
 
@@ -156,16 +156,21 @@ class Orchestrator {
       const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
       if (setLeader) {
         console.log('The leadership was taken successfully...');
+
+        // If stonith is active shutdown other validator
+        // If not just return true and continue
+        const stonithResult = await this.stonith.shootOldValidator(nodeKey);
+        if (!stonithResult) {
+          console.log('Stonith was not successfull. Will retry the next time...');
+          return false;
+        }
+
         console.log(
           'Waiting 10 seconds to be sure that every node received leader update...'
         );
         await new Promise((resolve) => setTimeout(resolve, 10000));
 
-        // If stonith is active shutdown other validator
-        // If not just return true and continue
-        const stonithResult = await this.stonith.shootOldValidator(nodeKey);
-
-        return stonithResult;
+        return true;
       } else {
         console.log(
           'Failed to take leadership. Possibly other node already took leadership...'

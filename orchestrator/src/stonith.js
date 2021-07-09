@@ -40,9 +40,10 @@ const checkEnvVars = () => {
 };
 
 class Stonith {
-  constructor () {
+  constructor (orchestrator) {
     checkEnvVars();
 
+    this.orchestrator = orchestrator;
     this.stonithActive = !SMS_STONITH_ACTIVE.includes('false');
 
     if (this.stonithActive) {
@@ -61,6 +62,7 @@ class Stonith {
   }
 
   async shootOldValidator (nodeKey) {
+    console.log(this.orchestrator);
     if (this.stonithActive === 'false') {
       console.log('Stonith is not activated.');
       return true;

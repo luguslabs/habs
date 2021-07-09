@@ -1,51 +1,12 @@
 const { setIntervalAsync } = require('set-interval-async/fixed');
 const debug = require('debug')('app');
-const dotenv = require('dotenv');
 
 const { Chain } = require('./chain');
 const { Heartbeats } = require('./heartbeats');
-const {
-  catchExitSignals,
-  checkVariable
-} = require('./utils');
+const { catchExitSignals } = require('./utils');
 const { Orchestrator } = require('./orchestrator');
-const {
-  initApi,
-  initApiSms
-} = require('./api');
-const { Stonith } = require('./stonith');
-
-// Construct configuration from env variables
-const constructConfiguration = () => {
-  // Import env variables from .env file
-  dotenv.config();
-  const config = {};
-  config.nodeWs = process.env.NODE_WS;
-  config.mnemonic = process.env.MNEMONIC;
-  config.aliveTime = process.env.ALIVE_TIME;
-  config.service = process.env.SERVICES;
-  config.serviceMode = process.env.ARCHIPEL_SERVICE_MODE;
-  config.heartbeatEnabled = process.env.ARCHIPEL_HEARTBEATS_ENABLE;
-  config.nodesWallets = process.env.NODES_WALLETS;
-  config.archipelName = process.env.ARCHIPEL_NAME;
-  config.nodeGroup = process.env.NODE_GROUP;
-  config.nodeGroupId = process.env.NODE_GROUP_ID;
-
-  // Setting default values for variables
-  if (!config.heartbeatEnabled || !config.heartbeatEnabled.includes('false')) {
-    config.heartbeatEnabled = true;
-  }
-  config.orchestrationEnabled = process.env.ARCHIPEL_ORCHESTRATION_ENABLE;
-  if (!config.orchestrationEnabled || !config.orchestrationEnabled.includes('false')) {
-    config.orchestrationEnabled = true;
-  }
-
-  Object.keys(config).forEach(key => {
-    checkVariable(config[key], `${key}`);
-  });
-
-  return config;
-};
+const { initApi, initApiSms } = require('./api');
+const { constructConfiguration } = require('./config');
 
 // Main function
 async function main () {
@@ -61,21 +22,14 @@ async function main () {
     // Create Heartbeats instance
     const heartbeats = new Heartbeats(config);
 
-    // Create Stonith instance
-    const stonith = new Stonith();
-
     // Create Orchestrator instance
     const orchestrator = new Orchestrator(
       config,
       chain,
-      heartbeats,
-      stonith);
+      heartbeats);
 
     // Start service before orchestration
     await orchestrator.bootstrapService();
-
-    // Attach orchestrator to stonith
-    stonith.orchestrator = orchestrator;
 
     // Create chain event listener
     chain.listenEvents(heartbeats, orchestrator);

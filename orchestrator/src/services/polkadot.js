@@ -306,6 +306,8 @@ class Polkadot {
         '-name',
         `*${publicKey.substring(2)}`
       ];
+      console.log('Find command executed');
+      console.log(command);
 
       // Call find key command in docker container
       const result = await this.docker.dockerExecute(containerName, command);
