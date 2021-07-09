@@ -285,7 +285,7 @@ if [ -z "$OUTLET_PHONE_NUMBER_LIST" ]; then
 fi
 
 if [ -z "$ARCHIPEL_SERVICE_MODE" ]; then
-  # ARCHIPEL_SERVICE_MODE = active|passive|sentry|orchestrator
+  # ARCHIPEL_SERVICE_MODE = active|passive|orchestrator
   ARCHIPEL_SERVICE_MODE="orchestrator"
 fi
 

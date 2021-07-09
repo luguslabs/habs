@@ -8,7 +8,7 @@ const {
   isEmptyString,
   readToObj,
   checkVariable
-} = require('./utils');
+} = require('../utils');
 
 const config = {};
 
@@ -110,9 +110,6 @@ class Trustlines {
     if (await this.docker.isContainerRunningByName('trustlines-sync')) {
       return 'passive';
     }
-    if (await this.docker.isContainerRunningByName('trustlines-sentry')) {
-      return 'sentry';
-    }
     return 'none';
   }
 
@@ -130,7 +127,7 @@ class Trustlines {
     }
 
     // Get service volume from orchestrator and give this volume to polkadot container
-    const orchestratorServiceVolume = await this.docker.getMountThatContains(os.hostname(), 'service');
+    const orchestratorServiceVolume = await this.docker.getMountThatEndsWith(os.hostname(), 'service');
     if (orchestratorServiceVolume) {
       this.truslinesVolume = orchestratorServiceVolume.Name;
     } else {
@@ -175,8 +172,8 @@ class Trustlines {
           this.networkMode
         );
         containerName = 'trustlines-validator';
-      } else if ((mode === 'passive') || (mode === 'sentry')) {
-        containerName = (mode === 'passive') ? 'trustlines-sync' : 'trustlines-sentry';
+      } else if (mode === 'passive') {
+        containerName = 'trustlines-sync';
         const cmdsList = [
           '--role',
           'observer',
@@ -210,7 +207,6 @@ class Trustlines {
       if (!this.cleaningUp) {
         this.cleaningUp = true;
         console.log('Cleaning containers before exit...');
-        await this.docker.removeContainer('trustlines-sentry');
         await this.docker.removeContainer('trustlines-sync');
         await this.docker.removeContainer('trustlines-validator');
       } else {

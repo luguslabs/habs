@@ -52,7 +52,7 @@ function launch_archipel () {
     --env WIREGUARD_PEERS_PUB_ADDR="${14}" \
     --env WIREGUARD_PEERS_ALLOWED_IP="${15}" \
     --env WIREGUARD_PEERS_EXTERNAL_ADDR="${16}" \
-    --env NODES_ROLE="operator,operator,operator,sentry" \
+    --env NODES_ROLE="operator,operator,operator,operator" \
     --env NODE_ROLE="${18}" \
     luguslabs/archipel:$ARCHIPEL_VERSION
 
@@ -125,7 +125,7 @@ echo "Local node2-polkadot-sync node identity is '$NODE2_POLKADOT_LOCAL_ID'"
 NODE3_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-polkadot-peer-id.txt)
 echo "Local node3-polkadot-sync node identity is '$NODE3_POLKADOT_LOCAL_ID'"
 NODE4_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key4-polkadot-peer-id.txt)
-echo "Local node4-polkadot-sentry node identity is '$NODE4_POLKADOT_LOCAL_ID'"
+echo "Local node4-polkadot-sync node identity is '$NODE4_POLKADOT_LOCAL_ID'"
 
 # Constructing reserved peers polkadot list
 POLKADOT_RESERVED_NODES="/ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE4/tcp/30333/p2p/$NODE4_POLKADOT_LOCAL_ID"
@@ -208,7 +208,7 @@ launch_archipel "archipel4" \
                 "$WIREGUARD_PEERS_ALLOWED_IP" \
                 "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
                 3004 \
-                "sentry" \
+                "operator" \
 
 echo "Launching UI..."
 

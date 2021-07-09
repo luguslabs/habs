@@ -75,12 +75,12 @@ async function bootstrapService (orchestrator) {
   // Start service before orchestration
   if (ARCHIPEL_SERVICE_MODE === 'orchestrator' || ARCHIPEL_SERVICE_MODE === 'passive') {
     console.log(`ARCHIPEL_SERVICE_MODE is ${ARCHIPEL_SERVICE_MODE}. Starting service in passive...`);
-    await orchestrator.serviceStart('passive');
+    await orchestrator.service.serviceStart('passive');
   } else if (ARCHIPEL_SERVICE_MODE === 'active') {
     console.log('ARCHIPEL_SERVICE_MODE is force as active mode...');
-    await orchestrator.serviceStart('active');
-  } else{
-    throw Error("Unkown ARCHIPEL_SERVICE_MODE. Shutting down...")
+    await orchestrator.service.serviceStart('active');
+  } else {
+    throw Error('Unkown ARCHIPEL_SERVICE_MODE. Shutting down...');
   }
 }
 
@@ -134,7 +134,7 @@ async function main () {
     // Add heartbeats every 10 seconds
     setIntervalAsync(async () => {
       try {
-        await chain.addHeartbeat(NODE_GROUP_ID, orchestrator.mode, MNEMONIC);
+        await chain.addHeartbeat(NODE_GROUP_ID, orchestrator.service.mode, MNEMONIC);
       } catch (error) {
         console.error(error);
       }
@@ -155,8 +155,8 @@ async function main () {
       try {
         if (!chain.isConnected()) {
           console.log('Warning! Connection with chain was lost...');
-          console.log('Enforcing passive mode or sentry for service...');
-          await orchestrator.serviceStart('passive');
+          console.log('Enforcing passive mode for service...');
+          await orchestrator.service.serviceStart('passive');
         }
       } catch (error) {
         console.error(error);
@@ -164,7 +164,7 @@ async function main () {
     }, 5000);
 
     // Attach service cleanup to exit signals
-    catchExitSignals(orchestrator.serviceCleanUp.bind(orchestrator));
+    catchExitSignals(orchestrator.service.serviceCleanUp.bind(orchestrator));
 
     // Init api
     initApi(orchestrator);

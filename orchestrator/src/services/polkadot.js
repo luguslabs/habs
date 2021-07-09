@@ -13,7 +13,7 @@ const {
   checkVariable,
   formatOptionList,
   formatOptionCmds
-} = require('./utils');
+} = require('../utils');
 
 const config = {};
 
@@ -244,6 +244,7 @@ class Polkadot {
 
       // Add key into imported key list
       this.importedKeys.push(publicKey);
+      console.log(`The ${publicKey} key was successfully added to service keystore.`);
     } catch (error) {
       debug('importAKey', error);
       throw error;
@@ -328,11 +329,6 @@ class Polkadot {
       // If mode is active we will check validator container
       if (mode === 'active') {
         containerName = config.polkadotPrefix + 'polkadot-validator';
-      }
-
-      // If mode is sentry we will check validator container
-      if (mode === 'sentry') {
-        containerName = config.polkadotPrefix + 'polkadot-sentry';
       }
 
       // Check if container exists and is running
@@ -429,9 +425,6 @@ class Polkadot {
     if (await this.docker.isContainerRunningByName(config.polkadotPrefix + 'polkadot-sync')) {
       return 'passive';
     }
-    if (await this.docker.isContainerRunningByName(config.polkadotPrefix + 'polkadot-sentry')) {
-      return 'sentry';
-    }
     return 'none';
   }
 
@@ -480,8 +473,7 @@ class Polkadot {
     }
 
     // Get service volume from orchestrator and give this volume to polkadot container
-    const orchestratorServiceVolume = await this.docker.getMountThatContains(os.hostname(), 'service');
-    console.log(orchestratorServiceVolume);
+    const orchestratorServiceVolume = await this.docker.getMountThatEndsWith(os.hostname(), 'service');
     if (orchestratorServiceVolume) {
       this.polkadotVolume = orchestratorServiceVolume.Name;
     } else {
@@ -525,10 +517,9 @@ class Polkadot {
           this.networkMode
         );
         containerName = config.polkadotPrefix + 'polkadot-validator';
-      } else if ((mode === 'passive') || (mode === 'sentry')) {
-        // sentry is deprectaed. It is now like passive node but without keys.
+      } else if (mode === 'passive') {
         cmdsList.push(...['--name', `${config.polkadotName}-${mode}`, ...this.commonPolkadotOptions]);
-        const contrainerNameSuffix = (mode === 'passive') ? 'polkadot-sync' : 'polkadot-sentry';
+        const contrainerNameSuffix = 'polkadot-sync';
         containerName = config.polkadotPrefix + contrainerNameSuffix;
         await this.docker.startServiceContainer(
           'passive',
@@ -544,8 +535,8 @@ class Polkadot {
         throw new Error(`Mode '${mode}' is unknown.`);
       }
 
-      // Adding keys to polkadot keystore if no sentry node and if there is no already 5 keys
-      if ((mode !== 'sentry') && (this.importedKeys.length < 5)) {
+      // Adding keys to polkadot keystore if there is no already 5 keys
+      if (this.importedKeys.length < 5) {
         // Waiting for 10 seconds to be sure that node was started
         await new Promise(resolve => setTimeout(resolve, 10000));
         await this.polkadotKeysImport(containerName);
@@ -561,7 +552,6 @@ class Polkadot {
 
   async extractPeers (peers, nodesRole, role) {
     if (!nodesRole.includes(role)) {
-      // no role in config. sentry and validator will be all peers
       return peers;
     }
     const result = [];
@@ -583,7 +573,6 @@ class Polkadot {
       if (!this.cleaningUp) {
         this.cleaningUp = true;
         console.log('Cleaning containers before exit...');
-        await this.docker.removeContainer(config.polkadotPrefix + 'polkadot-sentry');
         await this.docker.removeContainer(config.polkadotPrefix + 'polkadot-sync');
         await this.docker.removeContainer(config.polkadotPrefix + 'polkadot-validator');
       } else {

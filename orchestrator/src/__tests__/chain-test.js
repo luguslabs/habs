@@ -141,8 +141,6 @@ test('Test event listener that updates heartbeats', async () => {
   expect(result1).toBe(true);
   const result2 = await chain.addHeartbeat('43','passive', mnemonic2);
   expect(result2).toBe(true);
-  const result3 = await chain.addHeartbeat('44','sentry', mnemonic3);
-  expect(result3).toBe(true);
 
   await new Promise((resolve) => setTimeout(resolve, 5000));
 

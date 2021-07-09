@@ -201,7 +201,7 @@ class Docker {
       }
 
       // Check if passive service container is already running
-      if ((type === 'passive' || type === 'sentry') && await this.isContainerRunningByName(passiveName)) {
+      if ((type === 'passive') && await this.isContainerRunningByName(passiveName)) {
         console.log(`Service is already running in ${type} mode...`);
         return;
       }
@@ -284,14 +284,14 @@ class Docker {
     }
   }
 
-  async getMountThatContains (nameOrId, str) {
+  async getMountThatEndsWith (nameOrId, str) {
     try {
       const container = await this.getContainerById(nameOrId);
 
       if (container) {
         return container.Mounts.find(element => {
           if ('Name' in element) {
-            return element.Name.includes(str) ? element : false;
+            return element.Name.endsWith(str) ? element : false;
           }
         });
       }

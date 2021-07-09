@@ -13,7 +13,7 @@ const {
   checkVariable,
   formatOptionList,
   formatOptionCmds
-} = require('./utils');
+} = require('../utils');
 
 const config = {};
 
@@ -294,11 +294,6 @@ class Centrifuge {
         containerName = 'centrifuge-validator';
       }
 
-      // If mode is sentry we will check validator container
-      if (mode === 'sentry') {
-        containerName = 'centrifuge-sentry';
-      }
-
       // Check if container exists and is running
       const containerExistAndRunning = await this.docker.isContainerRunningByName(containerName);
       if (!containerExistAndRunning) {
@@ -399,9 +394,6 @@ class Centrifuge {
     if (await this.docker.isContainerRunningByName('centrifuge-sync')) {
       return 'passive';
     }
-    if (await this.docker.isContainerRunningByName('centrifuge-sentry')) {
-      return 'sentry';
-    }
     return 'none';
   }
 
@@ -453,7 +445,7 @@ class Centrifuge {
     }
 
     // Get service volume from orchestrator and give this volume to centrifuge container
-    const orchestratorServiceVolume = await this.docker.getMountThatContains(os.hostname(), 'service');
+    const orchestratorServiceVolume = await this.docker.getMountThatEndsWith(os.hostname(), 'service');
     if (orchestratorServiceVolume) {
       this.centrifugeVolume = orchestratorServiceVolume.Name;
     } else {
@@ -493,10 +485,9 @@ class Centrifuge {
           this.networkMode
         );
         containerName = 'centrifuge-validator';
-      } else if ((mode === 'passive') || (mode === 'sentry')) {
-        // sentry is deprectaed. It is now like passive node but without keys.
+      } else if (mode === 'passive') {
         cmdsList.push(...['--name', `${config.centrifugeName}-${mode}`, ...this.commonCentrifugeOptions]);
-        const contrainerNameSuffix = (mode === 'passive') ? 'centrifuge-sync' : 'centrifuge-sentry';
+        const contrainerNameSuffix = 'centrifuge-sync';
         containerName = contrainerNameSuffix;
         await this.docker.startServiceContainer(
           'passive',
@@ -512,8 +503,8 @@ class Centrifuge {
         throw new Error(`Mode '${mode}' is unknown.`);
       }
 
-      // Adding keys to centrifuge keystore if no sentry node and if there is no already 4 keys
-      if ((mode !== 'sentry') && (this.importedKeys.length < 4)) {
+      // Adding keys to centrifuge keystore if there is no already 4 keys
+      if (this.importedKeys.length < 4) {
         // Waiting for 10 seconds to be sure that node was started
         await new Promise(resolve => setTimeout(resolve, 10000));
         await this.centrifugeKeysImport(containerName);
@@ -529,7 +520,6 @@ class Centrifuge {
 
   async extractPeers (peers, nodesRole, role) {
     if (!nodesRole.includes(role)) {
-      // no role in config. sentry and validator will be all peers
       return peers;
     }
     const result = [];
@@ -551,7 +541,6 @@ class Centrifuge {
       if (!this.cleaningUp) {
         this.cleaningUp = true;
         console.log('Cleaning containers before exit...');
-        await this.docker.removeContainer('centrifuge-sentry');
         await this.docker.removeContainer('centrifuge-sync');
         await this.docker.removeContainer('centrifuge-validator');
       } else {

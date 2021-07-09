@@ -1,46 +1,13 @@
 const debug = require('debug')('service');
 
 const { getKeysFromSeed } = require('./utils');
-const { Polkadot } = require('./polkadot');
-const { Trustlines } = require('./trustlines');
-const { Centrifuge } = require('./centrifuge');
-const { Docker } = require('./docker');
 const Nexmo = require('nexmo');
-const { DownloaderHelper } = require('node-downloader-helper');
-const jaguar = require('jaguar');
-const fsExtra = require('fs-extra');
+const { Service } = require('./service');
 
 class Orchestrator {
-  // Check if service is supported and create service instance
-  static createServiceInstance (serviceName) {
-    try {
-      if (serviceName === 'polkadot') {
-        // Create docker instance
-        const docker = new Docker();
-        // Create and return Polkadot instance
-        return new Polkadot(docker);
-      } else if (serviceName === 'trustlines') {
-        // Create docker instance
-        const docker = new Docker();
-        // Create and return Polkadot instance
-        return new Trustlines(docker);
-      } else if (serviceName === 'centrifuge') {
-        // Create docker instance
-        const docker = new Docker();
-        // Create and return Centrifuge instance
-        return new Centrifuge(docker);
-      } else {
-        throw Error(`Service ${serviceName} is not supported yet.`);
-      }
-    } catch (error) {
-      debug('createServiceInstance', error);
-      throw error;
-    }
-  }
-
   constructor (
     chain,
-    services,
+    serviceName,
     heartbeats,
     mnemonic,
     aliveTime,
@@ -61,12 +28,11 @@ class Orchestrator {
     authoritiesList,
     archipelOrchestrationEnable
   ) {
-
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
     this.chain = chain;
-    
+
     // Service not ready and node is in active mode
     this.noReadyCount = 0;
     this.noReadyThreshold = 30; // ~ 300 seconds
@@ -74,25 +40,17 @@ class Orchestrator {
     // Check if orchestration if enabled or disabled
     this.orchestrationEnabled = !archipelOrchestrationEnable.includes('false');
 
-    // Create service instances
-    // ?????
-    const servicesList = services.split(',');
-    this.services = [];
-    this.servicesName = [];
-    for (const service of servicesList) {
-      this.services.push(Orchestrator.createServiceInstance(service));
-      this.servicesName.push(service);
-    }
+    // Create service instance
+    this.service = new Service(serviceName, this.chain, serviceMode);
 
     this.heartbeats = heartbeats;
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
     this.serviceMode = serviceMode;
-    this.mode = serviceMode;
 
     // ?????????????????????
     if (serviceMode === 'orchestrator') {
-      this.mode = (role === 'operator') ? 'passive' : 'sentry';
+      this.service.mode = 'passive';
     }
 
     this.role = role;
@@ -110,16 +68,6 @@ class Orchestrator {
     this.outletPhoneNumberList = outletPhoneNumberList.replace(/"/g, '');
     this.authoritiesList = authoritiesList;
     this.smsStonithCallbackStatus = 'none';
-    this.downloadRunning = false;
-    this.downloadPaused = false;
-    this.download = false;
-    this.downloadSuccess = false;
-    this.downloadError = '';
-    this.downloadState = 'NONE';
-    this.databaseRestoreRunning = false;
-    this.databaseRestoreSuccess = false;
-    this.databaseRestoreError = '';
-    this.databaseRestoreProgress = 0;
   }
 
   // Orchestrate service
@@ -135,28 +83,27 @@ class Orchestrator {
 
       // If service mode is orchestrator we will do the classic orchestration
       if (this.serviceMode === 'orchestrator') {
-          console.log('serviceMode is orchestrator. So orchestrating...');
-          await this.orchestrateOperatorService();
-          return;
-      } 
-      
+        console.log('serviceMode is orchestrator. So orchestrating...');
+        await this.orchestrateOperatorService();
+        return;
+      }
+
       // If service mode is passive we will start the service in passive mode
       if (this.serviceMode === 'passive') {
         console.log('serviceMode force to passive. Start node in passive mode...');
-        await this.serviceStart('passive');
+        await this.service.serviceStart('passive');
         return;
-      } 
-      
+      }
+
       // If service mode is active we will start the service in active mode
       if (this.serviceMode === 'active') {
         console.log('serviceMode force to active. Start node in active mode...');
-        await this.serviceStart('active');
+        await this.service.serviceStart('active');
         return;
       }
 
       console.log('Wrong service mode ' + this.serviceMode + '. Do nothing...');
       return;
-
     } catch (error) {
       debug('orchestrateService', error);
       throw error;
@@ -165,7 +112,6 @@ class Orchestrator {
 
   // This method contains main orchestration logic
   async orchestrateOperatorService () {
-
     // If node state permits to send transactions
     console.log('Checking if Archipel chain node can receive transactions...');
     const sendTransaction = await this.chain.canSendTransactions();
@@ -173,7 +119,7 @@ class Orchestrator {
       console.log(
         "Archipel chain node can't receive transactions. Enforcing 'passive' service mode..."
       );
-      await this.serviceStart('passive');
+      await this.service.serviceStart('passive');
       return;
     }
 
@@ -192,23 +138,23 @@ class Orchestrator {
       console.log(
         "Seems that no one is alive. Enforcing 'passive' service mode..."
       );
-      await this.serviceStart('passive');
+      await this.service.serviceStart('passive');
       return;
     }
 
     // Check if service is ready to be started if not enforcing passive service mode
     console.log('Checking if service is ready to start...');
-    const serviceReady = await this.serviceReadinessManagement();
+    const serviceReady = await this.service.serviceReadinessManagement();
     if (!serviceReady) {
       console.log("Service is not ready. Enforcing 'passive' service mode...");
-      await this.serviceStart('passive');
+      await this.service.serviceStart('passive');
       return;
     }
 
     // If heartbeats are disabled enforcing passive service mode
     if (!this.chain.heartbeatSendEnabled || !this.chain.heartbeatSendEnabledAdmin) {
       console.log('Heartbeat send is disabled. Enforcing passive service mode...');
-      await this.serviceStart('passive');
+      await this.service.serviceStart('passive');
       return;
     }
 
@@ -219,13 +165,13 @@ class Orchestrator {
       console.log(
         "The current node is not leader. Enforcing 'passive' service mode..."
       );
-      await this.serviceStart('passive');
+      await this.service.serviceStart('passive');
       return;
     }
 
     // If all checks passed we can start service in active mode
     console.log('All checks passed. Launching service in active mode...');
-    await this.serviceStart('active');
+    await this.service.serviceStart('active');
   }
 
   // SMS stonith algorithm
@@ -391,7 +337,10 @@ class Orchestrator {
 
         if (this.smsStonithActive === 'true') {
           console.log('smsStonith is Active ');
-          const orchestratorAddress = await this.getOrchestratorAddress();
+
+          const getOrchestratorKey = await getKeysFromSeed(this.mnemonic);
+          const orchestratorAddress = getOrchestratorKey.address;
+
           this.smsStonithCallbackStatus = 'waitingCallBack';
           const shoot = await this.smsShootOldValidatorInTheHead(
             orchestratorAddress,
@@ -436,49 +385,6 @@ class Orchestrator {
       debug('becomeLeader', error);
       throw error;
     }
-  }
-
-  // Service readiness management
-  async serviceReadinessManagement () {
-    const serviceReady = await this.isServiceReadyToStart(this.mode);
-
-    // If service is not ready and current node is leader
-    if (!serviceReady && this.mode === 'active') {
-      // Waiting for this.noReadyThreshold orchestrations
-      if (this.noReadyCount < this.noReadyThreshold) {
-        console.log(
-          `Service is not ready but current node is leader. Waiting for ${
-            this.noReadyThreshold - this.noReadyCount
-          } orchestrations...`
-        );
-        this.noReadyCount++;
-        return true;
-        // If service is not ready after noReadyThreshold enforcing passive mode
-        // And disabling heartbeats send
-      } else {
-        console.log(
-          `Service is not ready for ${this.noReadyThreshold} orchestrations. Disabling heartbeat send and enforcing passive mode...`
-        );
-        this.chain.heartbeatSendEnabled = false;
-        return false;
-      }
-    }
-
-    // If service is ready and heartbeat send is disabled we can activate heartbeats send
-    if (serviceReady && !this.chain.heartbeatSendEnabled) {
-      console.log(
-        'Service is ready and heartbeat send was disabled. Enabling it...'
-      );
-      this.chain.heartbeatSendEnabled = true;
-    }
-
-    // Reset noReady counter
-    if (this.noReadyCount !== 0) {
-      this.noReadyCount = 0;
-    }
-
-    // Return isServiceReadyToStart result
-    return serviceReady;
   }
 
   // Manage leadership
@@ -570,296 +476,6 @@ class Orchestrator {
       debug('otherLeaderAction', error);
       throw error;
     }
-  }
-
-  // Check isServiceReadyToStart
-  async isServiceReadyToStart (mode) {
-    try {
-      for (const service of this.services) {
-        const ready = await service.isServiceReadyToStart(mode);
-        if (!ready) {
-          return false;
-        }
-      }
-      return true;
-    } catch (error) {
-      debug('isServiceReadyToStart', error);
-      throw error;
-    }
-  }
-
-  // Start service
-  async serviceStart (mode) {
-    try {
-      for (const service of this.services) {
-        await service.start(mode);
-      }
-      this.mode = mode;
-    } catch (error) {
-      debug('serviceStart', error);
-      throw error;
-    }
-  }
-
-  // Restore Service Database
-  async serviceRestoreDB (action) {
-    try {
-      const backupURL = this.services[0].getBackupURL();
-
-      // Create download object if is not already created
-      if (!this.download) {
-        this.download = new DownloaderHelper(backupURL, '/', { override: true, retry: { maxRetries: 5, delay: 5000 } });
-      }
-
-      // Download events
-      this.download.on('error', (error) => {
-        const errorMsg = `Download Error! Error: ${error}.`;
-        console.log(errorMsg);
-        this.downloadError = errorMsg;
-        this.downloadRunning = false;
-      });
-
-      this.download.on('timeout', () => {
-        const errorMsg = 'Download Error! Timeout!';
-        console.log(errorMsg);
-        this.downloadError = errorMsg;
-        this.downloadRunning = false;
-      });
-
-      this.download.on('retry', (attempt, retryOpts) => {
-        const errorMsg = `Download Error! Retry #${attempt}. Delay ${retryOpts.delay} ms.`;
-        console.log(errorMsg);
-        this.downloadError = errorMsg;
-      });
-
-      this.download.on('stateChanged', (state) => {
-        console.log(`Download State Changed! State: ${state}.`);
-        this.downloadState = state;
-      });
-
-      // Download success handler
-      this.download.on('end', (downloadInfo) => {
-        if (downloadInfo.incomplete) {
-          const error = 'Download was finished but is incomplete.';
-          console.log(error);
-          this.downloadError = error;
-          this.downloadRunning = false;
-          this.downloadSuccess = false;
-          return;
-        }
-
-        const backupURL = this.services[0].getBackupURL();
-        const fileName = backupURL.split('/').pop();
-
-        if (!this.downloadRunning) {
-          return;
-        }
-
-        this.downloadSuccess = true;
-        console.log(`File was successfully downloaded and saved to /${fileName}...`);
-        this.downloadRunning = false;
-        this.downloadError = '';
-      });
-
-      // Info about action
-      let info = '';
-
-      // Starting download
-      if (action === 'download-start') {
-        // If download if not already running starting it
-        if (this.databaseRestoreRunning) {
-          info = 'You cannot download while the database restore is running!';
-          console.log(info);
-          return info;
-        }
-
-        if (this.downloadRunning) {
-          info = 'Download is already running!';
-          console.log(info);
-          return info;
-        }
-        this.downloadError = '';
-        console.log(`Starting download from ${backupURL}...`);
-        this.download.start();
-        this.downloadSuccess = false;
-        this.downloadRunning = true;
-        this.downloadPause = false;
-        info = 'Download was started!';
-        console.log(info);
-        return info;
-      // Stopping download
-      } else if (action === 'download-stop') {
-        if (!this.downloadRunning) {
-          info = 'Download is not running!';
-          console.log(info);
-          return info;
-        }
-        console.log('Stopping the download...');
-        await this.download.stop();
-        this.downloadRunning = false;
-        this.downloadPaused = false;
-        info = 'Download was stopped!';
-        console.log(info);
-        return info;
-      // Pausing download
-      } else if (action === 'download-pause') {
-        if (!this.downloadRunning || this.downloadPaused) {
-          info = 'Download is not running or already paused!';
-          console.log(info);
-          return info;
-        }
-
-        console.log('Pausing the download...');
-        await this.download.pause();
-        this.downloadPaused = true;
-        info = 'Download was paused!';
-        console.log(info);
-        return info;
-      // Resuming download
-      } else if (action === 'download-resume') {
-        if (!this.downloadRunning || !this.downloadPaused) {
-          info = 'Download is not running or not paused!';
-          console.log(info);
-          return info;
-        }
-        console.log('Resuming the download...');
-        this.downloadPaused = false;
-        this.download.resume();
-        info = 'Download was resumed!';
-        console.log(info);
-        return info;
-
-      // Send download stats only
-      } else if (action === 'download-stats') {
-        console.log('Sending stats only!');
-        const stats = await this.download.getStats();
-        stats.downloadRunning = this.downloadRunning;
-        stats.downloadPaused = this.downloadPaused;
-        stats.downloadSuccess = this.downloadSuccess;
-        stats.downloadState = this.downloadState;
-        stats.downloadError = this.downloadError;
-        return JSON.stringify(stats);
-      // Restore service database
-      } else if (action === 'restore') {
-        if (this.downloadRunning || !this.downloadSuccess) {
-          info = 'You must successfully download the database file before restore!';
-          console.log(info);
-          return info;
-        }
-        if (this.databaseRestoreRunning) {
-          info = 'Database restore is already running.';
-          console.log(info);
-          return info;
-        }
-
-        await this.restoreDB();
-        info = 'Database restore was launched!';
-        console.log(info);
-        return info;
-
-      // Restore database process statistics
-      } else if (action === 'restore-stats') {
-        const stats = {};
-        stats.databaseRestoreRunning = this.databaseRestoreRunning;
-        stats.databaseRestoreSuccess = this.databaseRestoreSuccess;
-        stats.databaseRestoreError = this.databaseRestoreError;
-        stats.databaseRestoreProgress = this.databaseRestoreProgress;
-        return JSON.stringify(stats);
-      } else {
-        throw Error('Unknown action.');
-      }
-    } catch (error) {
-      debug('serviceRestoreDB', error);
-      throw error;
-    }
-  }
-
-  // Triggered if download was successfull
-  async restoreDB () {
-    try {
-      // Turn off orchestrator and stop service container
-      await this.restoreStartPrepare();
-
-      const dataBasePath = this.services[0].getDatabasePath();
-      const backupURL = this.services[0].getBackupURL();
-      const fileName = backupURL.split('/').pop();
-
-      console.log(`Restoring database from file /${fileName}...`);
-
-      // Removing all from dataBasePath directory
-      console.log(`Removing all files from ${dataBasePath} directory...`);
-      fsExtra.emptyDirSync(`${dataBasePath}`);
-
-      // Extacting downloaded archive to dataBasePath directory
-      console.log(`Extracting /${fileName} into ${dataBasePath}.`);
-      const extract = jaguar.extract(`/${fileName}`, dataBasePath);
-      this.databaseRestoreProgress = 0;
-
-      // Extract events
-      extract.on('file', (name) => {
-        console.log(`Extracting file: ${name}...`);
-      });
-
-      extract.on('progress', (percent) => {
-        console.log(`Extracting progress: ${percent} %`);
-        this.databaseRestoreProgress = percent;
-      });
-
-      extract.on('error', (error) => {
-        const errorMsg = `Extracting file error: ${error}`;
-        console.log(errorMsg);
-        this.databaseRestoreError = errorMsg;
-        // If error we will relaunch orchestration and service in passive mode
-        this.restoreStopPrepare();
-      });
-
-      extract.on('end', () => {
-        console.log('Extracting file success!!');
-        this.databaseRestoreSuccess = true;
-        // If success we will relaunch orchestration and service in passive mode
-        this.restoreStopPrepare();
-        this.databaseRestoreError = '';
-      });
-    } catch (error) {
-      debug('restoreDB', error);
-      throw error;
-    }
-  }
-
-  // Prepare the orchestrator if download will be started
-  async restoreStartPrepare () {
-    this.databaseRestoreRunning = true;
-    this.databaseRestoreSuccess = false;
-    this.orchestrationEnabled = false;
-    this.chain.heartbeatSendEnabled = false;
-    await this.serviceCleanUp();
-    this.services[0].importedKeys = [];
-  }
-
-  // Prepare the orchestrator if download will be stopped
-  async restoreStopPrepare () {
-    this.databaseRestoreRunning = false;
-    this.orchestrationEnabled = true;
-    this.chain.heartbeatSendEnabled = true;
-    await this.serviceStart('passive');
-  }
-
-  // Cleanup a service
-  async serviceCleanUp () {
-    try {
-      for (const service of this.services) {
-        await service.cleanUp();
-      }
-    } catch (error) {
-      debug('serviceCleanUp', error);
-      console.error(error);
-    }
-  }
-
-  // Get Orchestrator address
-  async getOrchestratorAddress () {
-    const key = await getKeysFromSeed(this.mnemonic);
-    return key.address;
   }
 }
 

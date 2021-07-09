@@ -64,13 +64,7 @@ class Chain {
             debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
             // If anyone other took leadership
             if (event.data[0].toString() !== keys.address.toString()) {
-              if (this.role === 'operator') {
-                console.log('Forcing service in passive mode...');
-                orchestrator.serviceStart('passive');
-              } else {
-                console.log('Forcing service in sentry mode...');
-                orchestrator.serviceStart('sentry');
-              }
+              orchestrator.service.serviceStart('passive');
             }
           }
           // Add heartbeat if NewHeartbeat event was received

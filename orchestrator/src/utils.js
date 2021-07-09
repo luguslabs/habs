@@ -37,9 +37,6 @@ const fromModeToNodeStatus = mode => {
   if (mode === 'passive') {
     result = 2;
   }
-  if (mode === 'sentry') {
-    result = 3;
-  }
   return result;
 };
 
