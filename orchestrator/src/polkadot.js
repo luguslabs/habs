@@ -481,6 +481,7 @@ class Polkadot {
 
     // Get service volume from orchestrator and give this volume to polkadot container
     const orchestratorServiceVolume = await this.docker.getMountThatContains(os.hostname(), 'service');
+    console.log(orchestratorServiceVolume);
     if (orchestratorServiceVolume) {
       this.polkadotVolume = orchestratorServiceVolume.Name;
     } else {

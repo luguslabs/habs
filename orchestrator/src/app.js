@@ -44,7 +44,6 @@ const {
   NEXMO_API_CHECK_MSG_SIGNATURE,
   NEXMO_PHONE_NUMBER,
   OUTLET_PHONE_NUMBER_LIST
-
 } = process.env;
 
 // Check if all necessary env vars were set
@@ -71,6 +70,20 @@ const checkEnvVars = () => {
   }
 };
 
+// Bootstrap service at boot
+async function bootstrapService (orchestrator) {
+  // Start service before orchestration
+  if (ARCHIPEL_SERVICE_MODE === 'orchestrator' || ARCHIPEL_SERVICE_MODE === 'passive') {
+    console.log(`ARCHIPEL_SERVICE_MODE is ${ARCHIPEL_SERVICE_MODE}. Starting service in passive...`);
+    await orchestrator.serviceStart('passive');
+  } else if (ARCHIPEL_SERVICE_MODE === 'active') {
+    console.log('ARCHIPEL_SERVICE_MODE is force as active mode...');
+    await orchestrator.serviceStart('active');
+  } else{
+    throw Error("Unkown ARCHIPEL_SERVICE_MODE. Shutting down...")
+  }
+}
+
 // Main function
 async function main () {
   try {
@@ -79,7 +92,7 @@ async function main () {
 
     // Connect to Polkadot API
     console.log('Connecting to Archipel Chain node...');
-    const chain = new Chain(NODE_WS, NODE_ROLE);
+    const chain = new Chain(NODE_WS, NODE_ROLE, ARCHIPEL_HEARTBEATS_ENABLE);
     await chain.connect();
 
     // Construct nodes list
@@ -102,38 +115,20 @@ async function main () {
       SMS_STONITH_ACTIVE,
       SMS_STONITH_CALLBACK_MANDATORY,
       SMS_STONITH_CALLBACK_MAX_DELAY,
-      NEXMO_API_KEY.replace(/"/g, ''),
-      NEXMO_API_SECRET.replace(/"/g, ''),
-      NEXMO_API_SIGNATURE_METHOD.replace(/"/g, ''),
-      NEXMO_API_SIGNATURE_SECRET.replace(/"/g, ''),
+      NEXMO_API_KEY,
+      NEXMO_API_SECRET,
+      NEXMO_API_SIGNATURE_METHOD,
+      NEXMO_API_SIGNATURE_SECRET,
       NEXMO_API_CHECK_MSG_SIGNATURE,
-      NEXMO_PHONE_NUMBER.replace(/"/g, ''),
-      OUTLET_PHONE_NUMBER_LIST.replace(/"/g, ''),
-      AUTHORITIES_LIST);
+      NEXMO_PHONE_NUMBER,
+      OUTLET_PHONE_NUMBER_LIST,
+      AUTHORITIES_LIST,
+      ARCHIPEL_ORCHESTRATION_ENABLE);
 
-    if (ARCHIPEL_HEARTBEATS_ENABLE.includes('false')) {
-      orchestrator.chain.heartbeatSendEnabledAdmin = false;
-    }
-    if (ARCHIPEL_ORCHESTRATION_ENABLE.includes('false')) {
-      orchestrator.orchestrationEnabled = false;
-    }
+    // Start service before orchestration
+    await bootstrapService(orchestrator);
 
-    if (ARCHIPEL_SERVICE_MODE === 'orchestrator') {
-      // Start service in passive mode
-      console.log('ARCHIPEL_SERVICE_MODE is orchestrator. Starting service in passive or sentry mode...');
-      await orchestrator.serviceStart(NODE_ROLE === 'operator' ? 'passive' : 'sentry');
-    } else if (ARCHIPEL_SERVICE_MODE === 'sentry') {
-      console.log('ARCHIPEL_SERVICE_MODE is force as sentry mode...');
-      await orchestrator.serviceStart('sentry');
-    } else if (ARCHIPEL_SERVICE_MODE === 'passive') {
-      console.log('ARCHIPEL_SERVICE_MODE is force as passive mode...');
-      await orchestrator.serviceStart('passive');
-    } else if (ARCHIPEL_SERVICE_MODE === 'active') {
-      console.log('ARCHIPEL_SERVICE_MODE is force as active mode...');
-      await orchestrator.serviceStart('active');
-    }
-
-    // Listen events
+    // Create chain event listener
     chain.listenEvents(heartbeats, orchestrator, MNEMONIC);
 
     // Add heartbeats every 10 seconds
@@ -161,7 +156,7 @@ async function main () {
         if (!chain.isConnected()) {
           console.log('Warning! Connection with chain was lost...');
           console.log('Enforcing passive mode or sentry for service...');
-          await orchestrator.serviceStart(NODE_ROLE === 'operator' ? 'passive' : 'sentry');
+          await orchestrator.serviceStart('passive');
         }
       } catch (error) {
         console.error(error);

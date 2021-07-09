@@ -290,7 +290,9 @@ class Docker {
 
       if (container) {
         return container.Mounts.find(element => {
-          return element.Source.includes(str) ? element : false;
+          if ('Name' in element) {
+            return element.Name.includes(str) ? element : false;
+          }
         });
       }
       return false;

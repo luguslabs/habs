@@ -58,16 +58,24 @@ class Orchestrator {
     nexmoApiCheckMsgSignature,
     nexmoPhoneNumber,
     outletPhoneNumberList,
-    authoritiesList
+    authoritiesList,
+    archipelOrchestrationEnable
   ) {
+
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
     this.chain = chain;
+    
     // Service not ready and node is in active mode
     this.noReadyCount = 0;
     this.noReadyThreshold = 30; // ~ 300 seconds
+
+    // Check if orchestration if enabled or disabled
+    this.orchestrationEnabled = !archipelOrchestrationEnable.includes('false');
+
     // Create service instances
+    // ?????
     const servicesList = services.split(',');
     this.services = [];
     this.servicesName = [];
@@ -75,28 +83,31 @@ class Orchestrator {
       this.services.push(Orchestrator.createServiceInstance(service));
       this.servicesName.push(service);
     }
+
     this.heartbeats = heartbeats;
     this.mnemonic = mnemonic;
     this.aliveTime = aliveTime;
-    this.orchestrationEnabled = true;
     this.serviceMode = serviceMode;
     this.mode = serviceMode;
+
+    // ?????????????????????
     if (serviceMode === 'orchestrator') {
       this.mode = (role === 'operator') ? 'passive' : 'sentry';
     }
+
     this.role = role;
     this.group = group;
     this.archipelName = archipelName;
     this.smsStonithActive = smsStonithActive;
     this.smsStonithActiveCallbackMandatory = smsStonithActiveCallbackMandatory;
     this.smsStonithActiveCallbackMaxDelay = smsStonithActiveCallbackMaxDelay;
-    this.nexmoApiKey = nexmoApiKey;
-    this.nexmoApiSecret = nexmoApiSecret;
-    this.nexmoApiSignatureMethod = nexmoApiSignatureMethod;
-    this.nexmoApiSignatureSecret = nexmoApiSignatureSecret;
+    this.nexmoApiKey = nexmoApiKey.replace(/"/g, '');
+    this.nexmoApiSecret = nexmoApiSecret.replace(/"/g, '');
+    this.nexmoApiSignatureMethod = nexmoApiSignatureMethod.replace(/"/g, '');
+    this.nexmoApiSignatureSecret = nexmoApiSignatureSecret.replace(/"/g, '');
     this.nexmoApiCheckMsgSignature = nexmoApiCheckMsgSignature;
-    this.nexmoPhoneNumber = nexmoPhoneNumber;
-    this.outletPhoneNumberList = outletPhoneNumberList;
+    this.nexmoPhoneNumber = nexmoPhoneNumber.replace(/"/g, '');
+    this.outletPhoneNumberList = outletPhoneNumberList.replace(/"/g, '');
     this.authoritiesList = authoritiesList;
     this.smsStonithCallbackStatus = 'none';
     this.downloadRunning = false;
@@ -117,39 +128,44 @@ class Orchestrator {
       console.log('Orchestrating service...');
 
       // Check if orchestration is enabled
-      console.log('Checking if orchestration is enabled...');
       if (!this.orchestrationEnabled) {
         console.log('Orchestration is disabled...');
         return;
       }
+
+      // If service mode is orchestrator we will do the classic orchestration
       if (this.serviceMode === 'orchestrator') {
-        if (this.role === 'operator') {
-          console.log('Start node in operator mode, active or passive...');
+          console.log('serviceMode is orchestrator. So orchestrating...');
           await this.orchestrateOperatorService();
-        } else {
-          console.log('Start node in sentry mode...');
-          await this.serviceStart('sentry');
-        }
-      } else if (this.serviceMode === 'sentry') {
-        console.log('serviceMode force to sentry. Start node in sentry mode...');
-        await this.serviceStart('sentry');
-      } else if (this.serviceMode === 'passive') {
+          return;
+      } 
+      
+      // If service mode is passive we will start the service in passive mode
+      if (this.serviceMode === 'passive') {
         console.log('serviceMode force to passive. Start node in passive mode...');
         await this.serviceStart('passive');
-      } else if (this.serviceMode === 'active') {
+        return;
+      } 
+      
+      // If service mode is active we will start the service in active mode
+      if (this.serviceMode === 'active') {
         console.log('serviceMode force to active. Start node in active mode...');
         await this.serviceStart('active');
-      } else {
-        console.log('Wrong service mode ' + this.serviceMode + '. Do nothing...');
         return;
       }
+
+      console.log('Wrong service mode ' + this.serviceMode + '. Do nothing...');
+      return;
+
     } catch (error) {
       debug('orchestrateService', error);
       throw error;
     }
   }
 
+  // This method contains main orchestration logic
   async orchestrateOperatorService () {
+
     // If node state permits to send transactions
     console.log('Checking if Archipel chain node can receive transactions...');
     const sendTransaction = await this.chain.canSendTransactions();
@@ -166,12 +182,12 @@ class Orchestrator {
     const nodeKey = key.address;
     debug('orchestrateService', `Current Node Key: ${nodeKey}`);
 
-    // Check if anyone is alive
-    console.log('Checking is anyone in federation is alive...');
-
+    // Get current best block number
     const bestNumber = await this.chain.getBestNumber();
     debug('orchestrateService', `bestNumber: ${bestNumber}`);
 
+    // Check if anyone is alive
+    console.log('Checking is anyone in federation is alive...');
     if (!this.heartbeats.anyOneAlive(nodeKey, this.aliveTime, this.group, bestNumber)) {
       console.log(
         "Seems that no one is alive. Enforcing 'passive' service mode..."
@@ -180,7 +196,7 @@ class Orchestrator {
       return;
     }
 
-    // Check service readiness only if in passive mode
+    // Check if service is ready to be started if not enforcing passive service mode
     console.log('Checking if service is ready to start...');
     const serviceReady = await this.serviceReadinessManagement();
     if (!serviceReady) {
@@ -196,10 +212,9 @@ class Orchestrator {
       return;
     }
 
-    // Check node leadership
+    // Manage the node leadership and if not leader enforcing passive service mode
     console.log('Checking node leadership...');
     const leadership = await this.leadershipManagement(nodeKey);
-
     if (!leadership) {
       console.log(
         "The current node is not leader. Enforcing 'passive' service mode..."
