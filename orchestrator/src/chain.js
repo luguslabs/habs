@@ -4,11 +4,10 @@ const debug = require('debug')('chain');
 const { getKeysFromSeed, fromModeToNodeStatus } = require('./utils');
 
 class Chain {
-  constructor (wsProvider, role, heartbeatsEnable) {
+  constructor (wsProvider, heartbeatsEnable) {
     this.wsProvider = wsProvider;
     this.heartbeatSendEnabled = true;
     this.heartbeatSendEnabledAdmin = !heartbeatsEnable.includes('false');
-    this.role = role;
   }
 
   async connect () {

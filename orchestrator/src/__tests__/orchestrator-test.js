@@ -8,7 +8,6 @@ const { Heartbeats } = require('../heartbeats');
 const { Chain } = require('../chain');
 const { getKeysFromSeed } = require('../utils');
 
-
 let docker;
 let chain;
 

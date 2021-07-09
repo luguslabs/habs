@@ -131,7 +131,7 @@ class RestoreDb {
     this.download.start();
     this.downloadSuccess = false;
     this.downloadRunning = true;
-    this.downloadPause = false;
+    this.downloadPaused = false;
     this.downloadInfo = 'Download was started!';
     console.log(this.downloadInfo);
     return this.downloadInfo;

@@ -16,6 +16,7 @@ const {
 const {
   initApiSms
 } = require('./apiSms');
+const { Stonith } = require('./stonith');
 
 // Import env variables from .env file
 dotenv.config();
@@ -29,21 +30,8 @@ const {
   ARCHIPEL_ORCHESTRATION_ENABLE,
   NODES_WALLETS,
   ARCHIPEL_NAME,
-  NODE_ROLE,
   NODE_GROUP,
-  NODE_GROUP_ID,
-  NODES_ROLE,
-  SMS_STONITH_ACTIVE,
-  SMS_STONITH_CALLBACK_MANDATORY,
-  SMS_STONITH_CALLBACK_MAX_DELAY,
-  AUTHORITIES_LIST,
-  NEXMO_API_KEY,
-  NEXMO_API_SECRET,
-  NEXMO_API_SIGNATURE_METHOD,
-  NEXMO_API_SIGNATURE_SECRET,
-  NEXMO_API_CHECK_MSG_SIGNATURE,
-  NEXMO_PHONE_NUMBER,
-  OUTLET_PHONE_NUMBER_LIST
+  NODE_GROUP_ID
 } = process.env;
 
 // Check if all necessary env vars were set
@@ -53,17 +41,13 @@ const checkEnvVars = () => {
     checkVariable(MNEMONIC, 'MNEMONIC');
     checkVariable(ALIVE_TIME, 'ALIVE_TIME');
     checkVariable(SERVICES, 'SERVICES');
-    checkVariable(ARCHIPEL_NAME, 'ARCHIPEL_NAME');
+    checkVariable(SERVICES, 'ARCHIPEL_SERVICE_MODE');
+    checkVariable(SERVICES, 'ARCHIPEL_HEARTBEATS_ENABLE');
+    checkVariable(SERVICES, 'ARCHIPEL_ORCHESTRATION_ENABLE');
     checkVariable(NODES_WALLETS, 'NODES_WALLETS');
-    checkVariable(NODE_ROLE, 'NODE_ROLE');
+    checkVariable(ARCHIPEL_NAME, 'ARCHIPEL_NAME');
     checkVariable(NODE_GROUP, 'NODE_GROUP');
     checkVariable(NODE_GROUP_ID, 'NODE_GROUP_ID');
-    checkVariable(NODES_ROLE, 'NODES_ROLE');
-    checkVariable(SMS_STONITH_ACTIVE, 'SMS_STONITH_ACTIVE');
-    checkVariable(SMS_STONITH_CALLBACK_MANDATORY, 'SMS_STONITH_CALLBACK_MANDATORY');
-    checkVariable(SMS_STONITH_CALLBACK_MAX_DELAY, 'SMS_STONITH_CALLBACK_MAX_DELAY');
-    checkVariable(NEXMO_API_CHECK_MSG_SIGNATURE, 'NEXMO_API_CHECK_MSG_SIGNATURE');
-    checkVariable(AUTHORITIES_LIST, 'AUTHORITIES_LIST');
   } catch (error) {
     debug('checkEnvVars', error);
     throw error;
@@ -92,7 +76,7 @@ async function main () {
 
     // Connect to Polkadot API
     console.log('Connecting to Archipel Chain node...');
-    const chain = new Chain(NODE_WS, NODE_ROLE, ARCHIPEL_HEARTBEATS_ENABLE);
+    const chain = new Chain(NODE_WS, ARCHIPEL_HEARTBEATS_ENABLE);
     await chain.connect();
 
     // Construct nodes list
@@ -100,6 +84,9 @@ async function main () {
 
     // Create Heartbeats instance
     const heartbeats = new Heartbeats(nodes);
+
+    // Create stonith instance
+    const stonith = new Stonith();
 
     // Create orchestrator instance
     const orchestrator = new Orchestrator(
@@ -110,23 +97,15 @@ async function main () {
       ALIVE_TIME,
       ARCHIPEL_NAME,
       ARCHIPEL_SERVICE_MODE,
-      NODE_ROLE,
       NODE_GROUP_ID,
-      SMS_STONITH_ACTIVE,
-      SMS_STONITH_CALLBACK_MANDATORY,
-      SMS_STONITH_CALLBACK_MAX_DELAY,
-      NEXMO_API_KEY,
-      NEXMO_API_SECRET,
-      NEXMO_API_SIGNATURE_METHOD,
-      NEXMO_API_SIGNATURE_SECRET,
-      NEXMO_API_CHECK_MSG_SIGNATURE,
-      NEXMO_PHONE_NUMBER,
-      OUTLET_PHONE_NUMBER_LIST,
-      AUTHORITIES_LIST,
-      ARCHIPEL_ORCHESTRATION_ENABLE);
+      ARCHIPEL_ORCHESTRATION_ENABLE,
+      stonith);
 
     // Start service before orchestration
     await bootstrapService(orchestrator);
+
+    // Attach orchestrator to stonith
+    stonith.orchestrator = orchestrator;
 
     // Create chain event listener
     chain.listenEvents(heartbeats, orchestrator, MNEMONIC);
