@@ -27,10 +27,12 @@ const {
 const checkEnvVars = () => {
   try {
     checkVariable(SMS_STONITH_ACTIVE, 'SMS_STONITH_ACTIVE');
-    checkVariable(SMS_STONITH_CALLBACK_MANDATORY, 'SMS_STONITH_CALLBACK_MANDATORY');
-    checkVariable(SMS_STONITH_CALLBACK_MAX_DELAY, 'SMS_STONITH_CALLBACK_MAX_DELAY');
-    checkVariable(NEXMO_API_CHECK_MSG_SIGNATURE, 'NEXMO_API_CHECK_MSG_SIGNATURE');
-    checkVariable(AUTHORITIES_LIST, 'AUTHORITIES_LIST');
+    if (!SMS_STONITH_ACTIVE.includes('false')) {
+      checkVariable(SMS_STONITH_CALLBACK_MANDATORY, 'SMS_STONITH_CALLBACK_MANDATORY');
+      checkVariable(SMS_STONITH_CALLBACK_MAX_DELAY, 'SMS_STONITH_CALLBACK_MAX_DELAY');
+      checkVariable(NEXMO_API_CHECK_MSG_SIGNATURE, 'NEXMO_API_CHECK_MSG_SIGNATURE');
+      checkVariable(AUTHORITIES_LIST, 'AUTHORITIES_LIST');
+    }
   } catch (error) {
     debug('checkEnvVars', error);
     throw error;
@@ -41,19 +43,63 @@ class Stonith {
   constructor () {
     checkEnvVars();
 
-    this.stonithActive = SMS_STONITH_ACTIVE;
-    this.smsStonithActive = SMS_STONITH_ACTIVE;
-    this.smsStonithActiveCallbackMandatory = SMS_STONITH_CALLBACK_MANDATORY;
-    this.smsStonithActiveCallbackMaxDelay = SMS_STONITH_CALLBACK_MAX_DELAY;
-    this.nexmoApiKey = NEXMO_API_KEY.replace(/"/g, '');
-    this.nexmoApiSecret = NEXMO_API_SECRET.replace(/"/g, '');
-    this.nexmoApiSignatureMethod = NEXMO_API_SIGNATURE_METHOD.replace(/"/g, '');
-    this.nexmoApiSignatureSecret = NEXMO_API_SIGNATURE_SECRET.replace(/"/g, '');
-    this.nexmoApiCheckMsgSignature = NEXMO_API_CHECK_MSG_SIGNATURE;
-    this.nexmoPhoneNumber = NEXMO_PHONE_NUMBER.replace(/"/g, '');
-    this.outletPhoneNumberList = OUTLET_PHONE_NUMBER_LIST.replace(/"/g, '');
+    this.stonithActive = !SMS_STONITH_ACTIVE.includes('false');
+
+    if (this.stonithActive) {
+      this.smsStonithActiveCallbackMandatory = SMS_STONITH_CALLBACK_MANDATORY;
+      this.smsStonithActiveCallbackMaxDelay = SMS_STONITH_CALLBACK_MAX_DELAY;
+      this.nexmoApiKey = NEXMO_API_KEY ? NEXMO_API_KEY.replace(/"/g, '') : '';
+      this.nexmoApiSecret = NEXMO_API_SECRET ? NEXMO_API_SECRET.replace(/"/g, '') : '';
+      this.nexmoApiSignatureMethod = NEXMO_API_SIGNATURE_METHOD ? NEXMO_API_SIGNATURE_METHOD.replace(/"/g, '') : '';
+      this.nexmoApiSignatureSecret = NEXMO_API_SIGNATURE_SECRET ? NEXMO_API_SIGNATURE_SECRET.replace(/"/g, '') : '';
+      this.nexmoApiCheckMsgSignature = NEXMO_API_CHECK_MSG_SIGNATURE;
+      this.nexmoPhoneNumber = NEXMO_PHONE_NUMBER ? NEXMO_PHONE_NUMBER.replace(/"/g, '') : '';
+      this.outletPhoneNumberList = OUTLET_PHONE_NUMBER_LIST ? OUTLET_PHONE_NUMBER_LIST.replace(/"/g, '') : '';
+      this.smsStonithCallbackStatus = 'none';
+      this.authoritiesList = AUTHORITIES_LIST;
+    }
+  }
+
+  async shootOldValidator (nodeKey) {
+    if (this.stonithActive === 'false') {
+      console.log('Stonith is not activated.');
+      return true;
+    }
+
+    const isLeadedGroup = await this.orchestrator.chain.isLeadedGroup(this.orchestrator.group);
+    console.log('Stonith is activated.');
+
+    const getOrchestratorKey = await getKeysFromSeed(this.mnemonic);
+    const orchestratorAddress = getOrchestratorKey.address;
+
+    this.smsStonithCallbackStatus = 'waitingCallBack';
+    const shoot = await this.smsShootOldValidatorInTheHead(
+      orchestratorAddress,
+      nodeKey,
+      isLeadedGroup
+    );
+
+    if (shoot) {
+      const callbackShootConfirmation = await this.waitSmsCallBackShootConfirmation();
+      if (
+        !callbackShootConfirmation &&
+        this.smsStonithActiveCallbackMandatory === 'true'
+      ) {
+        console.log(
+          'sms callback not received and is mandatory. Shutdown orchestrator to stay in passive mode... '
+        );
+        this.orchestrationEnabled = false;
+        // to allow other node to take leadership :
+        this.chain.heartbeatSendEnabled = false;
+        this.smsStonithCallbackStatus = 'none';
+        return false;
+      }
+    } else {
+      console.log('shoot aborted');
+    }
     this.smsStonithCallbackStatus = 'none';
-    this.authoritiesList = AUTHORITIES_LIST;
+
+    return true;
   }
 
   // SMS stonith algorithm
@@ -171,47 +217,6 @@ class Stonith {
     await nexmo.message.sendSms(from, to, text);
     console.log('smsShootOldValidatorInTheHead done...');
     return true;
-  }
-
-  async shootOldValidator (nodeKey) {
-    const isLeadedGroup = await this.orchestrator.chain.isLeadedGroup(this.orchestrator.group);
-    console.log('smsStonith is Active = ' + this.smsStonithActive);
-
-    if (this.smsStonithActive === 'true') {
-      console.log('smsStonith is Active ');
-
-      const getOrchestratorKey = await getKeysFromSeed(this.mnemonic);
-      const orchestratorAddress = getOrchestratorKey.address;
-
-      this.smsStonithCallbackStatus = 'waitingCallBack';
-      const shoot = await this.smsShootOldValidatorInTheHead(
-        orchestratorAddress,
-        nodeKey,
-        isLeadedGroup
-      );
-      if (shoot) {
-        const callbackShootConfirmation = await this.waitSmsCallBackShootConfirmation();
-        if (
-          !callbackShootConfirmation &&
-          this.smsStonithActiveCallbackMandatory === 'true'
-        ) {
-          console.log(
-            'sms callback not received and is mandatory. Shutdown orchetrator to stay a passive node... '
-          );
-          this.orchestrationEnabled = false;
-          // to allow other node to take leadership :
-          this.chain.heartbeatSendEnabled = false;
-          this.smsStonithCallbackStatus = 'none';
-          return false;
-        }
-      } else {
-        console.log('shoot aborted');
-      }
-      this.smsStonithCallbackStatus = 'none';
-    } else {
-      console.log('smsStonith is Off. ');
-    }
-    // We will wait 10 seconds to be sure that every Archipel node received leader update info
   }
 
   async waitSmsCallBackShootConfirmation () {

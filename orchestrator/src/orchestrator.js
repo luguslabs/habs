@@ -5,17 +5,10 @@ const { Service } = require('./service');
 
 class Orchestrator {
   constructor (
+    config,
     chain,
-    serviceName,
     heartbeats,
-    mnemonic,
-    aliveTime,
-    archipelName,
-    serviceMode,
-    group,
-    archipelOrchestrationEnable,
-    stonith
-  ) {
+    stonith) {
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
@@ -25,21 +18,32 @@ class Orchestrator {
     this.noReadyCount = 0;
     this.noReadyThreshold = 30; // ~ 300 seconds
 
-    // Check if orchestration if enabled or disabled
-    this.orchestrationEnabled = !archipelOrchestrationEnable.includes('false');
-
+    this.stonith = stonith;
     // Create service instance
-    this.service = new Service(serviceName, this.chain, serviceMode);
+    this.service = new Service(config.service, this.chain, config.serviceMode);
 
     this.heartbeats = heartbeats;
-    this.mnemonic = mnemonic;
-    this.aliveTime = aliveTime;
-    this.serviceMode = serviceMode;
+    this.mnemonic = config.mnemonic;
+    this.aliveTime = config.aliveTime;
+    this.serviceMode = config.serviceMode;
 
-    this.group = group;
-    this.archipelName = archipelName;
+    this.group = config.nodeGroupId;
+    this.archipelName = config.archipelName;
+    this.orchestrationEnabled = config.orchestrationEnabled;
+  }
 
-    this.stonith = stonith;
+  // Bootstrap service at boot
+  async bootstrapService () {
+    // Start service before orchestration
+    if (this.serviceMode === 'orchestrator' || this.serviceMode === 'passive') {
+      console.log(`Archipel service mode is ${this.serviceMode}. Starting service in passive...`);
+      await this.service.serviceStart('passive');
+    } else if (this.serviceMode === 'active') {
+      console.log('Archipel service mode is force as active mode...');
+      await this.service.serviceStart('active');
+    } else {
+      throw Error('Unkown archipel service mode. Shutting down...');
+    }
   }
 
   // Orchestrate service
@@ -152,18 +156,16 @@ class Orchestrator {
       const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
       if (setLeader) {
         console.log('The leadership was taken successfully...');
-
-        // If stonith is active shutdown other validator
-        if (this.stonith.stonithActive === 'true') {
-          await this.stonith.shootOldValidator(nodeKey);
-        }
-
         console.log(
           'Waiting 10 seconds to be sure that every node received leader update...'
         );
         await new Promise((resolve) => setTimeout(resolve, 10000));
 
-        return true;
+        // If stonith is active shutdown other validator
+        // If not just return true and continue
+        const stonithResult = await this.stonith.shootOldValidator(nodeKey);
+
+        return stonithResult;
       } else {
         console.log(
           'Failed to take leadership. Possibly other node already took leadership...'

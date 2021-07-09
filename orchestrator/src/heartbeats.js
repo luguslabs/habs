@@ -1,10 +1,13 @@
 const debug = require('debug')('heartbeats');
+const {
+  constructNodesList
+} = require('./utils');
 
 // Heartbeats class to simplify heartbeats management
 class Heartbeats {
-  constructor (nodes = []) {
+  constructor (config) {
     this.heartbeats = new Map();
-    this.nodes = nodes;
+    this.nodes = constructNodesList(config.nodesWallets, config.archipelName); ;
   }
 
   // Add heartbeat into Map

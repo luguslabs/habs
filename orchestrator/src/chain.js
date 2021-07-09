@@ -4,10 +4,12 @@ const debug = require('debug')('chain');
 const { getKeysFromSeed, fromModeToNodeStatus } = require('./utils');
 
 class Chain {
-  constructor (wsProvider, heartbeatsEnable) {
-    this.wsProvider = wsProvider;
+  constructor (config) {
+    this.wsProvider = config.nodeWs;
     this.heartbeatSendEnabled = true;
-    this.heartbeatSendEnabledAdmin = !heartbeatsEnable.includes('false');
+    this.heartbeatSendEnabledAdmin = config.heartbeatEnabled;
+    this.mnemonic = config.mnemonic;
+    this.nodeGroupId = config.nodeGroupId;
   }
 
   async connect () {
@@ -51,9 +53,9 @@ class Chain {
   }
 
   // Listen events
-  async listenEvents (heartbeats, orchestrator, mnemonic) {
+  async listenEvents (heartbeats, orchestrator) {
     try {
-      const keys = await getKeysFromSeed(mnemonic);
+      const keys = await getKeysFromSeed(this.mnemonic);
       // Subscribe to events
       await this.api.query.system.events((events) => {
         // Loop through events
@@ -107,7 +109,7 @@ class Chain {
   }
 
   // Send heartbeat
-  async addHeartbeat (groupId, mode, mnemonic) {
+  async addHeartbeat (mode) {
     try {
       // Checking if heartbeats send is enabled
       console.log('Checking if heartbeats send is enabled...');
@@ -125,18 +127,18 @@ class Chain {
         console.log('Archipel node has some peers and is synchronized so adding heartbeats...');
 
         // Get keys from mnemonic
-        const keys = await getKeysFromSeed(mnemonic);
+        const keys = await getKeysFromSeed(this.mnemonic);
         // Get account nonce
         const accountNonce = await this.api.query.system.account(keys.address);
         const nonce = accountNonce.nonce;
         // Nonce show
-        debug('addHeartbeat', `Nonce: ${nonce} groupId ${groupId} mode ${mode} nodeStatus ${nodeStatus}`);
+        debug('addHeartbeat', `Nonce: ${nonce} groupId ${this.nodeGroupId} mode ${mode} nodeStatus ${nodeStatus}`);
 
         // create, sign and send transaction
         return new Promise((resolve, reject) => {
           this.api.tx.archipelModule
           // Create transaction
-            .addHeartbeat(groupId, nodeStatus)
+            .addHeartbeat(this.nodeGroupId, nodeStatus)
           // Sign transaction
             .sign(keys, { nonce })
           // Send transaction

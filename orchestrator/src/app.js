@@ -6,8 +6,7 @@ const { Chain } = require('./chain');
 const { Heartbeats } = require('./heartbeats');
 const {
   catchExitSignals,
-  checkVariable,
-  constructNodesList
+  checkVariable
 } = require('./utils');
 const { Orchestrator } = require('./orchestrator');
 const {
@@ -16,102 +15,75 @@ const {
 } = require('./api');
 const { Stonith } = require('./stonith');
 
-// Import env variables from .env file
-dotenv.config();
-const {
-  NODE_WS,
-  MNEMONIC,
-  ALIVE_TIME,
-  SERVICES,
-  ARCHIPEL_SERVICE_MODE,
-  ARCHIPEL_HEARTBEATS_ENABLE,
-  ARCHIPEL_ORCHESTRATION_ENABLE,
-  NODES_WALLETS,
-  ARCHIPEL_NAME,
-  NODE_GROUP,
-  NODE_GROUP_ID
-} = process.env;
+// Construct configuration from env variables
+const constructConfiguration = () => {
+  // Import env variables from .env file
+  dotenv.config();
+  const config = {};
+  config.nodeWs = process.env.NODE_WS;
+  config.mnemonic = process.env.MNEMONIC;
+  config.aliveTime = process.env.ALIVE_TIME;
+  config.service = process.env.SERVICES;
+  config.serviceMode = process.env.ARCHIPEL_SERVICE_MODE;
+  config.heartbeatEnabled = process.env.ARCHIPEL_HEARTBEATS_ENABLE;
+  config.nodesWallets = process.env.NODES_WALLETS;
+  config.archipelName = process.env.ARCHIPEL_NAME;
+  config.nodeGroup = process.env.NODE_GROUP;
+  config.nodeGroupId = process.env.NODE_GROUP_ID;
 
-// Check if all necessary env vars were set
-const checkEnvVars = () => {
-  try {
-    checkVariable(NODE_WS, 'NODE_WS');
-    checkVariable(MNEMONIC, 'MNEMONIC');
-    checkVariable(ALIVE_TIME, 'ALIVE_TIME');
-    checkVariable(SERVICES, 'SERVICES');
-    checkVariable(SERVICES, 'ARCHIPEL_SERVICE_MODE');
-    checkVariable(SERVICES, 'ARCHIPEL_HEARTBEATS_ENABLE');
-    checkVariable(SERVICES, 'ARCHIPEL_ORCHESTRATION_ENABLE');
-    checkVariable(NODES_WALLETS, 'NODES_WALLETS');
-    checkVariable(ARCHIPEL_NAME, 'ARCHIPEL_NAME');
-    checkVariable(NODE_GROUP, 'NODE_GROUP');
-    checkVariable(NODE_GROUP_ID, 'NODE_GROUP_ID');
-  } catch (error) {
-    debug('checkEnvVars', error);
-    throw error;
+  // Setting default values for variables
+  if (!config.heartbeatEnabled || !config.heartbeatEnabled.includes('false')) {
+    config.heartbeatEnabled = true;
   }
+  config.orchestrationEnabled = process.env.ARCHIPEL_ORCHESTRATION_ENABLE;
+  if (!config.orchestrationEnabled || !config.orchestrationEnabled.includes('false')) {
+    config.orchestrationEnabled = true;
+  }
+
+  Object.keys(config).forEach(key => {
+    checkVariable(config[key], `${key}`);
+  });
+
+  return config;
 };
-
-// Bootstrap service at boot
-async function bootstrapService (orchestrator) {
-  // Start service before orchestration
-  if (ARCHIPEL_SERVICE_MODE === 'orchestrator' || ARCHIPEL_SERVICE_MODE === 'passive') {
-    console.log(`ARCHIPEL_SERVICE_MODE is ${ARCHIPEL_SERVICE_MODE}. Starting service in passive...`);
-    await orchestrator.service.serviceStart('passive');
-  } else if (ARCHIPEL_SERVICE_MODE === 'active') {
-    console.log('ARCHIPEL_SERVICE_MODE is force as active mode...');
-    await orchestrator.service.serviceStart('active');
-  } else {
-    throw Error('Unkown ARCHIPEL_SERVICE_MODE. Shutting down...');
-  }
-}
 
 // Main function
 async function main () {
   try {
-    // Checking env variables
-    checkEnvVars();
+    // Create configuration
+    const config = constructConfiguration();
 
     // Connect to Polkadot API
     console.log('Connecting to Archipel Chain node...');
-    const chain = new Chain(NODE_WS, ARCHIPEL_HEARTBEATS_ENABLE);
+    const chain = new Chain(config);
     await chain.connect();
 
-    // Construct nodes list
-    const nodes = constructNodesList(NODES_WALLETS, ARCHIPEL_NAME);
-
     // Create Heartbeats instance
-    const heartbeats = new Heartbeats(nodes);
+    const heartbeats = new Heartbeats(config);
 
-    // Create stonith instance
+    // Create Stonith instance
     const stonith = new Stonith();
 
-    // Create orchestrator instance
+    // Create Orchestrator instance
     const orchestrator = new Orchestrator(
+      config,
       chain,
-      SERVICES,
       heartbeats,
-      MNEMONIC,
-      ALIVE_TIME,
-      ARCHIPEL_NAME,
-      ARCHIPEL_SERVICE_MODE,
-      NODE_GROUP_ID,
-      ARCHIPEL_ORCHESTRATION_ENABLE,
       stonith);
 
     // Start service before orchestration
-    await bootstrapService(orchestrator);
+    await orchestrator.bootstrapService();
 
     // Attach orchestrator to stonith
     stonith.orchestrator = orchestrator;
 
     // Create chain event listener
-    chain.listenEvents(heartbeats, orchestrator, MNEMONIC);
+    chain.listenEvents(heartbeats, orchestrator);
 
     // Add heartbeats every 10 seconds
     setIntervalAsync(async () => {
       try {
-        await chain.addHeartbeat(NODE_GROUP_ID, orchestrator.service.mode, MNEMONIC);
+        await chain.addHeartbeat(orchestrator.service.mode);
       } catch (error) {
         console.error(error);
       }
