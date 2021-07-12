@@ -158,7 +158,9 @@ function Main (props) {
               </Grid.Column>
             </Grid.Row>
           ) : null}
-        {data
+        {data &&
+        data.status === '200' &&
+        data.heartbeats
           ? data.heartbeats.map((heartbeat, index) => (
             <Grid.Row>
               <Grid.Column>

@@ -20,9 +20,9 @@ class Chain {
         provider,
         types: {
           // mapping the actual specified address format
-          Address: 'AccountId',
+          Address: 'MultiAddress',
           // mapping the lookup
-          LookupSource: 'AccountId'
+          LookupSource: 'MultiAddress'
         }
       });
       this.provider = provider;
@@ -352,8 +352,8 @@ class Chain {
   // Get peer id from chain
   async getPeeId () {
     try {
-      const networkState = await this.api.rpc.system.networkState();
-      return networkState.peerId.toString();
+      const localPeerId = await this.api.rpc.system.localPeerId();
+      return localPeerId.toString();
     } catch (error) {
       debug('getPeeId', error);
       throw error;

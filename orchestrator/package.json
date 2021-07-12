@@ -3,6 +3,9 @@
   "version": "2.2.3",
   "description": "Archipel Orchestrator is the decision making component in Archipel federation.",
   "main": "src/app.js",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "scripts": {
     "start": "node src/app.js",
     "start:dev": "nodemon src/app.js",
@@ -19,8 +22,8 @@
   "author": "Lugus Labs",
   "license": "Apache-2.0",
   "dependencies": {
-    "@polkadot/api": "^2.1.1",
-    "@polkadot/util": "^3.5.1",
+    "@polkadot/api": "^4.8.1",
+    "@polkadot/util": "^6.3.1",
     "debug": "^4.1.1",
     "dockerode": "^3.1.0",
     "dotenv": "^8.2.0",
