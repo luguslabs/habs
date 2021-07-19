@@ -80,7 +80,7 @@ class Polkadot {
       }
 
       if (isEmptyString(config.polkadotDatabasePath)) {
-        config.polkadotDatabasePath = '/service/.local/share/polkadot/chains/polkadot';
+        config.polkadotDatabasePath = '/polkadot/.local/share/polkadot/chains';
       }
 
       if (isEmptyString(config.polkadotKeyGran)) {
@@ -302,12 +302,10 @@ class Polkadot {
 
       const command = [
         'find',
-        '/polkadot',
+        config.polkadotDatabasePath,
         '-name',
         `*${publicKey.substring(2)}`
       ];
-      console.log('Find command executed');
-      console.log(command);
 
       // Call find key command in docker container
       const result = await this.docker.dockerExecute(containerName, command);
