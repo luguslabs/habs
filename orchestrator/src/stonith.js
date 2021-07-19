@@ -4,7 +4,8 @@ const dotenv = require('dotenv');
 
 const {
   getKeysFromSeed,
-  checkVariable
+  checkVariable,
+  isEmptyString
 } = require('./utils');
 
 // Import stonith env variables from .env file
@@ -27,7 +28,7 @@ const {
 const checkEnvVars = () => {
   try {
     checkVariable(SMS_STONITH_ACTIVE, 'SMS_STONITH_ACTIVE');
-    if (!SMS_STONITH_ACTIVE.includes('false')) {
+    if (!isEmptyString(SMS_STONITH_ACTIVE) && SMS_STONITH_ACTIVE.includes('true')) {
       checkVariable(SMS_STONITH_CALLBACK_MANDATORY, 'SMS_STONITH_CALLBACK_MANDATORY');
       checkVariable(SMS_STONITH_CALLBACK_MAX_DELAY, 'SMS_STONITH_CALLBACK_MAX_DELAY');
       checkVariable(NEXMO_API_CHECK_MSG_SIGNATURE, 'NEXMO_API_CHECK_MSG_SIGNATURE');
@@ -44,7 +45,8 @@ class Stonith {
     checkEnvVars();
 
     this.orchestrator = orchestrator;
-    this.stonithActive = !SMS_STONITH_ACTIVE.includes('false');
+
+    this.stonithActive = !isEmptyString(SMS_STONITH_ACTIVE) && SMS_STONITH_ACTIVE.includes('true');
 
     if (this.stonithActive) {
       this.smsStonithActiveCallbackMandatory = SMS_STONITH_CALLBACK_MANDATORY;
@@ -62,8 +64,8 @@ class Stonith {
   }
 
   async shootOldValidator (nodeKey) {
-    console.log(this.orchestrator);
-    if (this.stonithActive === 'false') {
+    // If stonith is not activated just return true to notify that all is ok in stonith
+    if (!this.stonithActive) {
       console.log('Stonith is not activated.');
       return true;
     }
@@ -71,7 +73,7 @@ class Stonith {
     const isLeadedGroup = await this.orchestrator.chain.isLeadedGroup(this.orchestrator.group);
     console.log('Stonith is activated.');
 
-    const getOrchestratorKey = await getKeysFromSeed(this.mnemonic);
+    const getOrchestratorKey = await getKeysFromSeed(this.orchestrator.mnemonic);
     const orchestratorAddress = getOrchestratorKey.address;
 
     this.smsStonithCallbackStatus = 'waitingCallBack';
@@ -90,7 +92,7 @@ class Stonith {
         console.log(
           'sms callback not received and is mandatory. Shutdown orchestrator to stay in passive mode... '
         );
-        this.orchestrationEnabled = false;
+        this.orchestrator.orchestrationEnabled = false;
         // to allow other node to take leadership :
         this.chain.heartbeatSendEnabled = false;
         this.smsStonithCallbackStatus = 'none';

@@ -53,6 +53,10 @@ class Polkadot {
         config.polkadotSimulateSynch = true;
       }
 
+      if (isEmptyString(config.polkadotDatabasePath)) {
+        config.polkadotDatabasePath = '/polkadot/.local/share/polkadot/chains';
+      }
+
       // Check if the config can be retrieved from config file
       if (isEmptyString(process.env.CONFIG_FILE)) {
         return;
@@ -77,10 +81,6 @@ class Polkadot {
 
       if (isEmptyString(config.polkadotPrefix)) {
         config.polkadotPrefix = 'node-';
-      }
-
-      if (isEmptyString(config.polkadotDatabasePath)) {
-        config.polkadotDatabasePath = '/polkadot/.local/share/polkadot/chains';
       }
 
       if (isEmptyString(config.polkadotKeyGran)) {
@@ -306,6 +306,8 @@ class Polkadot {
         '-name',
         `*${publicKey.substring(2)}`
       ];
+      debug('checkKeyAdded', `Command executed: "${command}"`);
+
 
       // Call find key command in docker container
       const result = await this.docker.dockerExecute(containerName, command);
