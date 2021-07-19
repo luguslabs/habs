@@ -1,5 +1,5 @@
 # Stage 1 - the build process
-FROM node:10 as build-deps
+FROM node:14 as build-deps
 WORKDIR /usr/src/app
 COPY package.json ./
 RUN yarn install

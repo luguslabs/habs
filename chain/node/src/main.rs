@@ -1,4 +1,4 @@
-//! Substrate Node Archipel CLI library.
+//! Substrate Node archipel CLI library.
 #![warn(missing_docs)]
 
 mod chain_spec;

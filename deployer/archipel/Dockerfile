@@ -9,9 +9,9 @@ RUN	apt-get -y update; \
 	cmake pkg-config libssl-dev git gcc build-essential clang libclang-dev curl ca-certificates
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN rustup toolchain install nightly-2020-10-06
-RUN rustup default nightly-2020-10-06
-RUN rustup target add wasm32-unknown-unknown --toolchain nightly-2020-10-06
+RUN rustup update nightly
+RUN rustup update stable
+RUN rustup target add wasm32-unknown-unknown --toolchain nightly
 RUN cargo build --release
 RUN ./target/release/archipel build-spec --disable-default-bootnode --chain local > archipelTemplateSpec.json
 RUN ./target/release/archipel build-spec --disable-default-bootnode --chain local --raw > archipelTemplateSpecRaw.json
@@ -20,12 +20,12 @@ RUN ./target/release/archipel build-spec --disable-default-bootnode --chain loca
 # Build subkey tool step
 ###########################
 RUN git clone https://github.com/paritytech/substrate
-RUN cd substrate && git checkout v2.0.1 && cargo build -p subkey --release
+RUN cd substrate && git checkout v3.0.0 && cargo build -p subkey --release
 
 ####################################
 # Create Archipel docker image
 ####################################
-FROM node:10-buster
+FROM node:14-buster
 WORKDIR /root/
 
 ####################################
