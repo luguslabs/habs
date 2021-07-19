@@ -11,7 +11,8 @@
     "start:dev": "nodemon src/app.js",
     "eslint": "eslint ./",
     "eslint-fix": "eslint ./ --fix",
-    "test": "jest --detectOpenHandles --runInBand --forceExit",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles --runInBand --forceExit",
+    "test-mocha": "mocha",
     "test-chain-up": "cd ../deployer/test/chain/ && ./launch.sh",
     "test-chain-down": "cd ../deployer/test/chain/ && ./remove.sh"
   },
@@ -36,13 +37,15 @@
     "set-interval-async": "^1.0.30"
   },
   "devDependencies": {
+    "chai": "^4.3.4",
     "eslint": "^6.8.0",
     "eslint-config-standard": "^14.1.0",
     "eslint-plugin-import": "^2.19.1",
     "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "jest": "^25.1.0",
-    "nodemon": "^2.0.2"
+    "mocha": "^9.0.2",
+    "nodemon": "^2.0.2",
+    "yarn": "^1.22.10"
   }
 }

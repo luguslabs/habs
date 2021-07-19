@@ -214,6 +214,17 @@ class Chain {
     }
   }
 
+  // Get Node Group from Runtime
+  async getNodeGroup (key) {
+    try {
+      return parseInt(await this.api.query.archipelModule.groups(key));
+    } catch (error) {
+      debug('getNodeGroup', error);
+      console.log(error);
+      return 0;
+    }
+  }
+
   // Get bestNumber Chain
   async getBestNumber () {
     try {
@@ -276,7 +287,7 @@ class Chain {
                 if (section.toString() === 'archipelModule' && method.toString() === 'NewLeader') {
                   // Show transaction data for Debug
                   console.log('Transaction was successfully sent and generated an event.');
-                  debug('setLeader',`JSON Data: [${JSON.parse(data.toString())}]`);
+                  debug('setLeader', `JSON Data: [${JSON.parse(data.toString())}]`);
                   resolve(true);
                 }
               });

@@ -30,14 +30,13 @@ const readToObj = path => {
 
 // fromModeToNodeStatus
 const fromModeToNodeStatus = mode => {
-  let result = 0;
   if (mode === 'active') {
-    result = 1;
+    return 1;
   }
   if (mode === 'passive') {
-    result = 2;
+    return 2;
   }
-  return result;
+  return 0;
 };
 
 // Cleanup on exit

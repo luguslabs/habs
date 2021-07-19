@@ -1,14 +1,15 @@
 /* eslint-disable */
 
 const { exec } = require('child_process');
-
+const { assert } = require('chai');
 const { Chain } = require('../chain');
 const { getKeysFromSeed, constructNodesList} = require('../utils');
 const { Heartbeats } = require('../heartbeats');
+const { arrayFilter } = require('@polkadot/util');
 
 // Test configuration
 let chain;
-const jestTimeout = 60000;
+const testTimeout = 60000;
 const mnemonic1 = 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud';
 const mnemonic2 = 'fiscal toe illness tunnel pill spatial kind dash educate modify sustain suffer';
 const mnemonic3 = 'borrow initial guard hunt corn trust student opera now economy thumb argue';
@@ -24,52 +25,78 @@ const execAsync = cmd => new Promise((resolve, reject) => {
   });
 });
 
-beforeAll(async () => {
-  // Set jest callback timeout
-  jest.setTimeout(jestTimeout);
+describe('chain-test', function(){
+  this.timeout(testTimeout);
+  before(async function() {
 
-  // Launching test chain
-  console.log('Launching test chain. Can take some time...');
-  const commandToExec = 'cd ../deployer/test/chain/ && ./launch.sh';
-  await execAsync(commandToExec);
-  console.log('Test chain was launched...');
+    // Launching test chain
+    console.log('Launching test chain. Can take some time...');
+    const commandToExec = 'cd ../deployer/test/chain/ && ./launch.sh';
+    await execAsync(commandToExec);
+    console.log('Test chain was launched...');
 
-  // Connecting to Archipel Chain Node
-  chain = new Chain('ws://127.0.0.1:9944','orchestrator');
-  await chain.connect();
-  // Construct nodes list
-  const nodes = constructNodesList(NODES_WALLETS, 'node1');
+    const config = {
+      nodeWs: 'ws://127.0.0.1:9944',
+      heartbeatEnabled: true,
+      mnemonic: mnemonic1,
+      nodeGroupId: 1
+    };
+    
+    console.log('Connection to chain...');
+    // Connecting to Archipel Chain Node
+    chain = new Chain(config);
+    await chain.connect();
+    // Construct nodes list
+    const nodes = constructNodesList(NODES_WALLETS, 'node1');
+  });
 
-  // Create Heartbeats instance
-  const heartbeats = new Heartbeats(nodes);
+  it('Test heartbeat addition', async function() {
+
+    const keys = await getKeysFromSeed(mnemonic1);
+    const noHeartbeatYet = await chain.getHeartbeat(keys.address.toString());
+    assert.equal(parseInt(noHeartbeatYet.toString()), 0, 'check if hearbeat is empty before submission');
+
+    const result = await chain.addHeartbeat('active');
+    assert.equal(result, true, 'check if heartbeat add transaction was executed');
+
+    const heartbeat = await chain.getHeartbeat(keys.address.toString());
+    assert.isAbove(parseInt(heartbeat.toString()), 0, 'check if heartbeat was added');
+
+    const nodeStatus = await chain.getNodeStatus(keys.address.toString());
+    assert.equal(nodeStatus, 1, 'cheack node status');
+
+    const nodeGroup = await chain.getNodeGroup(keys.address.toString());
+    assert.equal(nodeGroup, 1, 'check node group');
+
+  });
+
+  it('Test LeadedGroup - no leader set', async function() {
+    const groupIsNotLeaded = await chain.isLeadedGroup(42);
+    assert.equal(groupIsNotLeaded, false, 'check is a group is not leaded at the begining');
+
+    const keys = await getKeysFromSeed(mnemonic1);
+    const status = await chain.setLeader(keys.address, 42, mnemonic1);
+    assert.equal(status, true, 'check if leader set transaction was executed');
+  
+    const groupIsLeaded = await chain.isLeadedGroup(42);
+    assert.equal(groupIsLeaded, true, 'check if after leader set the group becomes leaded');
+  });
+
+  after(async function() {
+    if (chain) {
+      await chain.disconnect();
+    }
+    // Removing test chain
+    console.log('Removing test chain...');
+    const commandToExec = 'cd ../deployer/test/chain && ./remove.sh';
+    await execAsync(commandToExec);
+  });
+
 
 });
 
-afterAll(async () => {
-  if (chain) {
-    await chain.disconnect();
-  }
-  // Removing test chain
-  console.log('Removing test chain...');
-  const commandToExec = 'cd ../deployer/test/chain && ./remove.sh';
-  await execAsync(commandToExec);
-});
+/*
 
-test('Test add Heartbeats and get Heartbeats methods', async () => {
-  const keys = await getKeysFromSeed(mnemonic1);
-  const noHeartbeatYet = await chain.getHeartbeat(keys.address.toString());
-  expect(noHeartbeatYet.toString()).toBe('0');
-
-  const result = await chain.addHeartbeat('42', 'active', mnemonic1);
-  expect(result).toBe(true);
-
-  const heartbeat = await chain.getHeartbeat(keys.address.toString());
-  expect(parseInt(heartbeat)).toBeGreaterThan(0);
-
-  const nodeStatus = await chain.getNodeStatus(keys.address.toString());
-  expect(parseInt(nodeStatus)).toBe(1);
-
-});
 
 test('LeadedGroup test - no leader set', async () => {
   const isLeadedGroupFalse = await chain.isLeadedGroup(42);
@@ -158,3 +185,5 @@ test('Test event listener that updates heartbeats', async () => {
   expect(parseInt(heartbeats.getHeartbeat(keys3.address).blockNumber)).toBeGreaterThan(0)
   expect(parseInt(heartbeats.getHeartbeat(keys3.address).nodeStatus)).toBe(3);
 });
+
+*/

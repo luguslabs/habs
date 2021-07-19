@@ -308,7 +308,6 @@ class Polkadot {
       ];
       debug('checkKeyAdded', `Command executed: "${command}"`);
 
-
       // Call find key command in docker container
       const result = await this.docker.dockerExecute(containerName, command);
       debug('checkKeyAdded', `Command find key result: "${result}"`);

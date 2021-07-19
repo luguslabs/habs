@@ -261,7 +261,7 @@ class Docker {
     }
   }
 
-  // get container instance 
+  // get container instance
   async getContainer (name) {
     try {
       return this.docker.getContainer(name);
