@@ -1,124 +1,126 @@
 /* eslint-disable */
-
-const { Docker } = require('../docker');
+const { isTestChain } = require('@polkadot/util');
+const { assert } = require('chai');
+const { Docker } = require('../src/docker');
 
 // Test configuration
+let docker;
+const testTimeout = 60000;
 const activeName = 'nginx-active';
 const passiveName = 'nginx-passive';
 const image = 'nginx';
 const volume = 'nginx';
 const mountDir = '/usr/share/nginx/html';
 const command = ['nginx-debug', '-g', 'daemon off;'];
-const jestTimeout = 30000;
-let docker;
 
-beforeEach(async () => {
-  // Set jest callback timeout
-  jest.setTimeout(jestTimeout);
+describe('Archipel chain test', function(){
+  this.timeout(testTimeout);
+  before(async function() {
+    // Creating Docker instance
+    docker = new Docker();
+  });
 
-  // Creating Docker instance
-  docker = new Docker();
-});
+  it('Test active docker container start', async function () {
+    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
 
-afterEach(async () => {
-  await docker.removeContainer(activeName);
-  await docker.removeContainer(passiveName);
-});
+    const container = await docker.getContainer(activeName);
+    const containerInspect = await container.inspect();
 
-test('Start active docker container', async () => {
-  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
+    assert.equal(containerInspect.Name, `/${activeName}`, 'check if docker container has a correct name after creation');
+    assert.equal(containerInspect.State.Running, true, 'check if docker container is in running state');
+    assert.equal(containerInspect.Mounts[0].Name, volume, 'check if docker container has a correct volume attached');
+    assert.equal(containerInspect.Mounts[0].Destination, mountDir, 'check if docker container has a correct mount dir');
+    assert.equal(containerInspect.Config.Image, image, 'check if docker container has a correct image');
+    assert.equal(containerInspect.Config.Cmd.join(' '), command.join(' '), 'check if docker container has a correct command');
+  
+    await docker.removeContainer(activeName);
+  });
 
-  const container = await docker.getContainer(activeName);
-  const containerInspect = await container.inspect();
+  it('Test passive docker container start', async function () {
+    await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
 
-  expect(containerInspect.Name).toBe(`/${activeName}`);
-  expect(containerInspect.State.Running).toBe(true);
-  expect(containerInspect.Mounts[0].Name).toBe(volume);
-  expect(containerInspect.Mounts[0].Destination).toBe(mountDir);
-  expect(containerInspect.Config.Image).toBe(image);
-  expect(containerInspect.Config.Cmd).toStrictEqual(command);
+    const container = await docker.getContainer(passiveName);
+    const containerInspect = await container.inspect();
 
-  await docker.removeContainer(activeName);
-});
+    assert.equal(containerInspect.Name, `/${passiveName}`, 'check if docker container has a correct name after creation');
+    assert.equal(containerInspect.State.Running, true, 'check if docker container is in running state');
+    assert.equal(containerInspect.Mounts[0].Name, volume, 'check if docker container has a correct volume attached');
+    assert.equal(containerInspect.Mounts[0].Destination, mountDir, 'check if docker container has a correct mount dir');
+    assert.equal(containerInspect.Config.Image, image, 'check if docker container has a correct image');
+    assert.equal(containerInspect.Config.Cmd.join(' '), command.join(' '), 'check if docker container has a correct command');
+  
+    await docker.removeContainer(passiveName);
+  });
 
-test('Start passive docker container', async () => {
-  await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
+  it('Test docker container remove', async function () {
+    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
 
-  const container = await docker.getContainer(passiveName);
-  const containerInspect = await container.inspect();
+    let container = await docker.getContainer(activeName);
+    const containerInspect = await container.inspect();
+  
+    assert.equal(containerInspect.State.Running, true, 'check if docker container is in running state');
+  
+    await docker.removeContainer(activeName);
+  
+    try {
+      container = await docker.getContainer(activeName);
+      await container.inspect();
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: (HTTP code 404) no such container - No such container: nginx-active ', 'check if docker container was removed');
+    }
+  });
 
-  expect(containerInspect.Name).toBe(`/${passiveName}`);
-  expect(containerInspect.State.Running).toBe(true);
-  expect(containerInspect.Mounts[0].Name).toBe(volume);
-  expect(containerInspect.Mounts[0].Destination).toBe(mountDir);
-  expect(containerInspect.Config.Image).toBe(image);
-  expect(containerInspect.Config.Cmd).toStrictEqual(command);
+  it('Test if active container will be down after the passive container launch', async function () {
+    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
+    await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
 
-  await docker.removeContainer(passiveName);
-});
-
-test('Docker container remove', async () => {
-  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
-
-  let container = await docker.getContainer(activeName);
-  const containerInspect = await container.inspect();
-
-  expect(containerInspect.State.Running).toBe(true);
-
-  await docker.removeContainer(passiveName);
-
-  try {
-    container = await docker.getContainer(activeName);
-    await container.inspect();
-  } catch (error) {
-    expect(error).toStrictEqual(new Error('(HTTP code 404) no such container - No such container: nginx-active '));
-  }
-});
-
-test('Check if active container will be down after the passive container launch', async () => {
-  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
-  await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
-
-  try {
-    const containerActive = await docker.getContainer(activeName);
-    await containerActive.inspect();
-  } catch (error) {
-    expect(error).toStrictEqual(new Error('(HTTP code 404) no such container - No such container: nginx-active '));
-  }
-
-  const containerPassive = await docker.getContainer(passiveName);
-  const passiveInspect = await containerPassive.inspect();
-
-  expect(passiveInspect.State.Running).toBe(true);
-
-  await docker.removeContainer(passiveName);
-});
-
-test('Check if passive container will be down after the active container launch', async () => {
-  await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
-  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
-
-  try {
     const containerPassive = await docker.getContainer(passiveName);
-    await containerPassive.inspect();
-  } catch (error) {
-    expect(error).toStrictEqual(new Error('(HTTP code 404) no such container - No such container: nginx-passive '));
-  }
+    const passiveInspect = await containerPassive.inspect();
+  
+    assert.equal(passiveInspect.State.Running, true, 'check if passive docker container is in running state');
+  
+    try {
+      const containerActive = await docker.getContainer(activeName);
+      await containerActive.inspect();
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: (HTTP code 404) no such container - No such container: nginx-active ', 'check if active docker container was removed');
+    }
+  
+    await docker.removeContainer(passiveName);
+  });
 
-  const containerActive = await docker.getContainer(activeName);
-  const activeInspect = await containerActive.inspect();
+  it('Test if passive container will be down after the active container launch', async function () {
+    await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
+    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
+  
+    const containerActive = await docker.getContainer(activeName);
+    const activeInspect = await containerActive.inspect();
 
-  expect(activeInspect.State.Running).toBe(true);
+    assert.equal(activeInspect.State.Running, true, 'check if active docker container is in running state');
 
-  await docker.removeContainer(activeName);
-});
+    try {
+      const containerPassive = await docker.getContainer(passiveName);
+      await containerPassive.inspect();
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: (HTTP code 404) no such container - No such container: nginx-passive ', 'check if passive docker container was removed');
+    }
+  
+    await docker.removeContainer(activeName);
+  });
 
-test('Execute a command in docker container', async () => {
-  await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
+  it('Test command execution in docker container', async function () {
+    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
 
-  const commandToExecute = ['echo', 'Hello world'];
+    const commandToExecute = ['echo', 'Hello world'];
+  
+    const result = await docker.dockerExecute(activeName, commandToExecute);
+  
+    assert.equal(result, 'Hello world', 'check if command was executed in docker container and output can be retrieved');
+  });
 
-  const result = await docker.dockerExecute(activeName, commandToExecute);
+  after(async function() {
+    await docker.removeContainer(activeName);
+    await docker.removeContainer(passiveName);
+  });
 
-  expect(result).toBe('Hello world');
 });
