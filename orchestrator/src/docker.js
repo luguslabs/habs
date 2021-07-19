@@ -69,16 +69,15 @@ class Docker {
 
   // return true if container is running
   async isContainerRunningByName (name) {
-    let result = false;
     try {
       const container = await this.getContainerByName(name);
       if (container && container.State === 'running') {
-        result = true;
+        return true;
       }
     } catch (e) {
-      result = false;
+      return false;
     }
-    return result;
+    return false;
   }
 
   // Get volume instance by name
@@ -262,6 +261,7 @@ class Docker {
     }
   }
 
+  // get container instance 
   async getContainer (name) {
     try {
       return this.docker.getContainer(name);
@@ -271,6 +271,7 @@ class Docker {
     }
   }
 
+  // get container by id or name
   async getContainerById (nameOrId) {
     try {
       const containers = await this.docker.listContainers({ all: true });
@@ -284,6 +285,7 @@ class Docker {
     }
   }
 
+  // get mount instance from a container that ends with
   async getMountThatEndsWith (nameOrId, str) {
     try {
       const container = await this.getContainerById(nameOrId);

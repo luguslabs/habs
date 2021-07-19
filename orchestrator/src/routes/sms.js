@@ -10,14 +10,14 @@ router.post(
     const orchestrator = req.app.get('orchestrator');
     const params = Object.assign(req.query, req.body);
     console.log('/webhooks/inbound-sms');
-    // console.log(params);
-    if (orchestrator.nexmoApiCheckMsgSignature === 'true') {
-      const sigToCheck = Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params);
+
+    if (orchestrator.stonith.nexmoApiCheckMsgSignature === 'true') {
+      const sigToCheck = Nexmo.generateSignature(orchestrator.stonith.nexmoApiSignatureMethod, orchestrator.stonith.nexmoApiSignatureSecret, params);
       if (sigToCheck && sigToCheck.toUpperCase() === params.sig) {
         console.log('Valid signature');
         if (params && params.text && params.text.toString() !== '') {
           console.log('text:' + params.text.toString());
-          orchestrator.smsStonithCallbackStatus = params.text.toString();
+          orchestrator.stonith.smsStonithCallbackStatus = params.text.toString();
         }
       } else {
         console.log('Invalid signature');
@@ -26,7 +26,7 @@ router.post(
       console.log('Do not check signature');
       if (params && params.text && params.text.toString() !== '') {
         console.log('text:' + params.text.toString());
-        orchestrator.smsStonithCallbackStatus = params.text.toString();
+        orchestrator.stonith.smsStonithCallbackStatus = params.text.toString();
       }
     }
     res.status(204).send();
@@ -40,14 +40,14 @@ router.get(
     const orchestrator = req.app.get('orchestrator');
     const params = Object.assign(req.query, req.body);
     console.log('/webhooks/inbound-sms');
-    // console.log(params);
-    if (orchestrator.nexmoApiCheckMsgSignature === 'true') {
-      const sigToCheck = Nexmo.generateSignature(orchestrator.nexmoApiSignatureMethod, orchestrator.nexmoApiSignatureSecret, params);
+
+    if (orchestrator.stonith.nexmoApiCheckMsgSignature === 'true') {
+      const sigToCheck = Nexmo.generateSignature(orchestrator.stonith.nexmoApiSignatureMethod, orchestrator.stonith.nexmoApiSignatureSecret, params);
       if (sigToCheck && sigToCheck.toUpperCase() === params.sig) {
         console.log('Valid signature');
         if (params && params.text && params.text.toString() !== '') {
           console.log('text:' + params.text.toString());
-          orchestrator.smsStonithCallbackStatus = params.text.toString();
+          orchestrator.stonith.smsStonithCallbackStatus = params.text.toString();
         }
       } else {
         console.log('Invalid signature');
@@ -56,7 +56,7 @@ router.get(
       console.log('Do not check signature');
       if (params && params.text && params.text.toString() !== '') {
         console.log('text:' + params.text.toString());
-        orchestrator.smsStonithCallbackStatus = params.text.toString();
+        orchestrator.stonith.smsStonithCallbackStatus = params.text.toString();
       }
     }
     res.status(204).send();

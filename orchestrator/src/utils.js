@@ -58,10 +58,12 @@ const catchExitSignals = (cleanUpCallback, docker, service) => {
   });
 };
 
+// Check is string is not set or is empty
 const isEmptyString = (str) => {
   return (!str || str.length === 0);
 };
 
+// Check is a variable is set
 const checkVariable = (value, name) => {
   if (isEmptyString(value)) {
     throw Error(`Error! Variable ${name} was not set.`);

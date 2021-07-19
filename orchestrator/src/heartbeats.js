@@ -3,7 +3,6 @@ const {
   constructNodesList
 } = require('./utils');
 
-// Heartbeats class to simplify heartbeats management
 class Heartbeats {
   constructor (config) {
     this.heartbeats = new Map();
