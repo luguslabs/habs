@@ -334,7 +334,7 @@ class Chain {
                 if (section.toString() === 'archipelModule' && method.toString() === 'GiveUpLeader') {
                   // Show transaction data for Debug
                   console.log('Transaction was successfully sent and generated an event.');
-                  console.log(`JSON Data: [${JSON.parse(data.toString())}]`);
+                  debug('setLeader', `JSON Data: [${JSON.parse(data.toString())}]`);
                   resolve(true);
                 }
               });
