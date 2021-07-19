@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const mainRoutes = require('./routes/main');
 const heartbeatsRoutes = require('./routes/heartbeats');
 const orchestratorRoutes = require('./routes/orchestrator');
@@ -45,9 +44,7 @@ const initApi = async orchestrator => {
   // Saving orchestrator instance
   app.set('orchestrator', orchestrator);
 
-  // Add body parser to express
-  app.use(bodyParser.urlencoded({ extended: false }));
-  app.use(bodyParser.json());
+  app.use(express.json());
 
   app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -77,9 +74,7 @@ const initApiSms = async orchestrator => {
 
   app.set('orchestrator', orchestrator);
 
-  // Add body parser to express
-  app.use(bodyParser.urlencoded({ extended: false }));
-  app.use(bodyParser.json());
+  app.use(express.json());
 
   app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');

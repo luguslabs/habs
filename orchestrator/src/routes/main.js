@@ -14,7 +14,7 @@ const getOrchestratorInfo = async orchestrator => {
   const orchestratorAddress = getOrchestratorKey.address;
 
   const isConnected = orchestrator.chain.isConnected();
-  const peerId = await orchestrator.chain.getPeeId();
+  const peerId = await orchestrator.chain.getPeerId();
   const peerNumber = await orchestrator.chain.getPeerNumber();
   const bestNumber = await orchestrator.chain.getBestNumber();
   const synchState = await orchestrator.chain.getSyncState();

@@ -342,12 +342,12 @@ class Chain {
   }
 
   // Get peer id from chain
-  async getPeeId () {
+  async getPeerId () {
     try {
       const networkState = await this.api.rpc.system.networkState();
       return networkState.peerId.toString();
     } catch (error) {
-      debug('getPeeId', error);
+      debug('getPeerId', error);
       throw error;
     }
   }
