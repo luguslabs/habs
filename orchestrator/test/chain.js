@@ -1,10 +1,9 @@
 /* eslint-disable */
-
 const { exec } = require('child_process');
 const { assert } = require('chai');
-const { Chain } = require('../chain');
-const { getKeysFromSeed, constructNodesList} = require('../utils');
-const { Heartbeats } = require('../heartbeats');
+const { Chain } = require('../src/chain');
+const { getKeysFromSeed, constructNodesList } = require('../src/utils');
+const { Heartbeats } = require('../src/heartbeats');
 const { arrayFilter } = require('@polkadot/util');
 
 // Test configuration
@@ -25,7 +24,7 @@ const execAsync = cmd => new Promise((resolve, reject) => {
   });
 });
 
-describe('chain-test', function(){
+describe('Archipel chain test', function(){
   this.timeout(testTimeout);
   before(async function() {
 
@@ -51,7 +50,6 @@ describe('chain-test', function(){
   });
 
   it('Test heartbeat addition', async function() {
-
     const keys = await getKeysFromSeed(mnemonic1);
     const noHeartbeatYet = await chain.getHeartbeat(keys.address.toString());
     assert.equal(parseInt(noHeartbeatYet.toString()), 0, 'check if hearbeat is empty before submission');
@@ -67,7 +65,6 @@ describe('chain-test', function(){
 
     const nodeGroup = await chain.getNodeGroup(keys.address.toString());
     assert.equal(nodeGroup, 1, 'check node group');
-
   });
 
   it('Test LeadedGroup - no leader set', async function() {

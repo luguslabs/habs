@@ -11,8 +11,7 @@
     "start:dev": "nodemon src/app.js",
     "eslint": "eslint ./",
     "eslint-fix": "eslint ./ --fix",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles --runInBand --forceExit",
-    "test-mocha": "mocha",
+    "test": "mocha",
     "test-chain-up": "cd ../deployer/test/chain/ && ./launch.sh",
     "test-chain-down": "cd ../deployer/test/chain/ && ./remove.sh"
   },
