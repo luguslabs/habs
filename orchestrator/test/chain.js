@@ -5,6 +5,9 @@ const { Chain } = require('../src/chain');
 const { getKeysFromSeed, constructNodesList } = require('../src/utils');
 const { Heartbeats } = require('../src/heartbeats');
 
+// Set env variables
+process.env.DEBUG = 'app,chain,docker,heartbeats,polkadot,service,api,orchestrator,restoredb,stonith,utils';
+
 // Test configuration
 let chain;
 const testTimeout = 60000;
@@ -42,7 +45,7 @@ describe('Archipel chain test', function(){
       mnemonic: mnemonic1,
       nodeGroupId: '1'
     };
-    chain = new Chain(config);
+    chain = new Chain(config.nodeWs);
     await chain.connect();
 
     // Construct nodes list
@@ -64,7 +67,7 @@ describe('Archipel chain test', function(){
     const noHeartbeatYet = await chain.getHeartbeat(keys.address.toString());
     assert.equal(parseInt(noHeartbeatYet.toString()), 0, 'check if hearbeat is empty before submission');
 
-    const result = await chain.addHeartbeat('active');
+    const result = await chain.addHeartbeat('active', mnemonic1, '1');
     assert.equal(result, true, 'check if heartbeat add transaction was executed');
 
     const heartbeat = await chain.getHeartbeat(keys.address.toString());
@@ -139,25 +142,16 @@ describe('Archipel chain test', function(){
 
   it('Test event listener that updates heartbeats', async function () {
 
-    const config = {
-      nodesWallets: nodesWallets,
-      archipelName: archipelName
-    };
+    const heartbeats = new Heartbeats(nodesWallets, archipelName);
 
-    const heartbeats = new Heartbeats(config);
+    const orchestrator = { mnemonic: mnemonic1, serviceStart: function () {} };
 
-    const orchestrator = { serviceStart: function () {} };
+    chain.listenEvents(heartbeats, orchestrator, mnemonic1);
 
-    chain.listenEvents(heartbeats, orchestrator);
-
-    chain.mnemonic = mnemonic1;
-    chain.nodeGroupId = '42';
-    const result1 = await chain.addHeartbeat('active');
+    const result1 = await chain.addHeartbeat('active', mnemonic1, '42');
     assert.equal(result1, true, 'check if add heartbeat transaction was executed');
 
-    chain.mnemonic = mnemonic2;
-    chain.nodeGroupId = '43';
-    const result2 = await chain.addHeartbeat('passive');
+    const result2 = await chain.addHeartbeat('passive', mnemonic2, '43');
     assert.equal(result2, true, 'check if second add heartbeat transaction was executed');
 
     await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -172,9 +166,6 @@ describe('Archipel chain test', function(){
     assert.equal(heartbeats.getHeartbeat(keys2.address).group, '43', 'check if event was recieved and heartbeat was added 2');
     assert.isAbove(parseInt(heartbeats.getHeartbeat(keys2.address).blockNumber), 0, 'check if heartbeat was added and blockNumber was set correctly 2');
     assert.equal(parseInt(heartbeats.getHeartbeat(keys2.address).nodeStatus), 2, 'check if heartbeat was added and nodeStatus was set correctly 2');
-
-    chain.mnemonic = mnemonic1;
-    chain.nodeGroupId = '1';
 
   });
 

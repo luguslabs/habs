@@ -16,11 +16,11 @@ async function main () {
 
     // Connect to Polkadot API
     console.log('Connecting to Archipel Chain node...');
-    const chain = new Chain(config);
+    const chain = new Chain(config.nodeWs);
     await chain.connect();
 
     // Create Heartbeats instance
-    const heartbeats = new Heartbeats(config);
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 
     // Create Orchestrator instance
     const orchestrator = new Orchestrator(
@@ -32,12 +32,18 @@ async function main () {
     await orchestrator.bootstrapService();
 
     // Create chain event listener
-    chain.listenEvents(heartbeats, orchestrator);
+    chain.listenEvents(heartbeats, orchestrator, orchestrator.mnemonic);
 
     // Add heartbeats every 10 seconds
     setIntervalAsync(async () => {
       try {
-        await chain.addHeartbeat(orchestrator.service.mode);
+        // Checking if heartbeats send is enabled
+        console.log('Checking if heartbeats send is enabled...');
+        if (!orchestrator.heartbeatSendEnabled || !orchestrator.heartbeatSendEnabledAdmin) {
+          console.log('Heartbeat send is disabled...');
+          return;
+        }
+        await chain.addHeartbeat(orchestrator.service.mode, orchestrator.mnemonic, orchestrator.nodeGroupId);
       } catch (error) {
         console.error(error);
       }

@@ -9,6 +9,7 @@ const {
   readToObj,
   checkVariable
 } = require('../utils');
+const { Docker } = require('../docker');
 
 const config = {};
 
@@ -63,11 +64,11 @@ class Trustlines {
     }
   }
 
-  constructor (docker) {
+  constructor () {
     // If service is already cleaning up
     this.cleaningUp = false;
 
-    this.docker = docker;
+    this.docker = new Docker();
 
     // Init config
     Trustlines.initConfig();

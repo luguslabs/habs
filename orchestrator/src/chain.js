@@ -1,15 +1,15 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const debug = require('debug')('chain');
 
-const { getKeysFromSeed, fromModeToNodeStatus } = require('./utils');
+const { 
+  getKeysFromSeed, 
+  fromModeToNodeStatus,
+  transactionShowStatus 
+} = require('./utils');
 
 class Chain {
-  constructor (config) {
-    this.wsProvider = config.nodeWs;
-    this.heartbeatSendEnabled = true;
-    this.heartbeatSendEnabledAdmin = config.heartbeatEnabled;
-    this.mnemonic = config.mnemonic;
-    this.nodeGroupId = config.nodeGroupId;
+  constructor (nodeWs) {
+    this.wsProvider = nodeWs;
   }
 
   async connect () {
@@ -41,21 +41,10 @@ class Chain {
     }
   }
 
-  // Show transaction status in debug
-  transactionShowStatus (status, where) {
-    if (status.isInvalid) debug(where, 'Transaction is invalid.');
-    if (status.isDropped) debug(where, 'Transaction is dropped.');
-    if (status.isUsurped) debug(where, 'Transaction is usurped.');
-    if (status.isReady) debug(where, 'Transaction is ready.');
-    if (status.isFuture) debug(where, 'Transaction is future.');
-    if (status.isFinalized) debug(where, 'Transaction is finalized.');
-    if (status.isBroadcast) debug(where, 'Transaction is broadcast.');
-  }
-
   // Listen events
-  async listenEvents (heartbeats, orchestrator) {
+  async listenEvents (heartbeats, orchestrator, mnemonic) {
     try {
-      const keys = await getKeysFromSeed(this.mnemonic);
+      const keys = await getKeysFromSeed(mnemonic);
       // Subscribe to events
       await this.api.query.system.events((events) => {
         // Loop through events
@@ -81,43 +70,9 @@ class Chain {
     }
   }
 
-  // If node state permits to send transactions
-  async canSendTransactions () {
-    try {
-      // Get peers number
-      let peersNumber = await this.getPeerNumber();
-      debug('canSendTransactions', `Node has ${peersNumber} peers.`);
-
-      // Get sync state
-      let syncState = await this.getSyncState();
-      debug('canSendTransactions', `Node is sync: ${syncState}`);
-
-      if (peersNumber === 0 || syncState === true) {
-        console.log(`Peers number is ${peersNumber} and Sync State is ${syncState}. We will retry in 5 seconds.`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        peersNumber = await this.getPeerNumber();
-        syncState = await this.getSyncState();
-        console.log(`After retry peers number is ${peersNumber} and Sync State is ${syncState}.`);
-      }
-
-      // If node has any peers and is not in synchronizing chain
-      return peersNumber !== 0 && syncState !== true;
-    } catch (error) {
-      debug('canSendTransactions', error);
-      throw error;
-    }
-  }
-
   // Send heartbeat
-  async addHeartbeat (mode) {
+  async addHeartbeat (mode, mnemonic, nodeGroupId) {
     try {
-      // Checking if heartbeats send is enabled
-      console.log('Checking if heartbeats send is enabled...');
-      if (!this.heartbeatSendEnabled || !this.heartbeatSendEnabledAdmin) {
-        console.log('Heartbeat send is disabled...');
-        return;
-      }
-
       const nodeStatus = await fromModeToNodeStatus(mode);
       // If node state permits to send transactions
       const sendTransaction = await this.canSendTransactions();
@@ -125,30 +80,29 @@ class Chain {
       // If node has any peers and is not in synchronizing chain
       if (sendTransaction) {
         console.log('Archipel node has some peers and is synchronized so adding heartbeats...');
-
         // Get keys from mnemonic
-        const keys = await getKeysFromSeed(this.mnemonic);
+        const keys = await getKeysFromSeed(mnemonic);
         // Get account nonce
         const accountNonce = await this.api.query.system.account(keys.address);
         const nonce = accountNonce.nonce;
-        // Nonce show
-        debug('addHeartbeat', `Nonce: ${nonce} groupId ${this.nodeGroupId} mode ${mode} nodeStatus ${nodeStatus}`);
+
+        debug('addHeartbeat', `Nonce: ${nonce} groupId ${nodeGroupId} mode ${mode} nodeStatus ${nodeStatus}`);
 
         // create, sign and send transaction
         return new Promise((resolve, reject) => {
           this.api.tx.archipelModule
           // Create transaction
-            .addHeartbeat(this.nodeGroupId, nodeStatus)
+            .addHeartbeat(nodeGroupId, nodeStatus)
           // Sign transaction
             .sign(keys, { nonce })
           // Send transaction
             .send(({ events = [], status }) => {
             // Debug show transaction status
-              this.transactionShowStatus(status, 'addHeartbeat');
+              transactionShowStatus(status, 'addHeartbeat');
               if (status.isFinalized) {
                 events.forEach(async ({ event: { data, method, section } }) => {
                   if (section.toString() === 'archipelModule' && method.toString() === 'NewHeartbeat') {
-                  // Show transaction data for Debug
+                    // Show transaction data for Debug
                     debug('addHeartbeat', 'Transaction was successfully sent and generated an event.');
                     debug('addHeartbeat', `JSON Data: [${JSON.parse(data.toString())}]`);
                     resolve(true);
@@ -172,6 +126,129 @@ class Chain {
     }
   }
 
+
+  // Set leader
+  async setLeader (oldLeader, groupId, mnemonic) {
+    try {
+      // Get keys from mnemonic
+      const keys = await getKeysFromSeed(mnemonic);
+
+      // Get account nonce
+      const accountNonce = await this.api.query.system.account(keys.address);
+      const nonce = accountNonce.nonce;
+
+      // Nonce show
+      debug('setLeader', `Nonce: ${nonce}`);
+
+      return new Promise((resolve, reject) => {
+        // create, sign and send transaction
+        this.api.tx.archipelModule
+          // create transaction
+          .setLeader(oldLeader, groupId)
+          // Sign and transaction
+          .sign(keys, { nonce })
+          // Send transaction
+          .send(({ events = [], status }) => {
+            // Debug show transaction status
+            transactionShowStatus(status, 'setLeader');
+            if (status.isFinalized) {
+              events.forEach(async ({ event: { data, method, section } }) => {
+                if (section.toString() === 'archipelModule' && method.toString() === 'NewLeader') {
+                  // Show transaction data for Debug
+                  debug('setLeader', 'Transaction was successfully sent and generated an event.');
+                  debug('setLeader', `JSON Data: [${JSON.parse(data.toString())}]`);
+                  resolve(true);
+                }
+              });
+              resolve(false);
+            }
+            // If transaction is not ok resolving promise to false
+            if (status.isDropped || status.isInvalid || status.isUsurped) {
+              resolve(false);
+            }
+          }).catch(err => reject(err));
+      });
+    } catch (error) {
+      debug('setLeader', error);
+      throw error;
+    }
+  }
+
+  // Give Up Leadership
+  async giveUpLeadership (groupId, mnemonic) {
+    try {
+      // Get keys from mnemonic
+      const keys = await getKeysFromSeed(mnemonic);
+
+      // Get account nonce
+      const accountNonce = await this.api.query.system.account(keys.address);
+      const nonce = accountNonce.nonce;
+
+      // Nonce show
+      debug('giveUpLeadership', `Nonce: ${nonce}`);
+
+      return new Promise((resolve, reject) => {
+        // create, sign and send transaction
+        this.api.tx.archipelModule
+          // create transaction
+          .giveUpLeadership(groupId)
+          // Sign and transaction
+          .sign(keys, { nonce })
+          // Send transaction
+          .send(({ events = [], status }) => {
+            // Debug show transaction status
+            transactionShowStatus(status, 'giveUpLeadership');
+            if (status.isFinalized) {
+              events.forEach(async ({ event: { data, method, section } }) => {
+                if (section.toString() === 'archipelModule' && method.toString() === 'GiveUpLeader') {
+                  // Show transaction data for Debug
+                  debug('giveUpLeadership', 'Transaction was successfully sent and generated an event.');
+                  debug('giveUpLeadership', `JSON Data: [${JSON.parse(data.toString())}]`);
+                  resolve(true);
+                }
+              });
+              resolve(false);
+            }
+            // If transaction is not ok resolving promise to false
+            if (status.isDropped || status.isInvalid || status.isUsurped) {
+              resolve(false);
+            }
+          }).catch(err => reject(err));
+      });
+    } catch (error) {
+      debug('giveUpLeadership', error);
+      throw error;
+    }
+  }
+
+  // If node state permits to send transactions
+  async canSendTransactions () {
+    try {
+      // Get peers number
+      let peersNumber = await this.getPeerNumber();
+      debug('canSendTransactions', `Node has ${peersNumber} peers.`);
+
+      // Get sync state
+      let syncState = await this.getSyncState();
+      debug('canSendTransactions', `Node is sync: ${syncState}`);
+
+      if (peersNumber === 0 || syncState === true) {
+        console.log(`No peers (${peersNumber}) or wrong sync state (${syncState}). We will retry in 5 seconds...`);
+        debug('canSendTransactions', `Peers number is ${peersNumber} and Sync State is ${syncState}. We will retry in 5 seconds.`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        peersNumber = await this.getPeerNumber();
+        syncState = await this.getSyncState();
+        debug('canSendTransactions', `After retry peers number is ${peersNumber} and Sync State is ${syncState}.`);
+      }
+
+      // If node has any peers and is not in synchronizing chain
+      return peersNumber !== 0 && syncState !== true;
+    } catch (error) {
+      debug('canSendTransactions', error);
+      throw error;
+    }
+  }
+
   // Get current leader from Runtime
   async getLeader (groupId) {
     try {
@@ -180,7 +257,7 @@ class Chain {
       debug('getLeader', error);
       return false;
     }
-  };
+  }
 
   // Get leadedGroup status from Runtime
   async isLeadedGroup (groupId) {
@@ -190,7 +267,7 @@ class Chain {
       debug('isLeadedGroup', error);
       return false;
     }
-  };
+  }
 
   // Get heartbeat from Runtime
   async getHeartbeat (key) {
@@ -258,100 +335,6 @@ class Chain {
     }
   }
 
-  // Set leader
-  async setLeader (oldLeader, groupId, mnemonic) {
-    try {
-      // Get keys from mnemonic
-      const keys = await getKeysFromSeed(mnemonic);
-
-      // Get account nonce
-      const accountNonce = await this.api.query.system.account(keys.address);
-      const nonce = accountNonce.nonce;
-
-      // Nonce show
-      debug('setLeader', `Nonce: ${nonce}`);
-
-      return new Promise((resolve, reject) => {
-        // create, sign and send transaction
-        this.api.tx.archipelModule
-          // create transaction
-          .setLeader(oldLeader, groupId)
-          // Sign and transaction
-          .sign(keys, { nonce })
-          // Send transaction
-          .send(({ events = [], status }) => {
-            // Debug show transaction status
-            this.transactionShowStatus(status, 'setLeader');
-            if (status.isFinalized) {
-              events.forEach(async ({ event: { data, method, section } }) => {
-                if (section.toString() === 'archipelModule' && method.toString() === 'NewLeader') {
-                  // Show transaction data for Debug
-                  console.log('Transaction was successfully sent and generated an event.');
-                  debug('setLeader', `JSON Data: [${JSON.parse(data.toString())}]`);
-                  resolve(true);
-                }
-              });
-              resolve(false);
-            }
-            // If transaction is not ok resolving promise to false
-            if (status.isDropped || status.isInvalid || status.isUsurped) {
-              resolve(false);
-            }
-          }).catch(err => reject(err));
-      });
-    } catch (error) {
-      debug('setLeader', error);
-      throw error;
-    }
-  }
-
-  // Give Up Leadership
-  async giveUpLeadership (groupId, mnemonic) {
-    try {
-      // Get keys from mnemonic
-      const keys = await getKeysFromSeed(mnemonic);
-
-      // Get account nonce
-      const accountNonce = await this.api.query.system.account(keys.address);
-      const nonce = accountNonce.nonce;
-
-      // Nonce show
-      debug('giveUpLeadership', `Nonce: ${nonce}`);
-
-      return new Promise((resolve, reject) => {
-        // create, sign and send transaction
-        this.api.tx.archipelModule
-          // create transaction
-          .giveUpLeadership(groupId)
-          // Sign and transaction
-          .sign(keys, { nonce })
-          // Send transaction
-          .send(({ events = [], status }) => {
-            // Debug show transaction status
-            this.transactionShowStatus(status, 'giveUpLeadership');
-            if (status.isFinalized) {
-              events.forEach(async ({ event: { data, method, section } }) => {
-                if (section.toString() === 'archipelModule' && method.toString() === 'GiveUpLeader') {
-                  // Show transaction data for Debug
-                  console.log('Transaction was successfully sent and generated an event.');
-                  debug('setLeader', `JSON Data: [${JSON.parse(data.toString())}]`);
-                  resolve(true);
-                }
-              });
-              resolve(false);
-            }
-            // If transaction is not ok resolving promise to false
-            if (status.isDropped || status.isInvalid || status.isUsurped) {
-              resolve(false);
-            }
-          }).catch(err => reject(err));
-      });
-    } catch (error) {
-      debug('giveUpLeadership', error);
-      throw error;
-    }
-  }
-
   // Get peer id from chain
   async getPeerId () {
     try {
@@ -376,7 +359,7 @@ class Chain {
   // Disconnect from chain
   async disconnect () {
     if (this.api) {
-      this.api.disconnect();
+      await this.api.disconnect();
     }
   }
 }

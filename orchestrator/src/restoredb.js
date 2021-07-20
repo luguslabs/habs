@@ -282,7 +282,7 @@ class RestoreDb {
     this.databaseRestoreSuccess = false;
     // Disable orchestration and heartbeat send
     this.orchestrator.orchestrationEnabled = false;
-    this.orchestrator.chain.heartbeatSendEnabled = false;
+    this.orchestrator.heartbeatSendEnabled = false;
     // Stopping service and removing imported keys
     await this.orchestrator.service.serviceInstance.serviceCleanUp();
     this.orchestrator.service.serviceInstance.importedKeys = [];
@@ -293,7 +293,7 @@ class RestoreDb {
     this.databaseRestoreRunning = false;
     // Enable orchestration and heartbeat send
     this.orchestrator.orchestrationEnabled = true;
-    this.orchestrator.chain.heartbeatSendEnabled = true;
+    this.orchestrator.heartbeatSendEnabled = true;
     // Start service in passive mode
     await this.orchestrator.service.serviceStart('passive');
   }

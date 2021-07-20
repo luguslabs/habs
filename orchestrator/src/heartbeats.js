@@ -4,38 +4,38 @@ const {
 } = require('./utils');
 
 class Heartbeats {
-  constructor (config) {
+  constructor (nodesWallets, archipelName) {
     this.heartbeats = new Map();
-    this.nodes = constructNodesList(config.nodesWallets, config.archipelName); ;
+    this.nodes = constructNodesList(nodesWallets, archipelName);
   }
 
   // Add heartbeat into Map
   addHeartbeat (wallet, group, nodeStatus, blockNumber) {
-    let name = '';
-
     // Get node name from nodes array
     const node = this.nodes.find(element => element.wallet === wallet);
-    if (node !== undefined) {
-      name = node.name;
-    }
+    const name = node !== undefined ? node.name : '';
 
     debug('addHeartbeat', `name ${name} group ${group} nodeStatus ${nodeStatus} blockNumber ${blockNumber}.`);
-    var nodeHeartbeat = {
+    // Add heartbeat
+    this.heartbeats.set(wallet, 
+    {
       name,
       group,
       nodeStatus,
       blockNumber
-    };
-
-    this.heartbeats.set(wallet, nodeHeartbeat);
+    });
   }
 
-  // If any node in Map is alive
+  // Check if anyone is alive
   anyOneAlive (excludeNode, aliveTime, group, bestNumber) {
     debug('anyOneAlive', `excludeNode ${excludeNode} aliveTime ${aliveTime} group ${group} bestNumber ${bestNumber}.`);
+    // Search in heartbeats map
     for (const [key, value] of this.heartbeats.entries()) {
+      // Exclude a wallet from search
+      // Anyone alive except us
       if (key !== excludeNode) {
         debug('anyOneAlive', `heartbeat found. key:${key}, group:${value.group}, blockNumber:${value.blockNumber}.`);
+        // Check if someone was alive less blocks then aliveTime ago
         const lastSeenAgo = bestNumber - value.blockNumber;
         if (lastSeenAgo < aliveTime) {
           debug('anyOneAlive', `${key} is alive.`);
@@ -48,6 +48,7 @@ class Heartbeats {
 
   // Get all heartbeats from heartbeat map
   getAllHeartbeats () {
+    // Here we will create a list of objects
     const result = [];
     this.heartbeats.forEach((value, key) => {
       result.push({
@@ -59,13 +60,13 @@ class Heartbeats {
       });
     });
 
-    // Return sorted result by node name
+    // Sort and return heartbeats object list
     return result.sort((el1, el2) => {
       return el1.name.toString().localeCompare(el2.name.toString());
     });
   }
 
-  // Get getHeartbeat of a node
+  // Get a heartbeat of a node
   getHeartbeat (wallet) {
     return this.heartbeats.get(wallet);
   }

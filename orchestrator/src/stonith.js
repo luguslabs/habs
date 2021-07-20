@@ -72,7 +72,7 @@ class Stonith {
     const isLeadedGroup = await this.orchestrator.chain.isLeadedGroup(this.orchestrator.group);
     console.log('Stonith is activated.');
 
-    const getOrchestratorKey = await getKeysFromSeed(this.orchestrator.chain.mnemonic);
+    const getOrchestratorKey = await getKeysFromSeed(this.orchestrator.mnemonic);
     const orchestratorAddress = getOrchestratorKey.address;
 
     this.smsStonithCallbackStatus = 'waitingCallBack';
@@ -93,7 +93,7 @@ class Stonith {
         );
         this.orchestrator.orchestrationEnabled = false;
         // to allow other node to take leadership :
-        this.chain.heartbeatSendEnabled = false;
+        this.orchestrator.heartbeatSendEnabled = false;
         this.smsStonithCallbackStatus = 'none';
         return false;
       }

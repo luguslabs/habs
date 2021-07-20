@@ -14,6 +14,7 @@ const {
   formatOptionList,
   formatOptionCmds
 } = require('../utils');
+const { Docker } = require('../docker');
 
 const config = {};
 
@@ -169,14 +170,14 @@ class Polkadot {
     }
   }
 
-  constructor (docker) {
+  constructor () {
     // If service is already cleaning up
     this.cleaningUp = false;
 
     // Already imported keys list
     this.importedKeys = [];
 
-    this.docker = docker;
+    this.docker = new Docker();
 
     // Init config
     Polkadot.initConfig();

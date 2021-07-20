@@ -1,6 +1,7 @@
 const { Keyring } = require('@polkadot/keyring');
 const { cryptoWaitReady } = require('@polkadot/util-crypto');
 const fs = require('fs-extra');
+const debug = require('debug')('utils');
 
 // Create a Keyring from seed
 const getKeysFromSeed = async (_seed, type = 'sr25519') => {
@@ -101,6 +102,18 @@ const constructNodesList = (nodesWallets, archipelName) => {
   return result;
 };
 
+// Show transaction status in debug
+const transactionShowStatus = (status, where) => {
+  if (status.isInvalid) debug(where, 'Transaction is invalid.');
+  if (status.isDropped) debug(where, 'Transaction is dropped.');
+  if (status.isUsurped) debug(where, 'Transaction is usurped.');
+  if (status.isReady) debug(where, 'Transaction is ready.');
+  if (status.isFuture) debug(where, 'Transaction is future.');
+  if (status.isFinalized) debug(where, 'Transaction is finalized.');
+  if (status.isBroadcast) debug(where, 'Transaction is broadcast.');
+};
+
+
 module.exports = {
   getKeysFromSeed,
   streamToString,
@@ -111,5 +124,6 @@ module.exports = {
   formatOptionList,
   formatOptionCmds,
   constructNodesList,
-  fromModeToNodeStatus
+  fromModeToNodeStatus,
+  transactionShowStatus
 };

@@ -5,82 +5,52 @@ const { Docker } = require('./docker');
 const debug = require('debug')('service');
 
 class Service {
-  constructor (serviceName, chain, mode) {
+  constructor (serviceName,  mode) {
     try {
-      // Create docker instance
-      const docker = new Docker();
-
       // Create a service instance
       switch (serviceName) {
         case 'polkadot':
-          this.serviceInstance = new Polkadot(docker);
+          this.serviceInstance = new Polkadot();
           break;
         case 'trustlines':
-          this.serviceInstance = new Trustlines(docker);
+          this.serviceInstance = new Trustlines();
           break;
         case 'centrifuge':
-          this.serviceInstance = new Centrifuge(docker);
+          this.serviceInstance = new Centrifuge();
           break;
         default:
           throw Error(`Service ${serviceName} is not supported yet.`);
       }
 
-      this.chain = chain;
       this.serviceName = serviceName;
-
-      // Service not ready and node is in active mode
-      this.noReadyCount = 0;
-      this.noReadyThreshold = 30; // ~ 300 seconds
-
-      // Set initial service mode
       this.mode = mode;
+
     } catch (error) {
       debug('Service constructtor', error);
       throw error;
     }
   }
 
-  // Service readiness management
-  async serviceReadinessManagement () {
-    const serviceReady = await this.serviceInstance.isServiceReadyToStart();
-
-    // If service is not ready and current node is leader
-    if (!serviceReady && this.mode === 'active') {
-      // Waiting for this.noReadyThreshold orchestrations
-      if (this.noReadyCount < this.noReadyThreshold) {
-        console.log(
-              `Service is not ready but current node is leader. Waiting for ${
-                this.noReadyThreshold - this.noReadyCount
-              } orchestrations...`
-        );
-        this.noReadyCount++;
-        return true;
-        // If service is not ready after noReadyThreshold enforcing passive mode
-        // And disabling heartbeats send
-      } else {
-        console.log(
-              `Service is not ready for ${this.noReadyThreshold} orchestrations. Disabling heartbeat send...`
-        );
-        this.chain.heartbeatSendEnabled = false;
-        return false;
-      }
+  // Check if service is ready
+  async serviceReady () {
+    try{
+      const isServiceReady = await this.serviceInstance.isServiceReadyToStart();
+      return isServiceReady;
+    } catch (error) {
+      debug('serviceReady', error);
+      throw error;   
     }
+  }
 
-    // If service is ready and heartbeat send is disabled we can activate heartbeats send
-    if (serviceReady && !this.chain.heartbeatSendEnabled) {
-      console.log(
-        'Service is ready and heartbeat send was disabled. Enabling it...'
-      );
-      this.chain.heartbeatSendEnabled = true;
-    }
-
-    // Reset noReady counter
-    if (this.noReadyCount !== 0) {
-      this.noReadyCount = 0;
-    }
-
-    // Return isServiceReadyToStart result
-    return serviceReady;
+  // Check service
+  async serviceCheck () {
+    try {
+      const serviceStatus = await this.serviceInstance.checkLaunchedContainer();
+      return serviceStatus;
+    } catch (error) {
+      debug('serviceCheck', error);
+      throw error;
+    }  
   }
 
   // Start service

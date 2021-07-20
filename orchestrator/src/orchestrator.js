@@ -16,15 +16,25 @@ class Orchestrator {
 
     this.stonith = new Stonith(this);
     // Create service instance
-    this.service = new Service(config.service, this.chain, config.serviceMode);
+    this.service = new Service(config.service, config.serviceMode);
 
     this.heartbeats = heartbeats;
     this.aliveTime = config.aliveTime;
     this.serviceMode = config.serviceMode;
 
+    this.mnemonic = config.mnemonic;
+    this.nodeGroupId = config.nodeGroupId;
+
     this.group = config.nodeGroupId;
     this.archipelName = config.archipelName;
     this.orchestrationEnabled = config.orchestrationEnabled;
+
+    this.heartbeatSendEnabled = true;
+    this.heartbeatSendEnabledAdmin = config.heartbeatEnabled;
+
+    // Service not ready and node is in active mode
+    this.noReadyCount = 0;
+    this.noReadyThreshold = 30; // ~ 300 seconds
   }
 
   // Bootstrap service at boot
@@ -95,7 +105,7 @@ class Orchestrator {
     }
 
     // Get node address from seed
-    const key = await getKeysFromSeed(this.chain.mnemonic);
+    const key = await getKeysFromSeed(this.mnemonic);
     const nodeKey = key.address;
     debug('orchestrateService', `Current Node Key: ${nodeKey}`);
 
@@ -115,7 +125,7 @@ class Orchestrator {
 
     // Check if service is ready to be started if not enforcing passive service mode
     console.log('Checking if service is ready to start...');
-    const serviceReady = await this.service.serviceReadinessManagement();
+    const serviceReady = await this.serviceReadinessManagement();
     if (!serviceReady) {
       console.log("Service is not ready. Enforcing 'passive' service mode...");
       await this.service.serviceStart('passive');
@@ -123,7 +133,7 @@ class Orchestrator {
     }
 
     // If heartbeats are disabled enforcing passive service mode
-    if (!this.chain.heartbeatSendEnabled || !this.chain.heartbeatSendEnabledAdmin) {
+    if (!this.heartbeatSendEnabled || !this.heartbeatSendEnabledAdmin) {
       console.log('Heartbeat send is disabled. Enforcing passive service mode...');
       await this.service.serviceStart('passive');
       return;
@@ -148,7 +158,7 @@ class Orchestrator {
   // Take leader place
   async becomeLeader (nodeKey) {
     try {
-      const setLeader = await this.chain.setLeader(nodeKey, this.group, this.chain.mnemonic);
+      const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
       if (setLeader) {
         console.log('The leadership was taken successfully...');
 
@@ -267,6 +277,49 @@ class Orchestrator {
       debug('otherLeaderAction', error);
       throw error;
     }
+  }
+
+  // Service readiness management
+  async serviceReadinessManagement () {
+    const serviceReady = await this.service.serviceReady();
+
+    // If service is not ready and current node is leader
+    if (!serviceReady && this.service.mode === 'active') {
+      // Waiting for this.noReadyThreshold orchestrations
+      if (this.noReadyCount < this.noReadyThreshold) {
+        console.log(
+              `Service is not ready but current node is leader. Waiting for ${
+                this.noReadyThreshold - this.noReadyCount
+              } orchestrations...`
+        );
+        this.noReadyCount++;
+        return true;
+        // If service is not ready after noReadyThreshold enforcing passive mode
+        // And disabling heartbeats send
+      } else {
+        console.log(
+              `Service is not ready for ${this.noReadyThreshold} orchestrations. Disabling heartbeat send...`
+        );
+        this.heartbeatSendEnabled = false;
+        return false;
+      }
+    }
+
+    // If service is ready and heartbeat send is disabled we can activate heartbeats send
+    if (serviceReady && !this.heartbeatSendEnabled) {
+      console.log(
+        'Service is ready and heartbeat send was disabled. Enabling it...'
+      );
+      this.heartbeatSendEnabled = true;
+    }
+
+    // Reset noReady counter
+    if (this.noReadyCount !== 0) {
+      this.noReadyCount = 0;
+    }
+
+    // Return isServiceReadyToStart result
+    return serviceReady;
   }
 }
 

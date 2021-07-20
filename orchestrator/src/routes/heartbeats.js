@@ -3,8 +3,8 @@ const router = express.Router();
 
 // Disable heartbeats send
 const disableHeartbeats = orchestrator => {
-  if (orchestrator.chain.heartbeatSendEnabledAdmin) {
-    orchestrator.chain.heartbeatSendEnabledAdmin = false;
+  if (orchestrator.heartbeatSendEnabledAdmin) {
+    orchestrator.heartbeatSendEnabledAdmin = false;
     console.log('[API] Heartbeats send was disabled...');
     return true;
   }
@@ -13,8 +13,8 @@ const disableHeartbeats = orchestrator => {
 
 // Enable heartbeats send
 const enableHeartbeats = orchestrator => {
-  if (!orchestrator.chain.heartbeatSendEnabledAdmin) {
-    orchestrator.chain.heartbeatSendEnabledAdmin = true;
+  if (!orchestrator.heartbeatSendEnabledAdmin) {
+    orchestrator.heartbeatSendEnabledAdmin = true;
     console.log('[API] Heartbeats send was enabled...');
     return true;
   }
