@@ -38,6 +38,8 @@ function launch_orchestrator () {
   sleep 5
 }
 
+docker network create archipel
+
 docker volume create orchestrator1_service
 docker volume create orchestrator2_service
 docker volume create orchestrator3_service

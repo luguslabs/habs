@@ -52,8 +52,8 @@ const constructConfiguration = () => {
   config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
   config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
   config.polkadotAdditionalOptions = process.env.POLKADOT_ADDITIONAL_OPTIONS;
-  config.polkadotDatabasePath = process.env.POLKADOT_DATABASE_PATH || '/polkadot/.local/share/polkadot/chains';
-  config.polkadotBackupURL = process.env.POLKADOT_BACKUP_URL;
+  config.databasePath = process.env.POLKADOT_DATABASE_PATH || '/polkadot/.local/share/polkadot/chains';
+  config.backupURL = process.env.POLKADOT_BACKUP_URL;
   config.polkadotSimulateSynch = process.env.POLKADOT_SIMULATE_SYNCH || 'false';
   config.testing = process.env.TESTING || 'false';
   // config.polkadotSessionKeyToCheck = process.env.POLKADOT_SESSION_KEY_TO_CHECK;
@@ -277,7 +277,7 @@ class Polkadot {
       // Construct command to execute
       const command = [
         'find',
-        this.config.polkadotDatabasePath,
+        this.config.databasePath,
         '-name',
         `*${publicKey.substring(2)}`
       ];
@@ -539,32 +539,6 @@ class Polkadot {
       this.cleaningUp = false;
     } catch (error) {
       debug('cleanUp', error);
-      console.error(error);
-    }
-  }
-
-  // Get database PATH
-  getDatabasePath () {
-    try {
-      if (!isEmptyString(this.config.polkadotDatabasePath)) {
-        return this.config.polkadotDatabasePath;
-      }
-      return false;
-    } catch (error) {
-      debug('getDatabasePath', error);
-      console.error(error);
-    }
-  }
-
-  // Get backup URL
-  getBackupURL () {
-    try {
-      if (!isEmptyString(this.config.polkadotBackupURL)) {
-        return this.config.polkadotBackupURL;
-      }
-      return false;
-    } catch (error) {
-      debug('getBackupURL', error);
       console.error(error);
     }
   }

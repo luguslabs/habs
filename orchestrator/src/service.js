@@ -3,6 +3,7 @@ const debug = require('debug')('service');
 const { Polkadot } = require('./services/polkadot');
 const { Trustlines } = require('./services/trustlines');
 const { Centrifuge } = require('./services/centrifuge');
+const { isEmptyString } = require('./utils');
 
 class Service {
   constructor (serviceName, mode) {
@@ -70,6 +71,32 @@ class Service {
     } catch (error) {
       debug('serviceCleanUp', error);
       console.error(error);
+    }
+  }
+
+  // Get service database PATH
+  serviceDatabasePath () {
+    try {
+      if (!isEmptyString(this.serviceInstance.config.databasePath)) {
+        return this.serviceInstance.config.databasePath;
+      }
+      return false;
+    } catch (error) {
+      debug('serviceDatabasePath', error);
+      throw error;
+    }
+  }
+
+  // Get service backup URL
+  serviceBackupURL () {
+    try {
+      if (!isEmptyString(this.serviceInstance.config.backupURL)) {
+        return this.serviceInstance.config.backupURL;
+      }
+      return false;
+    } catch (error) {
+      debug('serviceBackupURL', error);
+      throw error;
     }
   }
 }

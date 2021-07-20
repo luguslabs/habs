@@ -25,8 +25,8 @@ class RestoreDb {
 
   prepareDownloadHandler () {
     try {
-      this.backupURL = this.orchestrator.service.serviceInstance.getBackupURL();
-      this.dataBasePath = this.orchestrator.service.serviceInstance.getDatabasePath();
+      this.backupURL = this.orchestrator.service.serviceBackupURL();
+      this.dataBasePath = this.orchestrator.service.serviceDatabasePath();
 
       // Create download object if is not already created
       if (!this.download) {
