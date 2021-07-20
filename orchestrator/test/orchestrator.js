@@ -7,7 +7,6 @@ const { Docker } = require('../src/docker');
 const { Heartbeats } = require('../src/heartbeats');
 const { Chain } = require('../src/chain');
 const { getKeysFromSeed } = require('../src/utils');
-const { isTestChain } = require('@polkadot/util');
 
 // Variables
 let docker;
