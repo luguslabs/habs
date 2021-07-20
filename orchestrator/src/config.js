@@ -28,7 +28,7 @@ const constructConfiguration = () => {
     config.orchestrationEnabled = true;
   }
 
-  // check is all variables are set
+  // check if all variables are set
   Object.keys(config).forEach(key => {
     checkVariable(config[key], `${key}`);
   });
