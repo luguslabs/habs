@@ -27,7 +27,6 @@ const {
 // Check if all necessary env vars were set
 const checkEnvVars = () => {
   try {
-    checkVariable(SMS_STONITH_ACTIVE, 'SMS_STONITH_ACTIVE');
     if (!isEmptyString(SMS_STONITH_ACTIVE) && SMS_STONITH_ACTIVE.includes('true')) {
       checkVariable(SMS_STONITH_CALLBACK_MANDATORY, 'SMS_STONITH_CALLBACK_MANDATORY');
       checkVariable(SMS_STONITH_CALLBACK_MAX_DELAY, 'SMS_STONITH_CALLBACK_MAX_DELAY');
@@ -73,7 +72,7 @@ class Stonith {
     const isLeadedGroup = await this.orchestrator.chain.isLeadedGroup(this.orchestrator.group);
     console.log('Stonith is activated.');
 
-    const getOrchestratorKey = await getKeysFromSeed(this.orchestrator.mnemonic);
+    const getOrchestratorKey = await getKeysFromSeed(this.orchestrator.chain.mnemonic);
     const orchestratorAddress = getOrchestratorKey.address;
 
     this.smsStonithCallbackStatus = 'waitingCallBack';

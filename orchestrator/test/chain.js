@@ -26,27 +26,37 @@ const execAsync = cmd => new Promise((resolve, reject) => {
 
 describe('Archipel chain test', function(){
   this.timeout(testTimeout);
-  before(async function() {
 
-    // Launching test chain
+  before(async function() {
+    // Launch test chain
     console.log('Launching test chain. Can take some time...');
     const commandToExec = 'cd ../deployer/test/chain/ && ./launch.sh';
     await execAsync(commandToExec);
     console.log('Test chain was launched...');
 
+    // Connect to Archipel Chain Node
+    console.log('Connection to chain...');
     const config = {
       nodeWs: 'ws://127.0.0.1:9944',
       heartbeatEnabled: true,
       mnemonic: mnemonic1,
       nodeGroupId: '1'
     };
-    
-    console.log('Connection to chain...');
-    // Connecting to Archipel Chain Node
     chain = new Chain(config);
     await chain.connect();
+
     // Construct nodes list
     const nodes = constructNodesList(nodesWallets, 'node1');
+  });
+
+  after(async function() {
+    if (chain) {
+      await chain.disconnect();
+    }
+    // Removing test chain
+    console.log('Removing test chain...');
+    const commandToExec = 'cd ../deployer/test/chain && ./remove.sh';
+    await execAsync(commandToExec);
   });
 
   it('Test heartbeat addition', async function() {
@@ -167,16 +177,5 @@ describe('Archipel chain test', function(){
     chain.nodeGroupId = '1';
 
   });
-
-  after(async function() {
-    if (chain) {
-      await chain.disconnect();
-    }
-    // Removing test chain
-    console.log('Removing test chain...');
-    const commandToExec = 'cd ../deployer/test/chain && ./remove.sh';
-    await execAsync(commandToExec);
-  });
-
 
 });

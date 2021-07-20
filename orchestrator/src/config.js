@@ -15,7 +15,6 @@ const constructConfiguration = () => {
   config.serviceMode = process.env.ARCHIPEL_SERVICE_MODE;
   config.nodesWallets = process.env.NODES_WALLETS;
   config.archipelName = process.env.ARCHIPEL_NAME;
-  config.nodeGroup = process.env.NODE_GROUP;
   config.nodeGroupId = process.env.NODE_GROUP_ID;
 
   // Setting default values for variables

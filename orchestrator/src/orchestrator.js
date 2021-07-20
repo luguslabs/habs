@@ -14,16 +14,11 @@ class Orchestrator {
     this.noLivenessThreshold = 5;
     this.chain = chain;
 
-    // Service not ready and node is in active mode
-    this.noReadyCount = 0;
-    this.noReadyThreshold = 30; // ~ 300 seconds
-
     this.stonith = new Stonith(this);
     // Create service instance
     this.service = new Service(config.service, this.chain, config.serviceMode);
 
     this.heartbeats = heartbeats;
-    this.mnemonic = config.mnemonic;
     this.aliveTime = config.aliveTime;
     this.serviceMode = config.serviceMode;
 
@@ -100,7 +95,7 @@ class Orchestrator {
     }
 
     // Get node address from seed
-    const key = await getKeysFromSeed(this.mnemonic);
+    const key = await getKeysFromSeed(this.chain.mnemonic);
     const nodeKey = key.address;
     debug('orchestrateService', `Current Node Key: ${nodeKey}`);
 
@@ -153,7 +148,7 @@ class Orchestrator {
   // Take leader place
   async becomeLeader (nodeKey) {
     try {
-      const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
+      const setLeader = await this.chain.setLeader(nodeKey, this.group, this.chain.mnemonic);
       if (setLeader) {
         console.log('The leadership was taken successfully...');
 

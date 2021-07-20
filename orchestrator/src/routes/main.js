@@ -10,7 +10,7 @@ const getOrchestratorInfo = async orchestrator => {
   // Get all necessary orchestrator data
   const heartbeats = orchestrator.heartbeats.getAllHeartbeats();
 
-  const getOrchestratorKey = await getKeysFromSeed(orchestrator.mnemonic);
+  const getOrchestratorKey = await getKeysFromSeed(orchestrator.chain.mnemonic);
   const orchestratorAddress = getOrchestratorKey.address;
 
   const isConnected = orchestrator.chain.isConnected();

@@ -19,6 +19,11 @@ describe('Docker test', function(){
     docker = new Docker();
   });
 
+  after(async function() {
+    await docker.removeContainer(activeName);
+    await docker.removeContainer(passiveName);
+  });
+
   it('Test active docker container start', async function () {
     await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
 
@@ -115,11 +120,6 @@ describe('Docker test', function(){
     const result = await docker.dockerExecute(activeName, commandToExecute);
   
     assert.equal(result, 'Hello world', 'check if command was executed in docker container and output can be retrieved');
-  });
-
-  after(async function() {
-    await docker.removeContainer(activeName);
-    await docker.removeContainer(passiveName);
   });
 
 });

@@ -57,6 +57,14 @@ class Polkadot {
         config.polkadotDatabasePath = '/polkadot/.local/share/polkadot/chains';
       }
 
+      if (isEmptyString(config.polkadotImage)) {
+        config.polkadotImage = 'parity/polkadot:latest';
+      }
+
+      if (isEmptyString(config.polkadotPrefix)) {
+        config.polkadotPrefix = 'node-';
+      }
+
       // Check if the config can be retrieved from config file
       if (isEmptyString(process.env.CONFIG_FILE)) {
         return;
@@ -73,14 +81,6 @@ class Polkadot {
         if ('name' in configFromFile) {
           config.polkadotName = `${configFromFile.name}-node-${config.nodeId}`;
         }
-      }
-
-      if (isEmptyString(config.polkadotImage)) {
-        config.polkadotImage = 'parity/polkadot:latest';
-      }
-
-      if (isEmptyString(config.polkadotPrefix)) {
-        config.polkadotPrefix = 'node-';
       }
 
       if (isEmptyString(config.polkadotKeyGran)) {
