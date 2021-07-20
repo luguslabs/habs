@@ -17,13 +17,13 @@ class Heartbeats {
 
     debug('addHeartbeat', `name ${name} group ${group} nodeStatus ${nodeStatus} blockNumber ${blockNumber}.`);
     // Add heartbeat
-    this.heartbeats.set(wallet, 
-    {
-      name,
-      group,
-      nodeStatus,
-      blockNumber
-    });
+    this.heartbeats.set(wallet,
+      {
+        name,
+        group,
+        nodeStatus,
+        blockNumber
+      });
   }
 
   // Check if anyone is alive

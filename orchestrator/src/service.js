@@ -1,11 +1,11 @@
+const debug = require('debug')('service');
+
 const { Polkadot } = require('./services/polkadot');
 const { Trustlines } = require('./services/trustlines');
 const { Centrifuge } = require('./services/centrifuge');
-const { Docker } = require('./docker');
-const debug = require('debug')('service');
 
 class Service {
-  constructor (serviceName,  mode) {
+  constructor (serviceName, mode) {
     try {
       // Create a service instance
       switch (serviceName) {
@@ -24,7 +24,6 @@ class Service {
 
       this.serviceName = serviceName;
       this.mode = mode;
-
     } catch (error) {
       debug('Service constructtor', error);
       throw error;
@@ -33,12 +32,12 @@ class Service {
 
   // Check if service is ready
   async serviceReady () {
-    try{
+    try {
       const isServiceReady = await this.serviceInstance.isServiceReadyToStart();
       return isServiceReady;
     } catch (error) {
       debug('serviceReady', error);
-      throw error;   
+      throw error;
     }
   }
 
@@ -50,7 +49,7 @@ class Service {
     } catch (error) {
       debug('serviceCheck', error);
       throw error;
-    }  
+    }
   }
 
   // Start service

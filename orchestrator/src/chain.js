@@ -1,10 +1,10 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const debug = require('debug')('chain');
 
-const { 
-  getKeysFromSeed, 
+const {
+  getKeysFromSeed,
   fromModeToNodeStatus,
-  transactionShowStatus 
+  transactionShowStatus
 } = require('./utils');
 
 class Chain {
@@ -125,7 +125,6 @@ class Chain {
       throw error;
     }
   }
-
 
   // Set leader
   async setLeader (oldLeader, groupId, mnemonic) {

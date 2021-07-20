@@ -113,7 +113,6 @@ const transactionShowStatus = (status, where) => {
   if (status.isBroadcast) debug(where, 'Transaction is broadcast.');
 };
 
-
 module.exports = {
   getKeysFromSeed,
   streamToString,
