@@ -1,5 +1,4 @@
 /* eslint-disable */
-const { isTestChain } = require('@polkadot/util');
 const { assert } = require('chai');
 const { Docker } = require('../src/docker');
 
@@ -13,7 +12,7 @@ const volume = 'nginx';
 const mountDir = '/usr/share/nginx/html';
 const command = ['nginx-debug', '-g', 'daemon off;'];
 
-describe('Archipel chain test', function(){
+describe('Docker test', function(){
   this.timeout(testTimeout);
   before(async function() {
     // Creating Docker instance
