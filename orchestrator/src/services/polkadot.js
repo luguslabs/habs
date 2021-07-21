@@ -56,7 +56,7 @@ const constructConfiguration = () => {
   config.backupURL = process.env.POLKADOT_BACKUP_URL;
   config.polkadotSimulateSynch = process.env.POLKADOT_SIMULATE_SYNCH || 'false';
   config.testing = process.env.TESTING || 'false';
-  // config.polkadotSessionKeyToCheck = process.env.POLKADOT_SESSION_KEY_TO_CHECK;
+  config.polkadotSessionKeyToCheck = process.env.POLKADOT_SESSION_KEY_TO_CHECK;
 
   return config;
 };
@@ -234,9 +234,9 @@ class Polkadot {
         await this.importKey(containerName, this.config.polkadotKeyAsgn, 'sr25519', 'asgn');
         await this.importKey(containerName, this.config.polkadotKeyAudi, 'sr25519', 'audi');
       }
-      /*       if (this.config.polkadotSessionKeyToCheck) {
-        await this.checkSessionKeyOnNode(containerName, this.config.polkadotSessionKeyToCheck);
-      } */
+      //if (this.config.polkadotSessionKeyToCheck) {
+      //  await this.checkSessionKeyOnNode(containerName, this.config.polkadotSessionKeyToCheck);
+      //}
     } catch (error) {
       debug('polkadotKeysImport', error);
       console.error('Error: Can\'t add keys. We will retry the next time.');
@@ -244,29 +244,32 @@ class Polkadot {
     }
   }
 
-  /*   async checkSessionKeyOnNode (containerName, sessionKey) {
+  // Check if session keys were successfully set
+  async checkSessionKeyOnNode (containerName, sessionKey) {
     try {
-      console.log('check Session Key valid On Node for session key value :');
-      console.log(sessionKey);
+      debug('checkSessionKeyOnNode', `Checking Session Key validity on node for session key value : ${sessionKey}`);
       // Constructing command check session key
       const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-    `{
-      "jsonrpc":"2.0",
-      "id":1,
-      "method":"author_hasSessionKeys",
-      "params": [
-        "${sessionKey}"
-      ]
-    }`];
+      `{
+        "jsonrpc":"2.0",
+        "id":1,
+        "method":"author_hasSessionKeys",
+        "params": [
+          "${sessionKey}"
+        ]
+      }`];
+
       // Importing key by executing command in docker container
       const result = await this.docker.dockerExecute(containerName, command);
-      console.log(`Command hasSessionKeys result: "${result}"`);
+      debug('checkSessionKeyOnNode', `Command hasSessionKeys result: "${result}"`);
+      return result;
     } catch (error) {
       debug('checkSessionKeyOnNode', error);
       console.error('Error: Can\'t check session key');
       console.error(error);
+      return false;
     }
-  } */
+  }
 
   // Check if a key file is present in container file system
   async checkKeyAdded (mnemonic, crypto, containerName) {

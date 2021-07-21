@@ -20,19 +20,24 @@ class Docker {
 
   // Pull docker image
   async dockerPull (image) {
-    return new Promise((resolve, reject) => {
-      // Pulling docker image
-      this.docker.pull(image, (error, stream) => {
-        console.log(`Pulling ${image} image...`);
-        if (error) return reject(error);
-        // Following pull progress
-        this.docker.modem.followProgress(stream, error => {
+    try {
+      return new Promise((resolve, reject) => {
+        // Pulling docker image
+        this.docker.pull(image, (error, stream) => {
+          console.log(`Pulling ${image} image...`);
           if (error) return reject(error);
-          console.log('Image was successfully pulled.');
-          return resolve(true);
-        }, Docker.onProgress);
+          // Following pull progress
+          this.docker.modem.followProgress(stream, error => {
+            if (error) return reject(error);
+            console.log('Image was successfully pulled.');
+            return resolve(true);
+          }, Docker.onProgress);
+        });
       });
-    });
+    } catch (error) {
+      debug('dockerPull', error);
+      throw error;
+    }
   }
 
   // Execute a command in a docker container

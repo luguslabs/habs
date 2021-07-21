@@ -69,7 +69,8 @@ const checkVariable = (value, name) => {
     throw Error(`Error! Variable ${name} was not set.`);
   }
 };
-
+ 
+// Format option list permits to create telemetry url params and reserved nodes params
 const formatOptionList = (option, inputList) => {
   return inputList.split(',').reduce((resultArray, item) => {
     resultArray.push(option);
@@ -78,6 +79,7 @@ const formatOptionList = (option, inputList) => {
   }, []);
 };
 
+// Create a list of params from a string separated by a space
 const formatOptionCmds = inputCmds => {
   if (inputCmds.split(' ').length === 1) {
     return [inputCmds];
@@ -88,6 +90,7 @@ const formatOptionCmds = inputCmds => {
   }, []);
 };
 
+// Construct nodes list with wallets and nodes names
 const constructNodesList = (nodesWallets, archipelName) => {
   const result = [];
   if (!isEmptyString(nodesWallets) && !isEmptyString(archipelName)) {
