@@ -46,6 +46,7 @@ function launch_archipel () {
     --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s,5GYxkGrnJ9nkuhVyZ6Qf73CLwgu3tEKXP58KFRCiKjtEBHWm" \
     --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj,5Dww1iPtLbZTUjuXciBdki2Wtnh55M8g1FB4hx32JcSo4NMk" \
     --env DEBUG="app,chain,docker,heartbeats,polkadot,service" \
+    --env POLKADOT_BACKUP_URL="http://127.0.0.1" \
     --env WIREGUARD_PRIVATE_KEY="${12}" \
     --env WIREGUARD_ADDRESS="${13}" \
     --env WIREGUARD_LISTEN_PORT=51820 \
@@ -235,4 +236,3 @@ echo "--------------------------------------------------------"
 echo "-------------------- [ARCHIPEL UI] ---------------------"
 echo "Archipel UI http://$ARCHIPEL_UI_IP/ is available at http://localhost:3000/" 
 echo "--------------------------------------------------------"
-

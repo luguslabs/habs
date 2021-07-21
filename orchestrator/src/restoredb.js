@@ -7,7 +7,7 @@ class RestoreDb {
   constructor (orchestrator) {
     this.orchestrator = orchestrator;
 
-    // Database restore variables
+    // Database restore default variables
     this.downloadRunning = false;
     this.downloadPaused = false;
     this.download = false;
@@ -23,8 +23,23 @@ class RestoreDb {
     this.dataBasePath = '';
   };
 
+  // Return database download statistics
+  async downloadStats () {
+    const stats = await this.download.getStats();
+    stats.downloadRunning = this.downloadRunning;
+    stats.downloadPaused = this.downloadPaused;
+    stats.downloadSuccess = this.downloadSuccess;
+    stats.downloadState = this.downloadState;
+    stats.downloadError = this.downloadError;
+    stats.backupURL = this.backupURL;
+    stats.dataBasePath = this.dataBasePath;
+    return JSON.stringify(stats);
+  }
+
+  // Init all necessary variables and create event handlers
   prepareDownloadHandler () {
     try {
+      // Get url and path from service instance
       this.backupURL = this.orchestrator.service.serviceBackupURL();
       this.dataBasePath = this.orchestrator.service.serviceDatabasePath();
 
@@ -32,7 +47,7 @@ class RestoreDb {
       if (!this.download) {
         this.download = new DownloaderHelper(this.backupURL, '/', { override: true, retry: { maxRetries: 5, delay: 5000 } });
 
-        // Download events
+        // If error occured during file download
         this.download.on('error', (error) => {
           const errorMsg = `Download Error! Error: ${error}.`;
           console.log(errorMsg);
@@ -40,6 +55,7 @@ class RestoreDb {
           this.downloadRunning = false;
         });
 
+        // If timeout was reached on download
         this.download.on('timeout', () => {
           const errorMsg = 'Download Error! Timeout!';
           console.log(errorMsg);
@@ -47,12 +63,14 @@ class RestoreDb {
           this.downloadRunning = false;
         });
 
+        // If retry event was recieved
         this.download.on('retry', (attempt, retryOpts) => {
           const errorMsg = `Download Error! Retry #${attempt}. Delay ${retryOpts.delay} ms.`;
           console.log(errorMsg);
           this.downloadError = errorMsg;
         });
 
+        // If downlaod state changed
         this.download.on('stateChanged', (state) => {
           console.log(`Download State Changed! State: ${state}.`);
           this.downloadState = state;
@@ -84,11 +102,10 @@ class RestoreDb {
     }
   }
 
-  // Restore Service Database
+  // Restore service database
   async serviceRestoreDB (action) {
     try {
       this.prepareDownloadHandler();
-
       switch (action) {
         case 'download-start':
           return this.downloadStart();
@@ -183,45 +200,38 @@ class RestoreDb {
     return this.downloadInfo;
   }
 
-  // Executed when download stats are requested
-  async downloadStats () {
-    console.log('Sending stats only!');
-    const stats = await this.download.getStats();
-    stats.downloadRunning = this.downloadRunning;
-    stats.downloadPaused = this.downloadPaused;
-    stats.downloadSuccess = this.downloadSuccess;
-    stats.downloadState = this.downloadState;
-    stats.downloadError = this.downloadError;
-    return JSON.stringify(stats);
-  }
-
-  // Executed when restore is requested
-  async restore () {
-    if (this.downloadRunning || !this.downloadSuccess) {
-      this.downloadInfo = 'You must successfully download the database file before restore!';
-      console.log(this.downloadInfo);
-      return this.downloadInfo;
-    }
-    if (this.databaseRestoreRunning) {
-      this.downloadInfo = 'Database restore is already running.';
-      console.log(this.downloadInfo);
-      return this.downloadInfo;
-    }
-
-    await this.restoreDB();
-    this.downloadInfo = 'Database restore was launched!';
-    console.log(this.downloadInfo);
-    return this.downloadInfo;
-  }
-
-  // Executed when restore stats are requested
+  // Return restore process statistics
   restoreStats () {
     const stats = {};
     stats.databaseRestoreRunning = this.databaseRestoreRunning;
     stats.databaseRestoreSuccess = this.databaseRestoreSuccess;
     stats.databaseRestoreError = this.databaseRestoreError;
     stats.databaseRestoreProgress = this.databaseRestoreProgress;
+    stats.backupURL = this.backupURL;
+    stats.dataBasePath = this.dataBasePath;
     return JSON.stringify(stats);
+  }
+
+  // Executed when restore is requested
+  async restore () {
+    // Check if database was successully downloaded
+    if (this.downloadRunning || !this.downloadSuccess) {
+      this.downloadInfo = 'You must successfully download the database file before restore!';
+      console.log(this.downloadInfo);
+      return this.downloadInfo;
+    }
+    // Check if database restore is not already running
+    if (this.databaseRestoreRunning) {
+      this.downloadInfo = 'Database restore is already running.';
+      console.log(this.downloadInfo);
+      return this.downloadInfo;
+    }
+
+    // Start database restore
+    await this.restoreDB();
+    this.downloadInfo = 'Database restore was launched!';
+    console.log(this.downloadInfo);
+    return this.downloadInfo;
   }
 
   // Triggered if download was successfull
@@ -243,16 +253,18 @@ class RestoreDb {
       const extract = jaguar.extract(`/${fileName}`, this.dataBasePath);
       this.databaseRestoreProgress = 0;
 
-      // Extract events
+      // When extraction starts
       extract.on('file', (name) => {
         console.log(`Extracting file: ${name}...`);
       });
 
+      // To be able to track extraction progress
       extract.on('progress', (percent) => {
-        console.log(`Extracting progress: ${percent} %`);
+        debug('restoreDB', `Extracting progress: ${percent} %`);
         this.databaseRestoreProgress = percent;
       });
 
+      // If an error occured during extraction process
       extract.on('error', (error) => {
         const errorMsg = `Extracting file error: ${error}`;
         console.log(errorMsg);
@@ -263,6 +275,7 @@ class RestoreDb {
         this.restoreStopPrepare();
       });
 
+      // Extraction was successfully finished
       extract.on('end', () => {
         console.log('Extracting file success!!');
         this.databaseRestoreSuccess = true;
@@ -276,7 +289,7 @@ class RestoreDb {
     }
   }
 
-  // Prepare the orchestrator if download will be started
+  // Disable orchestration, heartbeat send and cleanup service before restore
   async restoreStartPrepare () {
     this.databaseRestoreRunning = true;
     this.databaseRestoreSuccess = false;
@@ -288,7 +301,7 @@ class RestoreDb {
     this.orchestrator.service.serviceInstance.importedKeys = [];
   }
 
-  // Prepare the orchestrator if download will be stopped
+  // Enable orchestration, hearbeat send and launche service in passive mode after restore
   async restoreStopPrepare () {
     this.databaseRestoreRunning = false;
     // Enable orchestration and heartbeat send

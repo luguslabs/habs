@@ -11,7 +11,8 @@ class Chain {
   constructor (nodeWs) {
     this.wsProvider = nodeWs;
   }
-
+  
+  // Connect to chain
   async connect () {
     try {
       // Creating Websocket Provider
