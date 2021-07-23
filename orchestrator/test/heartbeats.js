@@ -56,4 +56,27 @@ describe('Heartbeats test', function(){
     assert.equal(heartbeats.anyOneAlive(nodesWallets.split(',')[0], 10, 42, 15), true, 'check if anyone is alive with heartbeat from other wallet in other group');
   });
 
+  it('check get all heartbeats function', async function () {
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+
+    heartbeats.addHeartbeat(nodesWallets.split(',')[0], 42, 1, 10);
+    heartbeats.addHeartbeat(nodesWallets.split(',')[1], 43, 2, 10);
+    heartbeats.addHeartbeat(nodesWallets.split(',')[2], 43, 2, 10);
+
+    const allHeartbeats = heartbeats.getAllHeartbeats();
+
+    assert.equal(allHeartbeats.length, 3, 'check if the hearbeats size is correct');
+    assert.equal(allHeartbeats[0].wallet, nodesWallets.split(',')[0], 'check if heartbeat from wallet 1 was added');
+    assert.equal(allHeartbeats[1].wallet, nodesWallets.split(',')[1], 'check if heartbeat from wallet 1 was added');
+    assert.equal(allHeartbeats[2].wallet, nodesWallets.split(',')[2], 'check if heartbeat from wallet 1 was added');
+  
+  });
+
+  it('check wallet that is not in the nodes wallets', async function () {
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+    heartbeats.addHeartbeat('toto', 42, 1, 10);
+    const allHeartbeats = heartbeats.getAllHeartbeats();
+    assert.equal(allHeartbeats.length, 1, 'check if hearbeat was added');
+    assert.equal(allHeartbeats[0].name, '', 'check if hearbeat name is empty');
+  });
 });
