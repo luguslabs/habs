@@ -234,9 +234,9 @@ class Polkadot {
         await this.importKey(containerName, this.config.polkadotKeyAsgn, 'sr25519', 'asgn');
         await this.importKey(containerName, this.config.polkadotKeyAudi, 'sr25519', 'audi');
       }
-      //if (this.config.polkadotSessionKeyToCheck) {
+      // if (this.config.polkadotSessionKeyToCheck) {
       //  await this.checkSessionKeyOnNode(containerName, this.config.polkadotSessionKeyToCheck);
-      //}
+      // }
     } catch (error) {
       debug('polkadotKeysImport', error);
       console.error('Error: Can\'t add keys. We will retry the next time.');
@@ -527,7 +527,6 @@ class Polkadot {
     }
   }
 
-
   // Remove 'down' container and start 'up' container
   async prepareAndStart (containerData, upName, downName) {
     try {
@@ -562,7 +561,6 @@ class Polkadot {
 
       console.log('Service is already started.');
       return false;
-    
     } catch (error) {
       debug('prepareAndStart', error);
       throw error;

@@ -219,6 +219,7 @@ class Trustlines {
       console.error(error);
     }
   }
+
   // Remove 'down' container and start 'up' container
   async prepareAndStart (containerData, upName, downName) {
     try {
@@ -253,7 +254,6 @@ class Trustlines {
 
       console.log('Service is already started.');
       return false;
-    
     } catch (error) {
       debug('prepareAndStart', error);
       throw error;

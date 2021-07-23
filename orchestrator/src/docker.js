@@ -5,7 +5,7 @@ const { streamToString } = require('./utils');
 
 class Docker {
   constructor (socketPath = '/var/run/docker.sock') {
-      this.docker = new Dockerode({ socketPath });
+    this.docker = new Dockerode({ socketPath });
   }
 
   // Get docker image instance
@@ -13,7 +13,7 @@ class Docker {
     try {
       const imageInstance = await this.docker.getImage(imageName);
       imageInstance.description = await imageInstance.inspect();
-      return imageInstance ? imageInstance : false;
+      return imageInstance || false;
     } catch (error) {
       debug('getImage', error);
       return false;
@@ -49,7 +49,7 @@ class Docker {
     try {
       const imageInstance = await this.getImage(imageName);
       if (imageInstance) {
-        await imageInstance.remove({force : true});
+        await imageInstance.remove({ force: true });
         return true;
       }
       return false;
@@ -64,7 +64,7 @@ class Docker {
     try {
       const volume = await this.docker.getVolume(name);
       volume.description = await volume.inspect();
-      return volume ? volume : false;
+      return volume || false;
     } catch (error) {
       debug('getVolume', error);
       return false;
@@ -108,7 +108,7 @@ class Docker {
     try {
       // List all available containers on host
       const containers = await this.docker.listContainers({ all: true });
-    
+
       // Search a container by its name or id
       const foundContainer = containers.find(container => {
         return container.Id === nameOrId || (container.Names.length > 0 && container.Names[0] === '/' + nameOrId) ? container : false;
@@ -136,12 +136,12 @@ class Docker {
       const container = await this.getContainer(containerData.name);
 
       // If container doesnt exist we will create one
-      if (!container) { 
+      if (!container) {
         // Pulling image
         await this.pullImage(containerData.Image);
 
         // Starting container
-        debug('startContainer', `Creating and starting container ${containerData.Name}.`)
+        debug('startContainer', `Creating and starting container ${containerData.Name}.`);
         const newContainer = await this.docker.createContainer(containerData);
         await newContainer.start();
         return true;
@@ -154,9 +154,8 @@ class Docker {
       }
 
       // If container exists and is running just sending false
-      debug('startContainer', `Container ${containerData.Name} already exists and is running.`)
+      debug('startContainer', `Container ${containerData.Name} already exists and is running.`);
       return false;
-    
     } catch (error) {
       debug('startContainer', error);
       return false;
@@ -210,7 +209,7 @@ class Docker {
       return false;
     }
   }
-  
+
   // Get mount from a container
   async getMount (containerNameOrId, volumeName) {
     try {
@@ -224,7 +223,7 @@ class Docker {
             return element.Name.endsWith(volumeName) ? element : false;
           }
         });
-        return mount ? mount : false;
+        return mount || false;
       }
       return false;
     } catch (error) {
@@ -253,7 +252,6 @@ class Docker {
       return false;
     }
   }
-
 };
 
 module.exports = {

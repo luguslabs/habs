@@ -69,7 +69,7 @@ const checkVariable = (value, name) => {
     throw Error(`Error! Variable ${name} was not set.`);
   }
 };
- 
+
 // Format option list permits to create telemetry url params and reserved nodes params
 const formatOptionList = (option, inputList) => {
   return inputList.split(',').reduce((resultArray, item) => {
