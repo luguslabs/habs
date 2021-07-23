@@ -54,7 +54,7 @@ class Chain {
           if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewLeader') {
             debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
             // If anyone other took leadership
-            if (event.data[0].toString() !== keys.address.toString()) {
+            if (event.data[0].toString() !== keys.address.toString() && event.data[1].toString() === orchestrator.group.toString()) {
               orchestrator.service.serviceStart('passive');
             }
           }
@@ -80,7 +80,7 @@ class Chain {
 
       // If node has any peers and is not in synchronizing chain
       if (sendTransaction) {
-        console.log('Archipel node has some peers and is synchronized so adding heartbeats...');
+        debug('addHeartbeat', 'Archipel node has some peers and is synchronized so adding heartbeats...');
         // Get keys from mnemonic
         const keys = await getKeysFromSeed(mnemonic);
         // Get account nonce
@@ -275,7 +275,6 @@ class Chain {
       return await this.api.query.archipelModule.heartbeats(key);
     } catch (error) {
       debug('getHeartbeat', error);
-      console.log(error);
       return false;
     }
   }
@@ -286,7 +285,6 @@ class Chain {
       return parseInt(await this.api.query.archipelModule.nodesStatus(key));
     } catch (error) {
       debug('getNodeStatus', error);
-      console.log(error);
       return 0;
     }
   }
@@ -297,7 +295,6 @@ class Chain {
       return parseInt(await this.api.query.archipelModule.groups(key));
     } catch (error) {
       debug('getNodeGroup', error);
-      console.log(error);
       return 0;
     }
   }
@@ -339,7 +336,7 @@ class Chain {
   async getPeerId () {
     try {
       const localPeerId = await this.api.rpc.system.localPeerId();
-      return localPeerId.toString();
+      return localPeerId ? localPeerId.toString() : false;
     } catch (error) {
       debug('getPeerId', error);
       throw error;

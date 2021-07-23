@@ -23,7 +23,6 @@ class Orchestrator {
     this.serviceMode = config.serviceMode;
 
     this.mnemonic = config.mnemonic;
-    this.nodeGroupId = config.nodeGroupId;
 
     this.group = config.nodeGroupId;
     this.archipelName = config.archipelName;
