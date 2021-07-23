@@ -10,10 +10,12 @@ let docker;
 const testTimeout = 60000;
 const activeName = 'nginx-active';
 const passiveName = 'nginx-passive';
-const image = 'nginx';
+const image = 'nginx:latest';
 const volume = 'nginx';
 const mountDir = '/usr/share/nginx/html';
 const command = ['nginx-debug', '-g', 'daemon off;'];
+const testingImage = 'nginx:1.20';
+const testingVolume = 'test-volume-3';
 
 describe('Docker test', function(){
   this.timeout(testTimeout);
@@ -25,104 +27,131 @@ describe('Docker test', function(){
   after(async function() {
     await docker.removeContainer(activeName);
     await docker.removeContainer(passiveName);
+    await docker.removeImage(testingImage);
+    await docker.removeVolume(testingVolume);
   });
 
-  it('Test active docker container start', async function () {
-    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
+  it('Test docker image functionality', async function () {
+    let image = await docker.getImage(testingImage);
+    assert.equal(image, false, 'check if docker image is not already present at host');
 
-    const container = await docker.getContainer(activeName);
-    const containerInspect = await container.inspect();
+    let pullImage = await docker.pullImage(testingImage);
+    assert.equal(pullImage, true, 'check pull image result');
+    pullImage = await docker.pullImage(testingImage);
+    assert.equal(pullImage, true, 'trying to repull image if image already exists');
 
-    assert.equal(containerInspect.Name, `/${activeName}`, 'check if docker container has a correct name after creation');
-    assert.equal(containerInspect.State.Running, true, 'check if docker container is in running state');
-    assert.equal(containerInspect.Mounts[0].Name, volume, 'check if docker container has a correct volume attached');
-    assert.equal(containerInspect.Mounts[0].Destination, mountDir, 'check if docker container has a correct mount dir');
-    assert.equal(containerInspect.Config.Image, image, 'check if docker container has a correct image');
-    assert.equal(containerInspect.Config.Cmd.join(' '), command.join(' '), 'check if docker container has a correct command');
-  
-    await docker.removeContainer(activeName);
+    image = await docker.getImage(testingImage);
+    assert.notEqual(image, false, 'check if docker image was successfully pulled');
+
+    let removeImage = await docker.removeImage(testingImage);
+    assert.equal(removeImage, true, 'check remove image result');
+    removeImage = await docker.removeImage(testingImage);
+    assert.equal(removeImage, false, 'trying to remove already removed image');
+
+    image = await docker.getImage(testingImage);
+    assert.equal(image, false, 'check if docker image was correctly removed');
   });
 
-  it('Test passive docker container start', async function () {
-    await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
+  it('Test docker volume functionality', async function () {
+    let volume = await docker.getVolume(testingVolume);
+    assert.equal(volume, false, 'check if docker volume doesnt exist');
 
-    const container = await docker.getContainer(passiveName);
-    const containerInspect = await container.inspect();
+    let volumeCreation = await docker.createVolume(testingVolume);
+    assert.equal(volumeCreation, true, 'check volume creation result');
+    volumeCreation = await docker.createVolume(testingVolume);
+    assert.equal(volumeCreation, false, 'check if volume already exists');
 
-    assert.equal(containerInspect.Name, `/${passiveName}`, 'check if docker container has a correct name after creation');
-    assert.equal(containerInspect.State.Running, true, 'check if docker container is in running state');
-    assert.equal(containerInspect.Mounts[0].Name, volume, 'check if docker container has a correct volume attached');
-    assert.equal(containerInspect.Mounts[0].Destination, mountDir, 'check if docker container has a correct mount dir');
-    assert.equal(containerInspect.Config.Image, image, 'check if docker container has a correct image');
-    assert.equal(containerInspect.Config.Cmd.join(' '), command.join(' '), 'check if docker container has a correct command');
-  
-    await docker.removeContainer(passiveName);
+    volume = await docker.getVolume(testingVolume);
+    assert.notEqual(volume, false, 'check if docker volume was created');
+
+    let volumeRemove = await docker.removeVolume(testingVolume);
+    assert.equal(volumeRemove, true, 'check volume removal result');
+    volumeRemove = await docker.removeVolume(testingVolume);
+    assert.equal(volumeRemove, false, 'trying to remove volume if it was already removed');
+
+    volume = await docker.getVolume(testingVolume);
+    assert.equal(volume, false, 'check if docker volume was removed');
   });
 
-  it('Test docker container remove', async function () {
-    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
-
+  it('Test docker container functionality', async function () {
     let container = await docker.getContainer(activeName);
-    const containerInspect = await container.inspect();
-  
-    assert.equal(containerInspect.State.Running, true, 'check if docker container is in running state');
-  
-    await docker.removeContainer(activeName);
-  
-    try {
-      container = await docker.getContainer(activeName);
-      await container.inspect();
-    } catch (error) {
-      assert.equal(error.toString(), 'Error: (HTTP code 404) no such container - No such container: nginx-active ', 'check if docker container was removed');
-    }
-  });
+    assert.equal(container, false, 'check if docker container doesnt exist');
 
-  it('Test if active container will be down after the passive container launch', async function () {
-    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
-    await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
+    let containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, false, 'check if docker container is not running');
 
-    const containerPassive = await docker.getContainer(passiveName);
-    const passiveInspect = await containerPassive.inspect();
-  
-    assert.equal(passiveInspect.State.Running, true, 'check if passive docker container is in running state');
-  
-    try {
-      const containerActive = await docker.getContainer(activeName);
-      await containerActive.inspect();
-    } catch (error) {
-      assert.equal(error.toString(), 'Error: (HTTP code 404) no such container - No such container: nginx-active ', 'check if active docker container was removed');
-    }
-  
-    await docker.removeContainer(passiveName);
-  });
+    const containerData = {
+      name: activeName,
+      Image: image,
+      Cmd: command,
+      HostConfig: {
+        Mounts: [
+          {
+            Target: mountDir,
+            Source: volume,
+            Type: 'volume',
+            ReadOnly: false
+          }
+        ]
+      }
+    };
 
-  it('Test if passive container will be down after the active container launch', async function () {
-    await docker.startServiceContainer('passive', activeName, passiveName, image, command, mountDir, volume);
-    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
-  
-    const containerActive = await docker.getContainer(activeName);
-    const activeInspect = await containerActive.inspect();
+    await docker.createVolume(volume);
 
-    assert.equal(activeInspect.State.Running, true, 'check if active docker container is in running state');
+    let startContainer = await docker.startContainer(containerData);
+    assert.equal(startContainer, true, 'check start container result');
+    startContainer = await docker.startContainer(containerData);
+    assert.equal(startContainer, false, 'trying to start already started container');
 
-    try {
-      const containerPassive = await docker.getContainer(passiveName);
-      await containerPassive.inspect();
-    } catch (error) {
-      assert.equal(error.toString(), 'Error: (HTTP code 404) no such container - No such container: nginx-passive ', 'check if passive docker container was removed');
-    }
-  
-    await docker.removeContainer(activeName);
-  });
+    container = await docker.getContainer(activeName);
+    assert.equal(container.description.Name, `/${activeName}`, 'check if docker container has a correct name after creation');
+    assert.equal(container.description.State.Running, true, 'check if docker container is in running state');
+    assert.equal(container.description.Mounts[0].Name, volume, 'check if docker container has a correct volume attached');
+    assert.equal(container.description.Mounts[0].Destination, mountDir, 'check if docker container has a correct mount dir');
+    assert.equal(container.description.Config.Image, image, 'check if docker container has a correct image');
+    assert.equal(container.description.Config.Cmd.join(' '), command.join(' '), 'check if docker container has a correct command');
+   
+    containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, true, 'check if docker container is running');
 
-  it('Test command execution in docker container', async function () {
-    await docker.startServiceContainer('active', activeName, passiveName, image, command, mountDir, volume);
+    let getMount = await docker.getMount(activeName, volume);
+    assert.notEqual(getMount, false, 'check if mount was found');
+    getMount = await docker.getMount(activeName, 'invalid-mount');
+    assert.equal(getMount, false, 'check not existing mount');
 
     const commandToExecute = ['echo', 'Hello world'];
-  
-    const result = await docker.dockerExecute(activeName, commandToExecute);
-  
+    let result = await docker.dockerExecute(activeName, commandToExecute);
     assert.equal(result, 'Hello world', 'check if command was executed in docker container and output can be retrieved');
-  });
 
+    let stopContainer = await docker.stopContainer(activeName);
+    assert.equal(stopContainer, true, 'check if stop container result');
+    stopContainer = await docker.stopContainer(activeName);
+    assert.equal(stopContainer, false, 'stopping already stopped container');
+    containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, false, 'check if docker container is not running');
+    startContainer = await docker.startContainer(containerData);
+    assert.equal(startContainer, true, 'trying to start stopped container');
+    containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, true, 'check if docker container is running');
+
+    let containerRemove = await docker.removeContainer(activeName);
+    assert.equal(containerRemove, true, 'check container remove result');
+    containerRemove = await docker.removeContainer(activeName);
+    assert.equal(containerRemove, false, 'trying to remove already removed container');
+
+    stopContainer = await docker.stopContainer(activeName);
+    assert.equal(stopContainer, false, 'trying to stop removed container');
+
+    result = await docker.dockerExecute(activeName, commandToExecute);
+    assert.equal(result, false, 'trying to execute command in removed container');
+
+    getMount = await docker.getMount(activeName, volume);
+    assert.equal(getMount, false, 'get mount from removed container');
+
+    container = await docker.getContainer(activeName);
+    assert.equal(container, false, 'check if docker container was successfully removed');
+
+    containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, false, 'check if docker container is not running');
+  });
 });

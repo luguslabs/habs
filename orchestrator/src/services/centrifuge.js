@@ -296,7 +296,7 @@ class Centrifuge {
       }
 
       // Check if container exists and is running
-      const containerExistAndRunning = await this.docker.isContainerRunningByName(containerName);
+      const containerExistAndRunning = await this.docker.isContainerRunning(containerName);
       if (!containerExistAndRunning) {
         debug('isServiceReadyToStart', `Service is not ready to start. Container : "${containerName}" is not running. `);
         return false;
@@ -389,10 +389,10 @@ class Centrifuge {
 
   // Check launched container
   async checkLaunchedContainer () {
-    if (await this.docker.isContainerRunningByName('centrifuge-validator')) {
+    if (await this.docker.isContainerRunning('centrifuge-validator')) {
       return 'active';
     }
-    if (await this.docker.isContainerRunningByName('centrifuge-sync')) {
+    if (await this.docker.isContainerRunning('centrifuge-sync')) {
       return 'passive';
     }
     return 'none';
@@ -446,7 +446,7 @@ class Centrifuge {
     }
 
     // Get service volume from orchestrator and give this volume to centrifuge container
-    const orchestratorServiceVolume = await this.docker.getMountThatEndsWith(os.hostname(), 'service');
+    const orchestratorServiceVolume = await this.docker.getMount(os.hostname(), 'service');
     if (orchestratorServiceVolume) {
       this.centrifugeVolume = orchestratorServiceVolume.Name;
     } else {
@@ -475,7 +475,7 @@ class Centrifuge {
           name = config.centrifugeValidatorName;
         }
         cmdsList.push(...['--name', `${name}`, ...this.commonCentrifugeOptions, '--validator']);
-        await this.docker.startServiceContainer(
+        await this.startServiceContainer(
           'active',
           'centrifuge-validator',
           'centrifuge-sync',
@@ -490,7 +490,7 @@ class Centrifuge {
         cmdsList.push(...['--name', `${config.centrifugeName}-${mode}`, ...this.commonCentrifugeOptions]);
         const contrainerNameSuffix = 'centrifuge-sync';
         containerName = contrainerNameSuffix;
-        await this.docker.startServiceContainer(
+        await this.startServiceContainer(
           'passive',
           'centrifuge-validator',
           containerName,
@@ -553,13 +553,97 @@ class Centrifuge {
       console.error(error);
     }
   }
+  // Remove 'down' container and start 'up' container
+  async prepareAndStart (containerData, upName, downName) {
+    try {
+      // Get passive and active containers
+      const containerUp = await this.docker.getContainer(upName);
+      const containerDown = await this.docker.getContainer(downName);
 
-  getDatabasePath () {
-    throw Error('not implemnted');
-  }
+      // Setting container name
+      containerData.name = upName;
 
-  getBackupURL () {
-    throw Error('not implemnted');
+      // We must remove down container if it exist
+      if (containerDown) {
+        console.log(`Removing ${downName} container...`);
+        await this.docker.removeContainer(downName);
+      }
+
+      // Creating up container if it is not already present
+      if (!containerUp) {
+        // Starting container
+        console.log(`Starting ${upName} container...`);
+        await this.docker.startContainer(containerData);
+        return true;
+      }
+
+      // If container exits but is not in running state
+      // We will recreate and relaunch it
+      if (containerUp.description.State !== 'running') {
+        console.log(`Restarting container ${containerData.name}...`);
+        await this.docker.removeContainer(containerData.name);
+        await this.docker.startContainer(containerData);
+      }
+
+      console.log('Service is already started.');
+      return false;
+    
+    } catch (error) {
+      debug('prepareAndStart', error);
+      throw error;
+    }
+  };
+
+  // Start passive or active service container
+  async startServiceContainer (type, activeName, passiveName, image, cmd, mountTarget, mountSource, networkMode) {
+    try {
+      // Check if active service container is already running
+      if (type === 'active' && await this.docker.isContainerRunning(activeName)) {
+        console.log(`Service is already running in ${type} mode...`);
+        return;
+      }
+
+      // Check if passive service container is already running
+      if ((type === 'passive') && await this.docker.isContainerRunning(passiveName)) {
+        console.log(`Service is already running in ${type} mode...`);
+        return;
+      }
+
+      // Creating volume
+      await this.docker.createVolume(mountSource);
+
+      // Constructing container data
+      const containerData = {
+        name: '',
+        Image: image,
+        Cmd: cmd,
+        HostConfig: {
+          Mounts: [
+            {
+              Target: mountTarget,
+              Source: mountSource,
+              Type: 'volume',
+              ReadOnly: false
+            }
+          ]
+        }
+      };
+
+      if (networkMode !== '') {
+        containerData.HostConfig.NetworkMode = networkMode;
+      }
+
+      // If we want to start active container
+      if (type === 'active') {
+        return await this.prepareAndStart(containerData, activeName, passiveName);
+      // We want to start passive container
+      } else {
+        return await this.prepareAndStart(containerData, passiveName, activeName);
+      }
+    } catch (error) {
+      debug('startServiceContainer', error);
+      throw error;
+    }
   }
 }
 
