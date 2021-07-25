@@ -6,7 +6,7 @@ const { getKeysFromSeed, constructNodesList } = require('../src/utils');
 const { Heartbeats } = require('../src/heartbeats');
 
 // Set env variables
-process.env.DEBUG = 'app,chain,docker,heartbeats,polkadot,service,api,orchestrator,restoredb,stonith,utils';
+process.env.DEBUG = 'app,chain,docker,heartbeats,polkadot,service,api,orchestrator,restoredb,utils';
 
 // Test configuration
 let chain;

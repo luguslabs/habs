@@ -20,7 +20,6 @@ process.env.POLKADOT_KEY_ASGN = 'rough open marine belt rib violin december gest
 process.env.POLKADOT_KEY_AUDI = 'oak tail stomach fluid trade aunt fire fringe mercy roast style garlic';
 process.env.POLKADOT_ADDITIONAL_OPTIONS = '--chain kusama --db-cache 512';
 process.env.TESTING = true;
-process.env.DEBUG = 'app,chain,docker,heartbeats,polkadot,service,api,orchestrator,restoredb,stonith,utils';
 
 // Variables
 let docker;
@@ -1005,63 +1004,6 @@ describe('Orchestrator test', function() {
     
     orchestrator.heartbeats = saveHeartbeatsInstrance;
     orchestrator.heartbeatSendEnabledAdmin = saveHeartbeatSendEnabledAdmin;
-  });
-
-  it('Trying to take leadership if stonith failed', async function () {
-    await orchestrator.service.serviceStart('passive');
-
-    let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-    let container = await docker.getContainer(containerName);
-    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
-
-    let isLeadedGroupTrue = await chain.isLeadedGroup(1);
-    assert.equal(isLeadedGroupTrue, false, 'check if the group is not leaded');
-  
-    const keys = await getKeysFromSeed(mnemonic1);
-    const status = await chain.setLeader(keys.address, 1, mnemonic1);
-    assert.equal(status, true, 'check if set leader transaction was executed');
-  
-    const leader = await chain.getLeader(1);
-    assert.equal(leader.toString(), keys.address, 'check if leader was set correctly');
-
-    // Adding some heartbeats
-    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
-
-    const keys2 = await getKeysFromSeed(mnemonic2);
-    const keys3 = await getKeysFromSeed(mnemonic3);
-  
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
-
-    const saveMnemonic = orchestrator.mnemonic;
-    const saveShootOldValidator = orchestrator.stonith.shootOldValidator;
-    const saveHeartBeats = orchestrator.heartbeats;
-    const saveAliveTime = orchestrator.aliveTime;
-    const saveNoLivenessThreshold = orchestrator.noLivenessThreshold;
-
-    orchestrator.mnemonic = mnemonic2;
-    orchestrator.stonith.shootOldValidator = () => false;
-    orchestrator.heartbeats = heartbeats;
-    orchestrator.aliveTime = 1;
-    orchestrator.noLivenessThreshold = 0;
-
-    await orchestrator.orchestrateService();
-
-    let isLeadedGroup = await chain.isLeadedGroup(1);
-    assert.equal(isLeadedGroup, false, 'check if the group becomes not leaded');
-
-    containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-    container = await docker.getContainer(containerName);
-    assert.equal(container.description.State.Running, true, 'check if service container remains in passive mode');
-
-    await orchestrator.service.serviceCleanUp();
-  
-    orchestrator.mnemonic = saveMnemonic;
-    orchestrator.stonith.shootOldValidator = saveShootOldValidator;
-    orchestrator.heartbeats = saveHeartBeats;
-    orchestrator.aliveTime = saveAliveTime;
-    orchestrator.noLivenessThreshold = saveNoLivenessThreshold;
   });
 
   it('Other node is leader and his hearbeat was long time ago', async function () {

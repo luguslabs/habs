@@ -23,12 +23,6 @@ const serviceStop = async orchestrator => {
   await orchestrator.service.serviceCleanUp();
 };
 
-// Restoring service database
-const serviceRestoreDB = async (restoredb, action) => {
-  console.log(`[API] Service restore database ${action}...`);
-  return await restoredb.serviceRestoreDB(action);
-};
-
 // Check service start request fields
 router.post('/start', checkRequestFields);
 
@@ -51,84 +45,6 @@ router.get('/stop', asyncHandler(async (req, res) => {
   res.json({
     status: '200',
     message: 'Success! Service was stopped.'
-  });
-}));
-
-// Get stats of service database restore
-router.get('/restore-db/download', asyncHandler(async (req, res) => {
-  // Get restoredb instance
-  const restoredb = req.app.get('restoredb');
-  const stats = await serviceRestoreDB(restoredb, 'download-stats');
-  res.json({
-    status: '200',
-    message: stats
-  });
-}));
-
-// Restore service database API section
-// Start a restore of service database
-router.get('/restore-db/download/start', asyncHandler(async (req, res) => {
-  // Get restoredb instance
-  const restoredb = req.app.get('restoredb');
-  const stats = await serviceRestoreDB(restoredb, 'download-start');
-  res.json({
-    status: '200',
-    message: stats
-  });
-}));
-
-// Stop the restore of service database
-router.get('/restore-db/download/stop', asyncHandler(async (req, res) => {
-  // Get restoredb instance
-  const restoredb = req.app.get('restoredb');
-  const stats = await serviceRestoreDB(restoredb, 'download-stop');
-  res.json({
-    status: '200',
-    message: stats
-  });
-}));
-
-// Pause the restore of service database
-router.get('/restore-db/download/pause', asyncHandler(async (req, res) => {
-  // Get restoredb instance
-  const restoredb = req.app.get('restoredb');
-  const stats = await serviceRestoreDB(restoredb, 'download-pause');
-  res.json({
-    status: '200',
-    message: stats
-  });
-}));
-
-// Resume the restore of service database
-router.get('/restore-db/download/resume', asyncHandler(async (req, res) => {
-  // Get restoredb instance
-  const restoredb = req.app.get('restoredb');
-  const stats = await serviceRestoreDB(restoredb, 'download-resume');
-  res.json({
-    status: '200',
-    message: stats
-  });
-}));
-
-// Get stats of service database restore
-router.get('/restore-db', asyncHandler(async (req, res) => {
-  // Get restoredb instance
-  const restoredb = req.app.get('restoredb');
-  const stats = await serviceRestoreDB(restoredb, 'restore-stats');
-  res.json({
-    status: '200',
-    message: stats
-  });
-}));
-
-// Retore the database after download
-router.get('/restore-db/start', asyncHandler(async (req, res) => {
-  // Get restoredb instance
-  const restoredb = req.app.get('restoredb');
-  const stats = await serviceRestoreDB(restoredb, 'restore');
-  res.json({
-    status: '200',
-    message: stats
   });
 }));
 

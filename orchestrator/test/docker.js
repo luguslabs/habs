@@ -2,9 +2,6 @@
 const { assert } = require('chai');
 const { Docker } = require('../src/docker');
 
-// Set env variables
-process.env.DEBUG = 'app,chain,docker,heartbeats,polkadot,service,api,orchestrator,restoredb,stonith,utils';
-
 // Test configuration
 let docker;
 const testTimeout = 60000;

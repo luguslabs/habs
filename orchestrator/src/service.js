@@ -13,12 +13,6 @@ class Service {
         case 'polkadot':
           this.serviceInstance = new Polkadot();
           break;
-        case 'trustlines':
-          this.serviceInstance = new Trustlines();
-          break;
-        case 'centrifuge':
-          this.serviceInstance = new Centrifuge();
-          break;
         default:
           throw Error(`Service ${serviceName} is not supported yet.`);
       }

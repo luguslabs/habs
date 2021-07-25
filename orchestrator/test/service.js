@@ -16,7 +16,6 @@ process.env.POLKADOT_KEY_ASGN = 'rough open marine belt rib violin december gest
 process.env.POLKADOT_KEY_AUDI = 'oak tail stomach fluid trade aunt fire fringe mercy roast style garlic';
 process.env.POLKADOT_ADDITIONAL_OPTIONS = '--chain kusama --db-cache 512';
 process.env.TESTING = true;
-process.env.DEBUG = 'app,chain,docker,heartbeats,polkadot,service,api,orchestrator,restoredb,stonith,utils';
 
 // Variables
 let service;
@@ -59,6 +58,7 @@ describe('Service test', function() {
             cleanUpCalled = true;
         }
         await service.serviceCleanUp();
+
         assert.equal(cleanUpCalled, true, 'Check if service instance cleanup was called correctly');
 
         service.serviceInstance.cleanUp = saveServiceInstanceCleanUp;
@@ -109,20 +109,6 @@ describe('Service test', function() {
             assert.equal(error.toString(), 'Error: Service toto is not supported yet.', 'Check if error is thrown if invalid service');
         }
     });
-
-    it('Try to create other services instances', async function () {
-        try {
-            new Service('trustlines');
-        } catch (error) {
-            assert.equal(error.toString(), 'Error: Error! Variable Truslines Image was not set.', 'Check if error is thrown if invalid service');
-        }
-
-        try {
-            new Service('centrifuge');
-        } catch (error) {
-            assert.equal(error.toString(), 'Error: Error! Variable Centrifuge Name was not set.', 'Check if error is thrown if invalid service');
-        }
-    })
 
     after(async function() {
         service.serviceCleanUp();

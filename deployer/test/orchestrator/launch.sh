@@ -20,7 +20,6 @@ function launch_orchestrator () {
     --env NODE_GROUP_ID=1 \
     --env POLKADOT_NAME="$4" \
     --env POLKADOT_PREFIX="$5" \
-    --env SMS_STONITH_ACTIVE="false" \
     --env POLKADOT_IMAGE="parity/polkadot:latest" \
     --env POLKADOT_DATABASE_PATH="/polkadot/.local/share/polkadot/chains/polkadot" \
     --env POLKADOT_BACKUP_URL="http://127.0.0.1:4343/db.tar.gz" \

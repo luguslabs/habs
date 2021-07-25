@@ -2,9 +2,6 @@
 const { assert } = require('chai');
 const { Heartbeats } = require('../src/heartbeats');
 
-// Set env variables
-process.env.DEBUG = 'app,chain,docker,heartbeats,polkadot,service,api,orchestrator,restoredb,stonith,utils';
-
 // Test configuration
 const testTimeout = 60000;
 const nodesWallets = '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s'
