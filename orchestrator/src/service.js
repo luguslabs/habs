@@ -6,7 +6,7 @@ const { Centrifuge } = require('./services/centrifuge');
 const { isEmptyString } = require('./utils');
 
 class Service {
-  constructor (serviceName, mode) {
+  constructor (serviceName) {
     try {
       // Create a service instance
       switch (serviceName) {
@@ -24,9 +24,20 @@ class Service {
       }
 
       this.serviceName = serviceName;
-      this.mode = mode;
+      this.mode = 'passive';
     } catch (error) {
       debug('Service constructtor', error);
+      throw error;
+    }
+  }
+
+  // Start service
+  async serviceStart (mode) {
+    try {
+      await this.serviceInstance.start(mode);
+      this.mode = mode;
+    } catch (error) {
+      debug('serviceStart', error);
       throw error;
     }
   }
@@ -50,27 +61,6 @@ class Service {
     } catch (error) {
       debug('serviceCheck', error);
       throw error;
-    }
-  }
-
-  // Start service
-  async serviceStart (mode) {
-    try {
-      await this.serviceInstance.start(mode);
-      this.mode = mode;
-    } catch (error) {
-      debug('serviceStart', error);
-      throw error;
-    }
-  }
-
-  // Cleanup a service
-  async serviceCleanUp () {
-    try {
-      await this.serviceInstance.cleanUp();
-    } catch (error) {
-      debug('serviceCleanUp', error);
-      console.error(error);
     }
   }
 
@@ -99,6 +89,16 @@ class Service {
       throw error;
     }
   }
+  // Cleanup a service
+  async serviceCleanUp () {
+    try {
+      await this.serviceInstance.cleanUp();
+    } catch (error) {
+      debug('serviceCleanUp', error);
+      console.error(error);
+    }
+  }
+
 }
 
 module.exports = { Service };

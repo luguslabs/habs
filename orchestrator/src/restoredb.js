@@ -43,6 +43,10 @@ class RestoreDb {
       this.backupURL = this.orchestrator.service.serviceBackupURL();
       this.dataBasePath = this.orchestrator.service.serviceDatabasePath();
 
+      if(!this.backupURL || !this.dataBasePath) {
+        throw Error(`Backup URL and Database Path must be set to be able to use restore db functionality.`);
+      }
+
       // Create download object if is not already created
       if (!this.download) {
         this.download = new DownloaderHelper(this.backupURL, '/', { override: true, retry: { maxRetries: 5, delay: 5000 } });

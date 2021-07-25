@@ -16,7 +16,7 @@ class Orchestrator {
 
     this.stonith = new Stonith(this);
     // Create service instance
-    this.service = new Service(config.service, config.serviceMode);
+    this.service = new Service(config.service);
 
     this.heartbeats = heartbeats;
     this.aliveTime = config.aliveTime;
@@ -38,16 +38,8 @@ class Orchestrator {
 
   // Bootstrap service at boot
   async bootstrapService () {
-    // Start service before orchestration
-    if (this.serviceMode === 'orchestrator' || this.serviceMode === 'passive') {
-      console.log(`Archipel service mode is ${this.serviceMode}. Starting service in passive...`);
+      console.log('Starting service in passive mode...');
       await this.service.serviceStart('passive');
-    } else if (this.serviceMode === 'active') {
-      console.log('Archipel service mode is force as active mode...');
-      await this.service.serviceStart('active');
-    } else {
-      throw Error('Unkown archipel service mode. Shutting down...');
-    }
   }
 
   // Orchestrate service
@@ -70,15 +62,34 @@ class Orchestrator {
 
       // If service mode is passive we will start the service in passive mode
       if (this.serviceMode === 'passive') {
-        console.log('serviceMode force to passive. Start node in passive mode...');
+        console.log('serviceMode is forced to passive. Start node in passive mode...');
         await this.service.serviceStart('passive');
         return;
       }
 
-      // If service mode is active we will start the service in active mode
+      // If service mode is active we will take the leadership and start service in active mode
       if (this.serviceMode === 'active') {
-        console.log('serviceMode force to active. Start node in active mode...');
-        await this.service.serviceStart('active');
+        console.log('serviceMode is forced to active. Trying to take leadership on chain...');
+        const key = await getKeysFromSeed(this.mnemonic);
+        const nodeKey = key.address;
+        let currentLeader = await this.chain.getLeader(this.group);
+
+        if (currentLeader.toString() === nodeKey) {
+          console.log('Current node is leader so starting service in active mode...');
+          await this.service.serviceStart('active');
+          return;
+        }
+        
+        // Trying to take leadership
+        const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
+        currentLeader = isLeadedGroup ? currentLeader : nodeKey;
+        const becomeLeaderResult = await this.becomeLeader(currentLeader);
+        if (becomeLeaderResult) {
+          console.log('Leadership was successfully taken so starting service in active mode...')
+          await this.service.serviceStart('active');
+          return;
+        } 
+        console.log('Can\'t launch service in active mode cause the leadership on chain was not taken...');
         return;
       }
 
@@ -157,15 +168,18 @@ class Orchestrator {
   // Take leader place
   async becomeLeader (nodeKey) {
     try {
+
       const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
       if (setLeader) {
         console.log('The leadership was taken successfully...');
 
         // If stonith is active shutdown other validator
         // If not just return true and continue
+        // TODO: Must rethink when and how stonith will be triggered
         const stonithResult = await this.stonith.shootOldValidator(nodeKey);
         if (!stonithResult) {
-          console.log('Stonith was not successfull. Will retry the next time...');
+          console.log('Stonith was not successfull. Giving up the leadership...');
+          await this.chain.giveUpLeadership(this.group, this.mnemonic);
           return false;
         }
 
