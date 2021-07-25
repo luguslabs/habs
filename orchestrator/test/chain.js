@@ -5,9 +5,6 @@ const { Chain } = require('../src/chain');
 const { getKeysFromSeed, constructNodesList } = require('../src/utils');
 const { Heartbeats } = require('../src/heartbeats');
 
-// Set env variables
-process.env.DEBUG = 'app,chain,docker,heartbeats,polkadot,service,api,orchestrator,restoredb,utils';
-
 // Test configuration
 let chain;
 const testTimeout = 120000;

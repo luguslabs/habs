@@ -37,7 +37,6 @@ POLKADOT_ADDITIONAL_OPTIONS="--chain kusama --db-cache 512"
 
 # Polkadot database restore variables
 POLKADOT_DATABASE_PATH="/service/.local/share/polkadot/chains/polkadot"
-POLKADOT_BACKUP_URL="http://192.168.1.42/db.tar.gz"
 ```
 
 ### Run

@@ -82,26 +82,6 @@ describe('Service test', function() {
         service.serviceInstance.checkLaunchedContainer = saveServiceInstanceCheckLaunchedContainer;
     });
 
-    it('Test service database path and backup url functions', async function () {
-        const saveServiceInstanceConfigDatabasePath = service.serviceInstance.config.databasePath;
-        const saveServiceInstanceConfigBackupURL = service.serviceInstance.config.backupURL;
-
-        service.serviceInstance.config.databasePath = '';
-        service.serviceInstance.config.backupURL = '';
-
-        assert.equal(service.serviceBackupURL(), false, 'Check if service backup url is false if config is empty');
-        assert.equal(service.serviceDatabasePath(), false, 'Check if service database path is false if config is empty');
-
-        service.serviceInstance.config.backupURL = 'http://127.0.0.1/db.tar.gz';
-        service.serviceInstance.config.databasePath = '/polkadot/database';
-
-        assert.equal(service.serviceBackupURL(), 'http://127.0.0.1/db.tar.gz', 'Check if backup url was set correctly');
-        assert.equal(service.serviceDatabasePath(), '/polkadot/database', 'Check if database path was set correctly');
-
-        service.serviceInstance.config.databasePath = saveServiceInstanceConfigDatabasePath;
-        service.serviceInstance.config.backupURL = saveServiceInstanceConfigBackupURL;
-    });
-
     it('Trying to create wrong service instance', async function () {
         try {
             new Service('toto');

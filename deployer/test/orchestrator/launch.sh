@@ -22,7 +22,6 @@ function launch_orchestrator () {
     --env POLKADOT_PREFIX="$5" \
     --env POLKADOT_IMAGE="parity/polkadot:latest" \
     --env POLKADOT_DATABASE_PATH="/polkadot/.local/share/polkadot/chains/polkadot" \
-    --env POLKADOT_BACKUP_URL="http://127.0.0.1:4343/db.tar.gz" \
     --env POLKADOT_KEY_GRAN="april shift pupil quit mandate school cost oven gospel castle brain student" \
     --env POLKADOT_KEY_BABE="region run sunset rule light gap cool element angle example laundry stadium" \
     --env POLKADOT_KEY_IMON="screen sustain clog husband assist noble artist sea fringe afford coil hawk" \

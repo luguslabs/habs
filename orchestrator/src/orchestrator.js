@@ -42,61 +42,55 @@ class Orchestrator {
 
   // Orchestrate service
   async orchestrateService () {
-    try {
-      console.log('Orchestrating service...');
+    console.log('Orchestrating service...');
 
-      // Check if orchestration is enabled
-      if (!this.orchestrationEnabled) {
-        console.log('Orchestration is disabled...');
-        return;
-      }
-
-      // If service mode is orchestrator we will do the classic orchestration
-      if (this.serviceMode === 'orchestrator') {
-        console.log('serviceMode is orchestrator. So orchestrating...');
-        await this.orchestrateOperatorService();
-        return;
-      }
-
-      // If service mode is passive we will start the service in passive mode
-      if (this.serviceMode === 'passive') {
-        console.log('serviceMode is forced to passive. Start node in passive mode...');
-        await this.service.serviceStart('passive');
-        return;
-      }
-
-      // If service mode is active we will take the leadership and start service in active mode
-      if (this.serviceMode === 'active') {
-        console.log('serviceMode is forced to active. Trying to take leadership on chain...');
-        const key = await getKeysFromSeed(this.mnemonic);
-        const nodeKey = key.address;
-        let currentLeader = await this.chain.getLeader(this.group);
-
-        if (currentLeader.toString() === nodeKey) {
-          console.log('Current node is leader so starting service in active mode...');
-          await this.service.serviceStart('active');
-          return;
-        }
-
-        // Trying to take leadership
-        const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
-        currentLeader = isLeadedGroup ? currentLeader : nodeKey;
-        const becomeLeaderResult = await this.becomeLeader(currentLeader);
-        if (becomeLeaderResult) {
-          console.log('Leadership was successfully taken so starting service in active mode...');
-          await this.service.serviceStart('active');
-          return;
-        }
-        console.log('Can\'t launch service in active mode cause the leadership on chain was not taken...');
-        return;
-      }
-
-      console.log('Wrong service mode ' + this.serviceMode + '. Do nothing...');
+    // Check if orchestration is enabled
+    if (!this.orchestrationEnabled) {
+      console.log('Orchestration is disabled...');
       return;
-    } catch (error) {
-      debug('orchestrateService', error);
-      throw error;
     }
+
+    // If service mode is orchestrator we will do the classic orchestration
+    if (this.serviceMode === 'orchestrator') {
+      console.log('serviceMode is orchestrator. So orchestrating...');
+      await this.orchestrateOperatorService();
+      return;
+    }
+
+    // If service mode is passive we will start the service in passive mode
+    if (this.serviceMode === 'passive') {
+      console.log('serviceMode is forced to passive. Start node in passive mode...');
+      await this.service.serviceStart('passive');
+      return;
+    }
+
+    // If service mode is active we will take the leadership and start service in active mode
+    if (this.serviceMode === 'active') {
+      console.log('serviceMode is forced to active. Trying to take leadership on chain...');
+      const key = await getKeysFromSeed(this.mnemonic);
+      const nodeKey = key.address;
+      let currentLeader = await this.chain.getLeader(this.group);
+
+      if (currentLeader.toString() === nodeKey) {
+        console.log('Current node is leader so starting service in active mode...');
+        await this.service.serviceStart('active');
+        return;
+      }
+
+      // Trying to take leadership
+      const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
+      currentLeader = isLeadedGroup ? currentLeader : nodeKey;
+      const becomeLeaderResult = await this.becomeLeader(currentLeader);
+      if (becomeLeaderResult) {
+        console.log('Leadership was successfully taken so starting service in active mode...');
+        await this.service.serviceStart('active');
+        return;
+      }
+      console.log('Can\'t launch service in active mode cause the leadership on chain was not taken...');
+      return;
+    }
+
+    console.log('Wrong service mode ' + this.serviceMode + '. Do nothing...');
   }
 
   // This method contains main orchestration logic
@@ -165,116 +159,101 @@ class Orchestrator {
 
   // Take leader place
   async becomeLeader (nodeKey) {
-    try {
-      const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
-      if (setLeader) {
-        console.log('The leadership was taken successfully...');
-        console.log(
-          'Waiting 10 seconds to be sure that every node received leader update...'
-        );
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+    const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
+    if (setLeader) {
+      console.log('The leadership was taken successfully...');
+      console.log(
+        'Waiting 10 seconds to be sure that every node received leader update...'
+      );
+      await new Promise((resolve) => setTimeout(resolve, 10000));
 
-        return true;
-      } else {
-        console.log(
-          'Failed to take leadership. Possibly other node already took leadership...'
-        );
-        return false;
-      }
-    } catch (error) {
-      debug('becomeLeader', error);
-      throw error;
+      return true;
+    } else {
+      console.log(
+        'Failed to take leadership. Possibly other node already took leadership...'
+      );
+      return false;
     }
   }
 
   // Manage leadership
   // Returns true if node is leader or was able to take leadership
   async leadershipManagement (nodeKey) {
-    try {
-      // Get current leader from chain
-      let currentLeader = await this.chain.getLeader(this.group);
-      const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
+    // Get current leader from chain
+    let currentLeader = await this.chain.getLeader(this.group);
+    const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
 
-      debug('orchestrateService', `Is Group ${this.group} a leaded group: ${isLeadedGroup}.`);
-      currentLeader = currentLeader.toString();
+    debug('orchestrateService', `Is Group ${this.group} a leaded group: ${isLeadedGroup}.`);
+    currentLeader = currentLeader.toString();
 
-      // If current leader is empty
-      // First time Archipel boot
-      if (isLeadedGroup === false) {
-        console.log('Trying to take leadership...');
-        const becomeLeaderResult = await this.becomeLeader(nodeKey);
-        return becomeLeaderResult;
-      }
-
-      // If this node is current leader
-      if (currentLeader === nodeKey) {
-        console.log('Current node is leader...');
-        return true;
-      }
-
-      // Other node is leader
-      debug('orchestrateService', `Current Leader is: ${currentLeader}`);
-      console.log('Other node is leader...');
-
-      const otherLeaderActionResult = await this.otherLeaderAction(
-        currentLeader
-      );
-      return otherLeaderActionResult;
-    } catch (error) {
-      debug('leadershipManagement', error);
-      throw error;
+    // If current leader is empty
+    // First time Archipel boot
+    if (isLeadedGroup === false) {
+      console.log('Trying to take leadership...');
+      const becomeLeaderResult = await this.becomeLeader(nodeKey);
+      return becomeLeaderResult;
     }
+
+    // If this node is current leader
+    if (currentLeader === nodeKey) {
+      console.log('Current node is leader...');
+      return true;
+    }
+
+    // Other node is leader
+    debug('orchestrateService', `Current Leader is: ${currentLeader}`);
+    console.log('Other node is leader...');
+
+    const otherLeaderActionResult = await this.otherLeaderAction(
+      currentLeader
+    );
+    return otherLeaderActionResult;
   }
 
   // Act if other node is leader
   async otherLeaderAction (currentLeader) {
-    try {
-      // Get leader heartbeats known
-      const leaderHeartbeat = this.heartbeats.getHeartbeat(currentLeader);
+    // Get leader heartbeats known
+    const leaderHeartbeat = this.heartbeats.getHeartbeat(currentLeader);
 
-      // If no heartbeat received we will wait noLivenessThreshold
-      if (leaderHeartbeat === undefined) {
-        // How much checks remains
-        const checksNumber =
-          this.noLivenessThreshold - this.noLivenessFromLeader;
+    // If no heartbeat received we will wait noLivenessThreshold
+    if (leaderHeartbeat === undefined) {
+      // How much checks remains
+      const checksNumber =
+        this.noLivenessThreshold - this.noLivenessFromLeader;
 
-        if (checksNumber > 0) {
-          console.log('No liveness data from received from leader node...');
-          console.log(
-            `Will try to get leader place in ${checksNumber} checks...`
-          );
-          // Incrementing noLivenessFromLeader counter
-          this.noLivenessFromLeader++;
-          return false;
-          // No leaderHeart received for noLivenessThreshold times. Leader is offline.
-        } else {
-          console.log(
-            `Can't check leader ${currentLeader} liveness for ${this.noLivenessThreshold} times. Trying to become new leader...`
-          );
-          this.noLivenessFromLeader = 0;
-          const becomeLeaderResult = await this.becomeLeader(currentLeader);
-          return becomeLeaderResult;
-        }
-      }
-
-      const bestNumber = await this.chain.getBestNumber();
-      debug('orchestrateService', `bestNumber: ${bestNumber}`);
-      const lastSeenAgo = bestNumber - leaderHeartbeat.blockNumber;
-
-      // Checking if leader can be considered alive
-      if (lastSeenAgo > this.aliveTime) {
+      if (checksNumber > 0) {
+        console.log('No liveness data from received from leader node...');
         console.log(
-          `Leader ${currentLeader} is down. Trying to become new leader...`
+          `Will try to get leader place in ${checksNumber} checks...`
         );
+        // Incrementing noLivenessFromLeader counter
+        this.noLivenessFromLeader++;
+        return false;
+        // No leaderHeart received for noLivenessThreshold times. Leader is offline.
+      } else {
+        console.log(
+          `Can't check leader ${currentLeader} liveness for ${this.noLivenessThreshold} times. Trying to become new leader...`
+        );
+        this.noLivenessFromLeader = 0;
         const becomeLeaderResult = await this.becomeLeader(currentLeader);
         return becomeLeaderResult;
-      } else {
-        console.log(`Leader ${currentLeader} is alive...`);
-        return false;
       }
-    } catch (error) {
-      debug('otherLeaderAction', error);
-      throw error;
+    }
+
+    const bestNumber = await this.chain.getBestNumber();
+    debug('orchestrateService', `bestNumber: ${bestNumber}`);
+    const lastSeenAgo = bestNumber - leaderHeartbeat.blockNumber;
+
+    // Checking if leader can be considered alive
+    if (lastSeenAgo > this.aliveTime) {
+      console.log(
+        `Leader ${currentLeader} is down. Trying to become new leader...`
+      );
+      const becomeLeaderResult = await this.becomeLeader(currentLeader);
+      return becomeLeaderResult;
+    } else {
+      console.log(`Leader ${currentLeader} is alive...`);
+      return false;
     }
   }
 

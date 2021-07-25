@@ -53,7 +53,6 @@ const constructConfiguration = () => {
   config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
   config.polkadotAdditionalOptions = process.env.POLKADOT_ADDITIONAL_OPTIONS;
   config.databasePath = process.env.POLKADOT_DATABASE_PATH || '/polkadot/.local/share/polkadot/chains';
-  config.backupURL = process.env.POLKADOT_BACKUP_URL;
   config.polkadotSimulateSynch = process.env.POLKADOT_SIMULATE_SYNCH || 'false';
   config.testing = process.env.TESTING || 'false';
   config.polkadotSessionKeyToCheck = process.env.POLKADOT_SESSION_KEY_TO_CHECK;
@@ -164,57 +163,52 @@ class Polkadot {
 
   // Importing a key in keystore
   async importKey (containerName, mnemonic, crypto, type) {
-    try {
-      // Get public key hex from mnemonic
-      const keys = await getKeysFromSeed(mnemonic, crypto);
-      const publicKey = u8aToHex(keys.publicKey);
+    // Get public key hex from mnemonic
+    const keys = await getKeysFromSeed(mnemonic, crypto);
+    const publicKey = u8aToHex(keys.publicKey);
 
-      // Check if the key was already imported
-      if (this.importedKeys.includes(publicKey)) {
-        debug('importKey', `Key ${publicKey} was already imported to keystore...`);
-        return;
-      }
-
-      debug('importKey', `Importing ${type} ${publicKey} to ${containerName}...`);
-
-      // Constructing command to import key
-      const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-                      `{
-                        "jsonrpc":"2.0",
-                        "id":1,
-                        "method":"author_insertKey",
-                        "params": [
-                          "${type}",
-                          "${mnemonic}",
-                          "${publicKey}"
-                        ]
-      }`];
-
-      // Importing key by executing command in docker container
-      const result = await this.docker.dockerExecute(containerName, command);
-      debug('importKey', `Command result: "${result}"`);
-
-      // Checking command result
-      if (!result.includes('"result":null')) {
-        console.log(`Can't add key. ${type} - ${result}. Will retry the next time...`);
-        return;
-      }
-
-      // Check if key is present in containers file system
-      const keyAdded = await this.checkKeyAdded(mnemonic, crypto, containerName);
-      if (!keyAdded) {
-        console.log(`Key (${type} - ${result}) can not be found in container. Will retry to add the next time...`);
-        return;
-      }
-
-      // Add key into imported key list
-      this.importedKeys.push(publicKey);
-
-      console.log(`The ${publicKey} key was successfully added to service keystore.`);
-    } catch (error) {
-      debug('importKey', error);
-      throw error;
+    // Check if the key was already imported
+    if (this.importedKeys.includes(publicKey)) {
+      debug('importKey', `Key ${publicKey} was already imported to keystore...`);
+      return;
     }
+
+    debug('importKey', `Importing ${type} ${publicKey} to ${containerName}...`);
+
+    // Constructing command to import key
+    const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+                    `{
+                      "jsonrpc":"2.0",
+                      "id":1,
+                      "method":"author_insertKey",
+                      "params": [
+                        "${type}",
+                        "${mnemonic}",
+                        "${publicKey}"
+                      ]
+    }`];
+
+    // Importing key by executing command in docker container
+    const result = await this.docker.dockerExecute(containerName, command);
+    debug('importKey', `Command result: "${result}"`);
+
+    // Checking command result
+    if (!result.includes('"result":null')) {
+      console.log(`Can't add key. ${type} - ${result}. Will retry the next time...`);
+      return;
+    }
+
+    // Check if key is present in containers file system
+    const keyAdded = await this.checkKeyAdded(mnemonic, crypto, containerName);
+    if (!keyAdded) {
+      console.log(`Key (${type} - ${result}) can not be found in container. Will retry to add the next time...`);
+      return;
+    }
+
+    // Add key into imported key list
+    this.importedKeys.push(publicKey);
+
+    console.log(`The ${publicKey} key was successfully added to service keystore.`);
   }
 
   // Import wallets to polkadot keystore
@@ -273,29 +267,24 @@ class Polkadot {
 
   // Check if a key file is present in container file system
   async checkKeyAdded (mnemonic, crypto, containerName) {
-    try {
-      const keys = await getKeysFromSeed(mnemonic, crypto);
-      const publicKey = u8aToHex(keys.publicKey);
+    const keys = await getKeysFromSeed(mnemonic, crypto);
+    const publicKey = u8aToHex(keys.publicKey);
 
-      // Construct command to execute
-      const command = [
-        'find',
-        this.config.databasePath,
-        '-name',
-        `*${publicKey.substring(2)}`
-      ];
+    // Construct command to execute
+    const command = [
+      'find',
+      this.config.databasePath,
+      '-name',
+      `*${publicKey.substring(2)}`
+    ];
 
-      debug('checkKeyAdded', `Command executed: "${command}"`);
+    debug('checkKeyAdded', `Command executed: "${command}"`);
 
-      // Call find command in container
-      const result = await this.docker.dockerExecute(containerName, command);
-      debug('checkKeyAdded', `Command find key result: "${result}"`);
+    // Call find command in container
+    const result = await this.docker.dockerExecute(containerName, command);
+    debug('checkKeyAdded', `Command find key result: "${result}"`);
 
-      return !!result;
-    } catch (error) {
-      debug('checkKeyAdded', error);
-      throw error;
-    }
+    return !!result;
   }
 
   // Check if polkadot node is ready to operate
@@ -371,22 +360,17 @@ class Polkadot {
 
   // Copy keys files to volume
   async copyFilesToServiceDirectory () {
-    try {
-      // Create keys directory
-      await fs.ensureDir('/service/keys');
+    // Create keys directory
+    await fs.ensureDir('/service/keys');
 
-      // Copy polkadot node key file
-      console.log(`Copying ${this.config.polkadotNodeKeyFile} from /config/ to /service/keys/...`);
-      await fs.copy(`/config/${this.config.polkadotNodeKeyFile}`, `/service/keys/${this.config.polkadotNodeKeyFile}`);
+    // Copy polkadot node key file
+    console.log(`Copying ${this.config.polkadotNodeKeyFile} from /config/ to /service/keys/...`);
+    await fs.copy(`/config/${this.config.polkadotNodeKeyFile}`, `/service/keys/${this.config.polkadotNodeKeyFile}`);
 
-      // Fix permissions
-      await fs.chown('/service', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
-      await fs.chown('/service/keys', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
-      await fs.chown(`/service/keys/${this.config.polkadotNodeKeyFile}`, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
-    } catch (error) {
-      debug('copyFilesToServiceDirectory', error);
-      throw error;
-    }
+    // Fix permissions
+    await fs.chown('/service', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
+    await fs.chown('/service/keys', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
+    await fs.chown(`/service/keys/${this.config.polkadotNodeKeyFile}`, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
   }
 
   // Check launched container
@@ -462,160 +446,145 @@ class Polkadot {
 
   // Polkadot start function
   async start (mode) {
-    try {
-      // Prepare service before start
-      if (!this.prepared) {
-        await this.prepareService();
-      }
-
-      // Start service in active mode
-      if (mode === 'active') {
-        let name = this.config.polkadotName;
-        // Avoid name change for 1000 validator program check on KUSAMA network
-        if (!isEmptyString(this.config.polkadotAdditionalOptions) && this.config.polkadotAdditionalOptions.includes('kusama')) {
-          name = this.config.polkadotName.slice(0, -2);
-        }
-
-        // Force validator name
-        if (!isEmptyString(this.config.polkadotValidatorName)) {
-          name = this.config.polkadotValidatorName;
-        }
-
-        // Start active service container
-        await this.startServiceContainer(
-          'active',
-          this.config.polkadotPrefix + 'polkadot-validator',
-          this.config.polkadotPrefix + 'polkadot-sync',
-          this.config.polkadotImage,
-          ['--name', `${name}`, ...this.commonPolkadotOptions, '--validator'],
-          '/polkadot',
-          this.polkadotVolume,
-          this.networkMode
-        );
-
-        // Import keys to service container
-        await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-validator');
-
-        return;
-      }
-
-      // Start service in passive mode
-      if (mode === 'passive') {
-        // Start passive service container
-        await this.startServiceContainer(
-          'passive',
-          this.config.polkadotPrefix + 'polkadot-validator',
-          this.config.polkadotPrefix + 'polkadot-sync',
-          this.config.polkadotImage,
-          ['--name', `${this.config.polkadotName}-${mode}`, ...this.commonPolkadotOptions],
-          '/polkadot',
-          this.polkadotVolume,
-          this.networkMode
-        );
-
-        // Import keys to service container
-        await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-sync');
-
-        return;
-      }
-
-      // If here the service mode is unknown
-      throw new Error(`Mode '${mode}' is unknown.`);
-    } catch (error) {
-      debug('polkadotStart', error);
-      throw error;
+    // Prepare service before start
+    if (!this.prepared) {
+      await this.prepareService();
     }
+
+    // Start service in active mode
+    if (mode === 'active') {
+      let name = this.config.polkadotName;
+      // Avoid name change for 1000 validator program check on KUSAMA network
+      if (!isEmptyString(this.config.polkadotAdditionalOptions) && this.config.polkadotAdditionalOptions.includes('kusama')) {
+        name = this.config.polkadotName.slice(0, -2);
+      }
+
+      // Force validator name
+      if (!isEmptyString(this.config.polkadotValidatorName)) {
+        name = this.config.polkadotValidatorName;
+      }
+
+      // Start active service container
+      await this.startServiceContainer(
+        'active',
+        this.config.polkadotPrefix + 'polkadot-validator',
+        this.config.polkadotPrefix + 'polkadot-sync',
+        this.config.polkadotImage,
+        ['--name', `${name}`, ...this.commonPolkadotOptions, '--validator'],
+        '/polkadot',
+        this.polkadotVolume,
+        this.networkMode
+      );
+
+      // Import keys to service container
+      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-validator');
+
+      return;
+    }
+
+    // Start service in passive mode
+    if (mode === 'passive') {
+      // Start passive service container
+      await this.startServiceContainer(
+        'passive',
+        this.config.polkadotPrefix + 'polkadot-validator',
+        this.config.polkadotPrefix + 'polkadot-sync',
+        this.config.polkadotImage,
+        ['--name', `${this.config.polkadotName}-${mode}`, ...this.commonPolkadotOptions],
+        '/polkadot',
+        this.polkadotVolume,
+        this.networkMode
+      );
+
+      // Import keys to service container
+      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-sync');
+
+      return;
+    }
+
+    // If here the service mode is unknown
+    throw new Error(`Mode '${mode}' is unknown.`);
   }
 
   // Remove 'down' container and start 'up' container
   async prepareAndStart (containerData, upName, downName) {
-    try {
-      // Get passive and active containers
-      const containerUp = await this.docker.getContainer(upName);
-      const containerDown = await this.docker.getContainer(downName);
+    // Get passive and active containers
+    const containerUp = await this.docker.getContainer(upName);
+    const containerDown = await this.docker.getContainer(downName);
 
-      // Setting container name
-      containerData.name = upName;
+    // Setting container name
+    containerData.name = upName;
 
-      // We must remove down container if it exist
-      if (containerDown) {
-        console.log(`Removing ${downName} container...`);
-        await this.docker.removeContainer(downName);
-      }
-
-      // Creating up container if it is not already present
-      if (!containerUp) {
-        // Starting container
-        console.log(`Starting ${upName} container...`);
-        await this.docker.startContainer(containerData);
-        return true;
-      }
-
-      // If container exits but is not in running state
-      // We will recreate and relaunch it
-      if (this.docker.isContainerRunning(upName)) {
-        console.log(`Restarting container ${containerData.name}...`);
-        await this.docker.removeContainer(containerData.name);
-        await this.docker.startContainer(containerData);
-      }
-
-      console.log('Service is already started.');
-      return false;
-    } catch (error) {
-      debug('prepareAndStart', error);
-      throw error;
+    // We must remove down container if it exist
+    if (containerDown) {
+      console.log(`Removing ${downName} container...`);
+      await this.docker.removeContainer(downName);
     }
+
+    // Creating up container if it is not already present
+    if (!containerUp) {
+      // Starting container
+      console.log(`Starting ${upName} container...`);
+      await this.docker.startContainer(containerData);
+      return true;
+    }
+
+    // If container exits but is not in running state
+    // We will recreate and relaunch it
+    if (this.docker.isContainerRunning(upName)) {
+      console.log(`Restarting container ${containerData.name}...`);
+      await this.docker.removeContainer(containerData.name);
+      await this.docker.startContainer(containerData);
+    }
+
+    console.log('Service is already started.');
+    return false;
   };
 
   // Start passive or active service container
   async startServiceContainer (type, activeName, passiveName, image, cmd, mountTarget, mountSource, networkMode) {
-    try {
-      // Check if active service container is already running
-      if (type === 'active' && await this.docker.isContainerRunning(activeName)) {
-        console.log(`Service is already running in ${type} mode...`);
-        return;
+    // Check if active service container is already running
+    if (type === 'active' && await this.docker.isContainerRunning(activeName)) {
+      console.log(`Service is already running in ${type} mode...`);
+      return;
+    }
+
+    // Check if passive service container is already running
+    if (type === 'passive' && await this.docker.isContainerRunning(passiveName)) {
+      console.log(`Service is already running in ${type} mode...`);
+      return;
+    }
+
+    // Creating volume
+    await this.docker.createVolume(mountSource);
+
+    // Constructing container data
+    const containerData = {
+      name: '',
+      Image: image,
+      Cmd: cmd,
+      HostConfig: {
+        Mounts: [
+          {
+            Target: mountTarget,
+            Source: mountSource,
+            Type: 'volume',
+            ReadOnly: false
+          }
+        ]
       }
+    };
 
-      // Check if passive service container is already running
-      if (type === 'passive' && await this.docker.isContainerRunning(passiveName)) {
-        console.log(`Service is already running in ${type} mode...`);
-        return;
-      }
+    if (networkMode !== '') {
+      containerData.HostConfig.NetworkMode = networkMode;
+    }
 
-      // Creating volume
-      await this.docker.createVolume(mountSource);
-
-      // Constructing container data
-      const containerData = {
-        name: '',
-        Image: image,
-        Cmd: cmd,
-        HostConfig: {
-          Mounts: [
-            {
-              Target: mountTarget,
-              Source: mountSource,
-              Type: 'volume',
-              ReadOnly: false
-            }
-          ]
-        }
-      };
-
-      if (networkMode !== '') {
-        containerData.HostConfig.NetworkMode = networkMode;
-      }
-
-      // If we want to start active container
-      if (type === 'active') {
-        return await this.prepareAndStart(containerData, activeName, passiveName);
-      // We want to start passive container
-      } else {
-        return await this.prepareAndStart(containerData, passiveName, activeName);
-      }
-    } catch (error) {
-      debug('startServiceContainer', error);
-      throw error;
+    // If we want to start active container
+    if (type === 'active') {
+      return await this.prepareAndStart(containerData, activeName, passiveName);
+    // We want to start passive container
+    } else {
+      return await this.prepareAndStart(containerData, passiveName, activeName);
     }
   }
 
