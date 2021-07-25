@@ -1,8 +1,6 @@
 const debug = require('debug')('service');
 
 const { Polkadot } = require('./services/polkadot');
-const { Trustlines } = require('./services/trustlines');
-const { Centrifuge } = require('./services/centrifuge');
 const { isEmptyString } = require('./utils');
 
 class Service {
@@ -83,6 +81,7 @@ class Service {
       throw error;
     }
   }
+
   // Cleanup a service
   async serviceCleanUp () {
     try {
@@ -92,7 +91,6 @@ class Service {
       console.error(error);
     }
   }
-
 }
 
 module.exports = { Service };

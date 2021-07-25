@@ -2,7 +2,6 @@ const debug = require('debug')('service');
 
 const { getKeysFromSeed } = require('./utils');
 const { Service } = require('./service');
-const { Stonith } = require('./stonith');
 
 class Orchestrator {
   constructor (
@@ -14,7 +13,6 @@ class Orchestrator {
     this.noLivenessThreshold = 5;
     this.chain = chain;
 
-    this.stonith = new Stonith(this);
     // Create service instance
     this.service = new Service(config.service);
 
@@ -38,8 +36,8 @@ class Orchestrator {
 
   // Bootstrap service at boot
   async bootstrapService () {
-      console.log('Starting service in passive mode...');
-      await this.service.serviceStart('passive');
+    console.log('Starting service in passive mode...');
+    await this.service.serviceStart('passive');
   }
 
   // Orchestrate service
@@ -79,16 +77,16 @@ class Orchestrator {
           await this.service.serviceStart('active');
           return;
         }
-        
+
         // Trying to take leadership
         const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
         currentLeader = isLeadedGroup ? currentLeader : nodeKey;
         const becomeLeaderResult = await this.becomeLeader(currentLeader);
         if (becomeLeaderResult) {
-          console.log('Leadership was successfully taken so starting service in active mode...')
+          console.log('Leadership was successfully taken so starting service in active mode...');
           await this.service.serviceStart('active');
           return;
-        } 
+        }
         console.log('Can\'t launch service in active mode cause the leadership on chain was not taken...');
         return;
       }
@@ -168,21 +166,9 @@ class Orchestrator {
   // Take leader place
   async becomeLeader (nodeKey) {
     try {
-
       const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
       if (setLeader) {
         console.log('The leadership was taken successfully...');
-
-        // If stonith is active shutdown other validator
-        // If not just return true and continue
-        // TODO: Must rethink when and how stonith will be triggered
-        const stonithResult = await this.stonith.shootOldValidator(nodeKey);
-        if (!stonithResult) {
-          console.log('Stonith was not successfull. Giving up the leadership...');
-          await this.chain.giveUpLeadership(this.group, this.mnemonic);
-          return false;
-        }
-
         console.log(
           'Waiting 10 seconds to be sure that every node received leader update...'
         );
