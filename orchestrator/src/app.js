@@ -5,7 +5,7 @@ const { Chain } = require('./chain');
 const { Heartbeats } = require('./heartbeats');
 const { catchExitSignals } = require('./utils');
 const { Orchestrator } = require('./orchestrator');
-const { initApi, initApiSms } = require('./api');
+const { initApi } = require('./api');
 const { constructConfiguration } = require('./config');
 
 // Main function
@@ -77,7 +77,6 @@ async function main () {
 
     // Init api
     initApi(orchestrator);
-    initApiSms(orchestrator);
 
     // Printing end message
     console.log('Orchestrator was successfully launched...');

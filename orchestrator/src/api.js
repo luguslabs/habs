@@ -3,7 +3,6 @@ const mainRoutes = require('./routes/main');
 const heartbeatsRoutes = require('./routes/heartbeats');
 const orchestratorRoutes = require('./routes/orchestrator');
 const serviceRoutes = require('./routes/service');
-const smsRoutes = require('./routes/sms');
 const { RestoreDb } = require('./restoredb');
 
 // Return not found response
@@ -68,34 +67,6 @@ const initApi = async orchestrator => {
   app.listen(3000);
 };
 
-// Init api
-const initApiSms = async orchestrator => {
-  const app = express();
-
-  app.set('orchestrator', orchestrator);
-
-  app.use(express.json());
-
-  app.use(function (req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-  });
-
-  // Use routes
-  app.use('/sms', smsRoutes.routes);
-
-  // Add not found middleware
-  app.use(get404);
-
-  // Add error handler
-  app.use(errorHandler);
-
-  // Set listen port
-  app.listen(3001);
-};
-
 module.exports = {
-  initApi,
-  initApiSms
+  initApi
 };
