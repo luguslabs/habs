@@ -1,7 +1,6 @@
 const { Keyring } = require('@polkadot/keyring');
 const { cryptoWaitReady } = require('@polkadot/util-crypto');
 const fs = require('fs-extra');
-const debug = require('debug')('utils');
 
 // Create a Keyring from seed
 const getKeysFromSeed = async (_seed, type = 'sr25519') => {
@@ -109,7 +108,6 @@ const constructNodesList = (nodesWallets, archipelName) => {
     });
     return resultArray;
   }, []);
-
 };
 
 // Show transaction status in debug

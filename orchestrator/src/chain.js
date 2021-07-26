@@ -177,7 +177,6 @@ class Chain {
         .send(({ events = [], status }) => {
           // Debug show transaction status
           debug('giveUpLeadership', transactionGetStatus(status));
-          setLeader
           if (status.isFinalized) {
             events.forEach(async ({ event: { data, method, section } }) => {
               if (section.toString() === 'archipelModule' && method.toString() === 'GiveUpLeader') {
