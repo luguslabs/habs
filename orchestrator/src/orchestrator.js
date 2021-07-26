@@ -89,8 +89,7 @@ class Orchestrator {
       console.log('Can\'t launch service in active mode cause the leadership on chain was not taken...');
       return;
     }
-
-    console.log('Wrong service mode ' + this.serviceMode + '. Do nothing...');
+    throw Error('Wrong service mode ' + this.serviceMode + '...');
   }
 
   // This method contains main orchestration logic
