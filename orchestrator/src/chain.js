@@ -63,15 +63,15 @@ class Chain {
 
   // Send heartbeat
   async addHeartbeat (mode, mnemonic, nodeGroupId) {
-    const nodeStatus = await fromModeToNodeStatus(mode);
     // If node state permits to send transactions
     const sendTransaction = await this.canSendTransactions();
-
     // If node has any peers and is not in synchronizing chain
     if (sendTransaction) {
       debug('addHeartbeat', 'Archipel node has some peers and is synchronized so adding heartbeats...');
       // Get keys from mnemonic
       const keys = await getKeysFromSeed(mnemonic);
+      // Get node status from mode
+      const nodeStatus = await fromModeToNodeStatus(mode);
       // Get account nonce
       const accountNonce = await this.api.query.system.account(keys.address);
       const nonce = accountNonce.nonce;
@@ -107,93 +107,108 @@ class Chain {
           }).catch(err => reject(err));
       });
     } else {
-      console.log('Archipel node can\'t receive transactions...');
+      console.log('Archipel node can\'t recieve transactions...');
       return false;
     }
   }
 
   // Set leader
   async setLeader (oldLeader, groupId, mnemonic) {
-    // Get keys from mnemonic
-    const keys = await getKeysFromSeed(mnemonic);
+    // If node state permits to send transactions
+    const sendTransaction = await this.canSendTransactions();
+    // If node has any peers and is not in synchronizing chain
+    if (sendTransaction) {
+      // Get keys from mnemonic
+      const keys = await getKeysFromSeed(mnemonic);
 
-    // Get account nonce
-    const accountNonce = await this.api.query.system.account(keys.address);
-    const nonce = accountNonce.nonce;
+      // Get account nonce
+      const accountNonce = await this.api.query.system.account(keys.address);
+      const nonce = accountNonce.nonce;
 
-    // Nonce show
-    debug('setLeader', `Nonce: ${nonce}`);
-
-    return new Promise((resolve, reject) => {
-      // create, sign and send transaction
-      this.api.tx.archipelModule
-        // create transaction
-        .setLeader(oldLeader, groupId)
-        // Sign and transaction
-        .sign(keys, { nonce })
-        // Send transaction
-        .send(({ events = [], status }) => {
-          // Debug show transaction status
-          debug('setLeader', transactionGetStatus(status));
-          if (status.isFinalized) {
-            events.forEach(async ({ event: { data, method, section } }) => {
-              if (section.toString() === 'archipelModule' && method.toString() === 'NewLeader') {
-                // Show transaction data for Debug
-                debug('setLeader', 'Transaction was successfully sent and generated an event.');
-                debug('setLeader', `JSON Data: [${JSON.parse(data.toString())}]`);
-                resolve(true);
-              }
-            });
-            resolve(false);
-          }
-          // If transaction is not ok resolving promise to false
-          if (status.isDropped || status.isInvalid || status.isUsurped) {
-            resolve(false);
-          }
-        }).catch(err => reject(err));
-    });
+      // Nonce show
+      debug('setLeader', `Nonce: ${nonce}`);
+      return new Promise((resolve, reject) => {
+        // create, sign and send transaction
+        this.api.tx.archipelModule
+          // create transaction
+          .setLeader(oldLeader, groupId)
+          // Sign and transaction
+          .sign(keys, { nonce })
+          // Send transaction
+          .send(({ events = [], status }) => {
+            // Debug show transaction status
+            debug('setLeader', transactionGetStatus(status));
+            if (status.isFinalized) {
+              events.forEach(async ({ event: { data, method, section } }) => {
+                if (section.toString() === 'archipelModule' && method.toString() === 'NewLeader') {
+                  // Show transaction data for Debug
+                  debug('setLeader', 'Transaction was successfully sent and generated an event.');
+                  debug('setLeader', `JSON Data: [${JSON.parse(data.toString())}]`);
+                  resolve(true);
+                }
+              });
+              resolve(false);
+            }
+            // If transaction is not ok resolving promise to false
+            if (status.isDropped || status.isInvalid || status.isUsurped) {
+              resolve(false);
+            }
+          }).catch(err => reject(err));
+      });
+    } else {
+      console.log('Archipel node can\'t recieve transactions...');
+      return false;
+    }
   }
 
   // Give Up Leadership
   async giveUpLeadership (groupId, mnemonic) {
-    // Get keys from mnemonic
-    const keys = await getKeysFromSeed(mnemonic);
+    // If node state permits to send transactions
+    const sendTransaction = await this.canSendTransactions();
+    // If node has any peers and is not in synchronizing chain
+    if (sendTransaction) {
+      // Get keys from mnemonic
+      const keys = await getKeysFromSeed(mnemonic);
 
-    // Get account nonce
-    const accountNonce = await this.api.query.system.account(keys.address);
-    const nonce = accountNonce.nonce;
+      // Get account nonce
+      const accountNonce = await this.api.query.system.account(keys.address);
+      const nonce = accountNonce.nonce;
 
-    // Nonce show
-    debug('giveUpLeadership', `Nonce: ${nonce}`);
+      // Nonce show
+      debug('giveUpLeadership', `Nonce: ${nonce}`);
 
-    return new Promise((resolve, reject) => {
-      // create, sign and send transaction
-      this.api.tx.archipelModule
-        // create transaction
-        .giveUpLeadership(groupId)
-        // Sign and transaction
-        .sign(keys, { nonce })
-        // Send transaction
-        .send(({ events = [], status }) => {
-          // Debug show transaction status
-          debug('giveUpLeadership', transactionGetStatus(status));
-          if (status.isFinalized) {
-            events.forEach(async ({ event: { data, method, section } }) => {
-              if (section.toString() === 'archipelModule' && method.toString() === 'GiveUpLeader') {
-                // Show transaction data for Debug
-                debug('giveUpLeadership', 'Transaction was successfully sent and generated an event.');
-                debug('giveUpLeadership', `JSON Data: [${JSON.parse(data.toString())}]`);
-                resolve(true);
-              }
-            });
-            resolve(false);
-          }
-          // If transaction is not ok resolving promise to false
-          if (status.isDropped || status.isInvalid || status.isUsurped) {
-            resolve(false);
-          }
-        }).catch(err => reject(err));
-    });
+      return new Promise((resolve, reject) => {
+        // create, sign and send transaction
+        this.api.tx.archipelModule
+          // create transaction
+          .giveUpLeadership(groupId)
+          // Sign and transaction
+          .sign(keys, { nonce })
+          // Send transaction
+          .send(({ events = [], status }) => {
+            // Debug show transaction status
+            debug('giveUpLeadership', transactionGetStatus(status));
+            if (status.isFinalized) {
+              events.forEach(async ({ event: { data, method, section } }) => {
+                if (section.toString() === 'archipelModule' && method.toString() === 'GiveUpLeader') {
+                  // Show transaction data for Debug
+                  debug('giveUpLeadership', 'Transaction was successfully sent and generated an event.');
+                  debug('giveUpLeadership', `JSON Data: [${JSON.parse(data.toString())}]`);
+                  resolve(true);
+                }
+              });
+              resolve(false);
+            }
+            // If transaction is not ok resolving promise to false
+            if (status.isDropped || status.isInvalid || status.isUsurped) {
+              resolve(false);
+            }
+          }).catch(err => reject(err));
+      });
+    } else {
+      console.log('Archipel node can\'t recieve transactions...');
+      return false;
+    }
   }
 
   // If node state permits to send transactions
@@ -255,7 +270,7 @@ class Chain {
       return parseInt(await this.api.query.archipelModule.nodesStatus(key));
     } catch (error) {
       debug('getNodeStatus', error);
-      return 0;
+      return false;
     }
   }
 
@@ -265,7 +280,7 @@ class Chain {
       return parseInt(await this.api.query.archipelModule.groups(key));
     } catch (error) {
       debug('getNodeGroup', error);
-      return 0;
+      return false;
     }
   }
 
@@ -304,8 +319,13 @@ class Chain {
 
   // Get peer id from chain
   async getPeerId () {
-    const localPeerId = await this.api.rpc.system.localPeerId();
-    return localPeerId ? localPeerId.toString() : false;
+    try {
+      const localPeerId = await this.api.rpc.system.localPeerId();
+      return localPeerId ? localPeerId.toString() : false;
+    } catch (error) {
+      debug('getPeerId', error);
+      return false;
+    }
   }
 
   // Check if connected to node

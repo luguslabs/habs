@@ -268,9 +268,7 @@ describe('Archipel chain test', function(){
   it('Try send transaction if cant do it', async function () {
     const saveCanSendTransactions = chain.canSendTransactions;
 
-    chain.canSendTransactions = async () => {
-      return false;
-    }
+    chain.canSendTransactions = async () => false;
 
     const result1 = await chain.addHeartbeat('active', mnemonic1, '1');
     assert.equal(result1, false, 'Try to add hearbeat if chain cant recieve transactions');
@@ -285,27 +283,19 @@ describe('Archipel chain test', function(){
     const saveGetPeerNumber = chain.getPeerNumber;
     const saveGetSyncState = chain.getSyncState;
 
-    chain.getPeerNumber = async () => {
-      return 0;
-    }
+    chain.getPeerNumber = async () => 0;
 
-    chain.getSyncState = async () => {
-      return true;
-    }
+    chain.getSyncState = async () => true;
 
     let result = await chain.addHeartbeat('active', mnemonic1, '1');
     assert.equal(result, false, 'Try to add hearbeat if peers number is 0 and chain is synching');
 
-    chain.getPeerNumber = async () => {
-      return 1;
-    }
+    chain.getPeerNumber = async () => 1;
 
     result = await chain.addHeartbeat('active', mnemonic1, '1');
     assert.equal(result, false, 'Try to add hearbeat if peers number is 1 and chain is synching');
 
-    chain.getSyncState = async () => {
-      return false;
-    }
+    chain.getSyncState = async () => false;
 
     result = await chain.addHeartbeat('active', mnemonic1, '1');
     assert.equal(result, true, 'Try to add hearbeat if peers number is != 0 and chain is not synching');
@@ -316,4 +306,88 @@ describe('Archipel chain test', function(){
     result = await chain.addHeartbeat('active', mnemonic1, '1');
     assert.equal(result, true, 'Try to add hearbeat if chain can recieve transactions');
   });
+
+  it('Test chain transaction fail tests', async function () {
+    // Disconnecting from chain and trying to execute each transaction
+    await chain.disconnect();
+
+    const keys = await getKeysFromSeed(mnemonic1);
+
+    assert.equal(await chain.getHeartbeat(keys.address), false, 'Trying to get heartbeat while not connected to chain');
+    assert.equal(await chain.getNodeStatus(keys.address), false, 'Trying to get node status while not connected to chain');
+    assert.equal(await chain.getNodeGroup(keys.address), false, 'Trying to get node group while not connected to chain');
+    assert.equal(await chain.getBestNumber(), 0, 'Trying to getbest number while not connected to chain');
+    assert.equal(await chain.getPeerNumber(), 0, 'Trying to get peer number while not connected to chain')
+    assert.equal(await chain.getSyncState(), 0, 'Trying to get sync state while not connected to chain');
+    assert.equal(await chain.getPeerId(), false, 'Trying to get peer id while not connected to chain');
+
+    // canSendTransaction must answer false
+    assert.equal(await chain.addHeartbeat('active', mnemonic1, '44'), false, 'Try to add heartbeat while is not connected to chain 1');
+    assert.equal(await chain.setLeader(keys.address, 44, mnemonic1), false, 'Try to set leader while is not connected to chain 1');
+    assert.equal(await chain.giveUpLeadership(44, mnemonic1), false, 'Try to give up leadership while is not connected to chain 1');
+
+    // Forcing canSendTransaction to true to provoke an exception
+    const saveChainCanSendTransactions = chain.canSendTransactions;
+    chain.canSendTransactions = async () => true;
+
+    try {
+      await chain.addHeartbeat('active', mnemonic1, '44');
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to add heartbeat while is not connected to chain 2');
+    }
+
+    try {
+      await chain.setLeader(keys.address, 44, mnemonic1);
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to set leader while is not connected to chain 2');
+    }
+    
+    try {
+      await chain.giveUpLeadership(44, mnemonic1);
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to give up leadership while is not connected to chain 2');
+    }
+
+    // Try to provoke send transaction error by emulating nonce retrieval success
+    chain.api.query.system.account = async () => { 
+      const result = {}
+      result.nonce = 1;
+      return result; 
+    };
+
+    try {
+      await chain.addHeartbeat('active', mnemonic1, '44');
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to add heartbeat while is not connected to chain 3');
+    }
+
+    try {
+      await chain.setLeader(keys.address, 44, mnemonic1);
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to set leader while is not connected to chain 3');
+    }
+    
+    try {
+      await chain.giveUpLeadership(44, mnemonic1);
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to give up leadership while is not connected to chain 3');
+    }
+
+    // See if getter function throws errors
+    try {
+      await chain.getLeader(44);
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to get leader while is not connected to chain');
+    }
+
+    try {
+      await chain.isLeadedGroup(44);
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to check if group is leaded while is not connected to chain');
+    }
+
+    await chain.connect();
+    chain.canSendTransactions = saveChainCanSendTransactions;
+  });
+
 });
