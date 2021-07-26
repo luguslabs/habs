@@ -1,0 +1,488 @@
+{
+  "name": "archipel",
+  "nodesRole": "operator,operator,operator,operator,operator,operator,operator,operator,operator,noservice,noservice,noservice,noservice",
+  "nodesGroup": "A,A,A,B,B,B,C,C,C,0,0,0,0",
+  "nodesGroupId": "1,1,1,2,2,2,3,3,3,99,99,99,99",
+  "nexmoApiKey": "null,null,null,null,null,null,null,null,null,null,null,null,null",
+  "nexmoApiSecret": "null,null,null,null,null,null,null,null,null,null,null,null,null",
+  "nexmoApiSignatureMethod": "null,null,null,null,null,null,null,null,null,null,null,null,null",
+  "nexmoApiSignatureSecret": "null,null,null,null,null,null,null,null,null,null,null,null,null",
+  "nexmoPhoneNumber": "null,null,null,null,null,null,null,null,null,null,null,null,null",
+  "outletPhoneNumber": "null,null,null,null,null,null,null,null,null,null,null,null,null",
+  "nodesNumber": 13,
+  "serviceNodesNumber": 9,
+  "services": [
+    {
+      "name": "polkadot",
+      "fields": [
+        [
+          {
+            "name": "granKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_GRAN"
+          },
+          {
+            "name": "babeKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_BABE"
+          },
+          {
+            "name": "imonKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_IMON"
+          },
+          {
+            "name": "paraKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_PARA"
+          },
+          {
+            "name": "asgnKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_ASGN"
+          },
+          {
+            "name": "audiKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_AUDI"
+          }
+        ],
+        [
+          {
+            "name": "granKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_GRAN"
+          },
+          {
+            "name": "babeKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_BABE"
+          },
+          {
+            "name": "imonKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_IMON"
+          },
+          {
+            "name": "paraKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_PARA"
+          },
+          {
+            "name": "asgnKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_ASGN"
+          },
+          {
+            "name": "audiKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_AUDI"
+          }
+        ],
+        [
+          {
+            "name": "granKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_GRAN"
+          },
+          {
+            "name": "babeKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_BABE"
+          },
+          {
+            "name": "imonKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_IMON"
+          },
+          {
+            "name": "paraKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_PARA"
+          },
+          {
+            "name": "asgnKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_ASGN"
+          },
+          {
+            "name": "audiKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_AUDI"
+          }
+        ],
+        [
+          {
+            "name": "granKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_GRAN"
+          },
+          {
+            "name": "babeKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_BABE"
+          },
+          {
+            "name": "imonKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_IMON"
+          },
+          {
+            "name": "paraKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_PARA"
+          },
+          {
+            "name": "asgnKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_ASGN"
+          },
+          {
+            "name": "audiKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_AUDI"
+          }
+        ],
+        [
+          {
+            "name": "granKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_GRAN"
+          },
+          {
+            "name": "babeKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_BABE"
+          },
+          {
+            "name": "imonKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_IMON"
+          },
+          {
+            "name": "paraKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_PARA"
+          },
+          {
+            "name": "asgnKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_ASGN"
+          },
+          {
+            "name": "audiKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_AUDI"
+          }
+        ],
+        [
+          {
+            "name": "granKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_GRAN"
+          },
+          {
+            "name": "babeKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_BABE"
+          },
+          {
+            "name": "imonKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_IMON"
+          },
+          {
+            "name": "paraKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_PARA"
+          },
+          {
+            "name": "asgnKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_ASGN"
+          },
+          {
+            "name": "audiKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_AUDI"
+          }
+        ],
+        [
+          {
+            "name": "granKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_GRAN"
+          },
+          {
+            "name": "babeKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_BABE"
+          },
+          {
+            "name": "imonKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_IMON"
+          },
+          {
+            "name": "paraKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_PARA"
+          },
+          {
+            "name": "asgnKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_ASGN"
+          },
+          {
+            "name": "audiKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_AUDI"
+          }
+        ],
+        [
+          {
+            "name": "granKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_GRAN"
+          },
+          {
+            "name": "babeKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_BABE"
+          },
+          {
+            "name": "imonKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_IMON"
+          },
+          {
+            "name": "paraKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_PARA"
+          },
+          {
+            "name": "asgnKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_ASGN"
+          },
+          {
+            "name": "audiKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_AUDI"
+          }
+        ],
+        [
+          {
+            "name": "granKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_GRAN"
+          },
+          {
+            "name": "babeKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_BABE"
+          },
+          {
+            "name": "imonKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_IMON"
+          },
+          {
+            "name": "paraKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_PARA"
+          },
+          {
+            "name": "asgnKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_ASGN"
+          },
+          {
+            "name": "audiKey",
+            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "env": "POLKADOT_KEY_AUDI"
+          }
+        ]
+      ],
+      "nodeIds": [
+        {
+          "peerId": "12D3KooWDNrN2hVjFFRBEyJj51v8eAc6wGwZSya3R8NAMkp2q2FH",
+          "idFile": "polkadot-node-id-0"
+        },
+        {
+          "peerId": "12D3KooWMNzALuzPUsUu5NzXfoptqbGuNEyEVwHftg9cK2hHwi7q",
+          "idFile": "polkadot-node-id-1"
+        },
+        {
+          "peerId": "12D3KooWPFRHGaB72WeMDVAPiYzJy7tRCQZ8qJUhcfi3igHCrzdU",
+          "idFile": "polkadot-node-id-2"
+        },
+        {
+          "peerId": "12D3KooWGEzk9GuSxZQaDnBTMcjcRkA1owxVQ2Mv1gCKqsMMDaWU",
+          "idFile": "polkadot-node-id-3"
+        },
+        {
+          "peerId": "12D3KooWHXemKWkMsATyP3apmjATy2VDHcG5NkZ4rjcuSXENF1G8",
+          "idFile": "polkadot-node-id-4"
+        },
+        {
+          "peerId": "12D3KooWKpBYesbEvoCJs3FJeJykBb3z99ZYKSffLifsQVeyLCtP",
+          "idFile": "polkadot-node-id-5"
+        },
+        {
+          "peerId": "12D3KooWDXDEt38Hu7hmabQmKv7SLUcUH6Bne68db6hRAA61c3nk",
+          "idFile": "polkadot-node-id-6"
+        },
+        {
+          "peerId": "12D3KooWNEzbDR5phaNdwb9g246yDG88N7PkyQfrxpGPPCmm7TBU",
+          "idFile": "polkadot-node-id-7"
+        },
+        {
+          "peerId": "12D3KooWKBfa6y2qKiQNc6gMCPtJm8ePVUYz7YMxU3jyxrp2JhUR",
+          "idFile": "polkadot-node-id-8"
+        }
+      ],
+      "reservedPeersList": "/ip4/10.0.1.1/tcp/30333/p2p/12D3KooWDNrN2hVjFFRBEyJj51v8eAc6wGwZSya3R8NAMkp2q2FH,/ip4/10.0.1.2/tcp/30333/p2p/12D3KooWMNzALuzPUsUu5NzXfoptqbGuNEyEVwHftg9cK2hHwi7q,/ip4/10.0.1.3/tcp/30333/p2p/12D3KooWPFRHGaB72WeMDVAPiYzJy7tRCQZ8qJUhcfi3igHCrzdU,/ip4/10.0.1.4/tcp/30333/p2p/12D3KooWGEzk9GuSxZQaDnBTMcjcRkA1owxVQ2Mv1gCKqsMMDaWU,/ip4/10.0.1.5/tcp/30333/p2p/12D3KooWHXemKWkMsATyP3apmjATy2VDHcG5NkZ4rjcuSXENF1G8,/ip4/10.0.1.6/tcp/30333/p2p/12D3KooWKpBYesbEvoCJs3FJeJykBb3z99ZYKSffLifsQVeyLCtP,/ip4/10.0.1.7/tcp/30333/p2p/12D3KooWDXDEt38Hu7hmabQmKv7SLUcUH6Bne68db6hRAA61c3nk,/ip4/10.0.1.8/tcp/30333/p2p/12D3KooWNEzbDR5phaNdwb9g246yDG88N7PkyQfrxpGPPCmm7TBU,/ip4/10.0.1.9/tcp/30333/p2p/12D3KooWKBfa6y2qKiQNc6gMCPtJm8ePVUYz7YMxU3jyxrp2JhUR"
+    }
+  ],
+  "wireguardExternalAddrList": "1.1.1.1:51820,2.2.2.2:51820,3.3.3.3:51820,4.4.4.4:51820,5.5.5.5:51820,6.6.6.6:51820,7.7.7.7:51820,8.8.8.8:51821,9.9.9.9:51821,10.10.10.10:51821,11.11.11.11:51822,12.12.12.12:51822,13.13.13.13:51822",
+  "wireguardPeersPubAddrList": "/5OUJfvUVRcldG2LRfI/nc2vjfStsiKW+UxIrU8C+ng=,VJ68+aRZ8PqhWxVNNWgaDxVXtjtrZdILRQhwaOhMODM=,5UTYShECHd2OOm9w6aQA0ujuLmiyrYpMTmfSdXTn+zU=,M5VKaPGVftnj62RbvFvHo3qgG/wHPIzq5TzQwWhNfnI=,rHxcM50Hs0ni9VAR5sm29wZJEGl4F/rMhAy5A2Y821U=,X6e9zzVSouEBXUBQJ+VabKU+5rtjzJ479Mn9hWDFnj4=,yrUIpFYUI4Tg+Hlb1k6G1K3fYP4vbC2udLusoYf63hY=,cv4eicvqItG9N/JoOlv+uH8QbWuuux8i7t4PTahDuwE=,lvBx08yHwtBDGQUChOS/ivX+Sftj9GUEMc4Ewx4fgHI=,UmJdY1rP80YglmKHc/9Arg1psS0bTa23m9pCetgJAh0=,VqmUOtqh+4rpbER55WqFDXdJN/fVaxC548H+N5zstD4=,l4i8a11cZ2WtgvyTFbxDnLeG5tNJcM6h6utTPyp5sHw=,QBr3QrX4n8WvpHW7rZN+f/vAcFmeij7G/EskGdz5AQA=",
+  "wireguardNodes": [
+    {
+      "privateKey": "oJ+o0ey68QRC2ZbeG+KFMG4h4CBIwUSJ8qjhdduXcF8="
+    },
+    {
+      "privateKey": "SGNQgMFq4AEVn9BBME4iGa2rcimaqwSAt5+ZuxvYv30="
+    },
+    {
+      "privateKey": "uAO+S4vM3IOMa2vEhDzdD6Tk4z8d8I7sR7XeDzn9GWs="
+    },
+    {
+      "privateKey": "0AKSm72xv9TrazkwJUfyLpzm/ay1CZkKWOoeRrmoTlE="
+    },
+    {
+      "privateKey": "eLEi5oFWYiLLL13nogJ0rwVO22FbChJBGG4/VMqilHY="
+    },
+    {
+      "privateKey": "ILX61pY8gZzoAHJcxy/xRLsoX7EUyBHJXaBuwMZEI2c="
+    },
+    {
+      "privateKey": "cCgV85nf0fBkKxkucAqwKZQ0PlMp0fQ4hFigo/zLAHU="
+    },
+    {
+      "privateKey": "0NxiDSe8acGm4N80tHBDdb9EEcsU0/50e5LOPnYT4Xg="
+    },
+    {
+      "privateKey": "oOa3LjdrKWwD51Ih1rRZ/vv3hukVO+u5gqYjW/OceEM="
+    },
+    {
+      "privateKey": "UFGw3+zNMhjrOfc7f8lVfkCNDi9AToNjWHt42Kp5wmQ="
+    },
+    {
+      "privateKey": "KJeBASbVf9bmeJFNrcCw5aAtYJ5+95c3Y2j+zbUc7V4="
+    },
+    {
+      "privateKey": "yINIQD9GsxLvXkp6n4T7HHpvMG3GGlFpW3KHid3yOkQ="
+    },
+    {
+      "privateKey": "wNgH0MjHo6VVnPvfYphIiWAycdvD26o5QryoggsUUUg="
+    }
+  ],
+  "wireguardAllowedIpsList": "10.0.1.1/32,10.0.1.2/32,10.0.1.3/32,10.0.1.4/32,10.0.1.5/32,10.0.1.6/32,10.0.1.7/32,10.0.1.8/32,10.0.1.9/32,10.0.1.10/32,10.0.1.11/32,10.0.1.12/32,10.0.1.13/32",
+  "archipelSr25519List": "5GukhqQ4gVspJk2CckH9Hqd4UnKtc8DzUWsfuD7L4A43d8hp,5DfFAjZV9gTVo1xmQFvreC4KLhkp8W7MfLnxw4XZifEPyL7L,5Ek9C71aaEi1YtqgSmZfaC9UXYRxUeS95MSrzehPUpXK5brb,5FsStWpfyVMX29GBvzi3h6HRzoTZi76F8U4PZJqvtKdpftz1,5FxVdGGzSZYhThrnPs9hMepGNmtn4G29MS8eEs4XrGugMyYe,5Gzn3mQogz7X4G6GfzaVa51GYJ4AzPS6CZJMukSqWkgmSvNE,5HmxRRN9DAQDz9JvZaw8Z8qgQvkNk6w6EJwsW9EwT1imBW6P,5CAULNfnnoJ1Ua7PqZ2NL2mkNMa73CQ8HQB4JJdGhfuK6398,5FP8VC7bHCPXuuShV8cjPyu3CxGDj8KTQb7kB19X3f9wATnb,5CctGfiDrnSELKTedsSbadXAb7XteoSQLPPuYCaAH1mgg7mk,5DqQWqfuQWLkG9Di6PRSSzpRVZz1teAC1kypR4rrqWQVggry,5CJC5GXbgG7SEPsH6MsDe4afrB7NJs7EC2pQRSSP7zFqUNJY,5FgjJmrEpACCCFQTYuFLwxQSk9yNQjeebzWUc3QAM2Hr12bJ",
+  "archipelEd25519List": "5H3zSy7JDBU7kpZxpUjYVarfLzUGabiLucCffoPeYAbwbFwK,5EQppLDvtDDEno26xMaiknfxLdjEzDbz26LQok3DAmLdSsh6,5DgTvf7JzX1v3Xv1Hj6H9Cu6nexJjBgtfpe4fcJDvd4U9Ny6,5GKzn4Xm889zaAzJZNxGsn23eWj44Gg5orkX1EpwVuzNt2Y1,5FoBZrD7b6Q6cWRdGbBJtdBog6jAaMyjJ6MQfTd4VspUaafP,5FFHm5Yto1M8KXCAXTnoATfHzGg8PFDeuscf4fJ2fipVh7uZ,5FeAgKvd5QNeDH8P27rdNn5NeUvqKX7nfEosqM8SwgT8K2xM,5GdJEvPPwF8t6Jv5pffbmhDeAo6YsVJxRPtqd1shwaqsw6si,5GYkYRRuGMwJJBs3PZPMYba52xVp6eQRx7tFnanxRXBk4bcG,5GQoAEykG2ccyDuvJnE6DiVkSRfz72QCbtCSJt4NkJGSMpW2,5H5QwC4BY58YxvYbsEuUa9JkiFsxqxkuySW4Z6fo2je4yuGD,5CKhBuQxdCcj5Ef3hQ4dGnvTSkEd1twLaYPK8BEcrtwTCMYj,5Eih7FmbqvWqwE3dUMQQNjHusgSqVUfGGm5tfs97mUWzeECN",
+  "archipelReservedPeersList": "/ip4/10.0.1.1/tcp/30334/p2p/12D3KooWPByuZ9NicURe3gmpvEjLNpZTN9CSjaNHMPFQfUSiofEP,/ip4/10.0.1.2/tcp/30334/p2p/12D3KooWKfW5sbQrQ1xKDAhEbUA4qmu8HhRcvxtBWoL66RiANBSt,/ip4/10.0.1.3/tcp/30334/p2p/12D3KooWBja3oYeudDFXCFJZsq28t5TfbaYas7w1eH4GKaNvVze8,/ip4/10.0.1.4/tcp/30334/p2p/12D3KooWFXiMXnz9Rw5249CAEXD6Lk1GY5GRSVxfEy5sTaHBqGUW,/ip4/10.0.1.5/tcp/30334/p2p/12D3KooWFsyNDPMtvtmXzfmew4WDCi1Ubfgdhp6DWSE7v12Ltn4W,/ip4/10.0.1.6/tcp/30334/p2p/12D3KooWFm7n26YDdThX4VUTZLSLFhUVmsAvoJTP5Z8JJWexN5VV,/ip4/10.0.1.7/tcp/30334/p2p/12D3KooWCs1Zc3BQcjHbN86dyjp6Z7BLhZbgVPqxnqfEZmKaW9Zw,/ip4/10.0.1.8/tcp/30334/p2p/12D3KooWB2PQZP3RxP9akgH3et33KxHdHnHK2ERuggLCKC8KtrZe,/ip4/10.0.1.9/tcp/30334/p2p/12D3KooWAPYC1npUK6gGnxfqmVUcdQELQWV2EashFoWrdCFJP6my,/ip4/10.0.1.10/tcp/30334/p2p/12D3KooWM17EfQwh8TJMoBkmjLT8iZi4XvVK1cWNa74RJ62tUUt6,/ip4/10.0.1.11/tcp/30334/p2p/12D3KooWF8aLJzDK1K7NzWEMgUVvgVDxHAAtreX9coLCp9TeWDmS,/ip4/10.0.1.12/tcp/30334/p2p/12D3KooWG1vpNfTkr5qXMYxz2xaobYZYHp6EEdGtHHd7JsSPi3zP,/ip4/10.0.1.13/tcp/30334/p2p/12D3KooWHKXX1nEVgbZjpZpH64NJQJPyQsQDVkd8GvUCSbBNEaXS",
+  "archipelNodes": [
+    {
+      "seed": "wrong media admit arrange image genuine cement cannon donor ranch number hammer",
+      "nodeIds": {
+        "peerId": "12D3KooWPByuZ9NicURe3gmpvEjLNpZTN9CSjaNHMPFQfUSiofEP",
+        "idFile": "archipel-node-id-0"
+      }
+    },
+    {
+      "seed": "ice easily emotion drama soccer injury scrub organ bronze bone cattle valid",
+      "nodeIds": {
+        "peerId": "12D3KooWKfW5sbQrQ1xKDAhEbUA4qmu8HhRcvxtBWoL66RiANBSt",
+        "idFile": "archipel-node-id-1"
+      }
+    },
+    {
+      "seed": "situate cave merry work trumpet game surge slide raw wool churn pony",
+      "nodeIds": {
+        "peerId": "12D3KooWBja3oYeudDFXCFJZsq28t5TfbaYas7w1eH4GKaNvVze8",
+        "idFile": "archipel-node-id-2"
+      }
+    },
+    {
+      "seed": "endorse furnace save impose opinion boring wage urban sound sunny engine run",
+      "nodeIds": {
+        "peerId": "12D3KooWFXiMXnz9Rw5249CAEXD6Lk1GY5GRSVxfEy5sTaHBqGUW",
+        "idFile": "archipel-node-id-3"
+      }
+    },
+    {
+      "seed": "blind envelope around broken plug panther candy weasel east donor license rhythm",
+      "nodeIds": {
+        "peerId": "12D3KooWFsyNDPMtvtmXzfmew4WDCi1Ubfgdhp6DWSE7v12Ltn4W",
+        "idFile": "archipel-node-id-4"
+      }
+    },
+    {
+      "seed": "dumb wheel guide banana breeze setup illegal library ugly student garment inquiry",
+      "nodeIds": {
+        "peerId": "12D3KooWFm7n26YDdThX4VUTZLSLFhUVmsAvoJTP5Z8JJWexN5VV",
+        "idFile": "archipel-node-id-5"
+      }
+    },
+    {
+      "seed": "auction enact village cover industry maximum dream adjust ketchup fog clay luggage",
+      "nodeIds": {
+        "peerId": "12D3KooWCs1Zc3BQcjHbN86dyjp6Z7BLhZbgVPqxnqfEZmKaW9Zw",
+        "idFile": "archipel-node-id-6"
+      }
+    },
+    {
+      "seed": "total neck tiny scatter north vapor open enrich start project grid sunny",
+      "nodeIds": {
+        "peerId": "12D3KooWB2PQZP3RxP9akgH3et33KxHdHnHK2ERuggLCKC8KtrZe",
+        "idFile": "archipel-node-id-7"
+      }
+    },
+    {
+      "seed": "roof antenna protect hint nest hill mosquito result this merge eight also",
+      "nodeIds": {
+        "peerId": "12D3KooWAPYC1npUK6gGnxfqmVUcdQELQWV2EashFoWrdCFJP6my",
+        "idFile": "archipel-node-id-8"
+      }
+    },
+    {
+      "seed": "such purity forward frozen hotel prefer disease office ritual soldier truck make",
+      "nodeIds": {
+        "peerId": "12D3KooWM17EfQwh8TJMoBkmjLT8iZi4XvVK1cWNa74RJ62tUUt6",
+        "idFile": "archipel-node-id-9"
+      }
+    },
+    {
+      "seed": "diamond swap whisper priority depth aware bottom impulse slide puzzle simple program",
+      "nodeIds": {
+        "peerId": "12D3KooWF8aLJzDK1K7NzWEMgUVvgVDxHAAtreX9coLCp9TeWDmS",
+        "idFile": "archipel-node-id-10"
+      }
+    },
+    {
+      "seed": "phrase crater online coast zoo glance ignore undo boss region tuna chest",
+      "nodeIds": {
+        "peerId": "12D3KooWG1vpNfTkr5qXMYxz2xaobYZYHp6EEdGtHHd7JsSPi3zP",
+        "idFile": "archipel-node-id-11"
+      }
+    },
+    {
+      "seed": "then crop smooth swarm direct replace valve spot require brain bike balance",
+      "nodeIds": {
+        "peerId": "12D3KooWHKXX1nEVgbZjpZpH64NJQJPyQsQDVkd8GvUCSbBNEaXS",
+        "idFile": "archipel-node-id-12"
+      }
+    }
+  ]
+}

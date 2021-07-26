@@ -59,7 +59,7 @@ const catchExitSignals = (cleanUpCallback) => {
 
 // Check is string is not set or is empty
 const isEmptyString = (str) => {
-  return (!str || str.length === 0);
+  return (str === undefined || str.length === 0);
 };
 
 // Check is a variable is set

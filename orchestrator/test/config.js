@@ -1,0 +1,197 @@
+/* eslint-disable */
+const { assert } = require('chai');
+
+const {
+    constructConfiguration,
+    constructConfigurationFromConfigFile
+} = require("../src/config");
+
+// Test configuration
+const testTimeout = 60000;
+
+// Env variables
+
+describe('Config test', function(){
+    this.timeout(testTimeout);
+  
+    it('Test config generation from minimal env variables', async function () {
+        // Set env variables
+        process.env.MNEMONIC = 'toto titi toto';
+        process.env.NODES_WALLETS = '0x1,0x2,0x3';
+
+        // Config must be
+        const config = {
+            mnemonic: 'toto titi toto',
+            service: 'polkadot',
+            nodesWallets: '0x1,0x2,0x3',
+            archipelName: 'test-archipel',
+            nodeGroupId: 1,
+            nodeRole: 'operator',
+            nodeWs: 'ws://127.0.0.1:9944',
+            aliveTime: 12,
+            serviceMode: 'orchestrator',
+            heartbeatEnabled: true,
+            orchestrationEnabled: true
+        };
+
+        // Constructing configuration
+        const generatedConfig = constructConfiguration();
+
+        assert.equal(JSON.stringify(generatedConfig), JSON.stringify(config), 'Check if configuration was generated correctly');
+    });
+
+    it('Test config generation from full env variables', async function () {
+        // Set env variables
+        process.env.NODE_WS = 'ws://127.0.0.8/';
+        process.env.ALIVE_TIME = '50';
+        process.env.SERVICES = 'polkashot';
+        process.env.ARCHIPEL_SERVICE_MODE = 'passive';
+        process.env.ARCHIPEL_NAME = 'real-archipel';
+        process.env.NODE_GROUP_ID = '42';
+        process.env.MNEMONIC = 'toto titi toto';
+        process.env.NODES_WALLETS = '0x1,0x2,0x3';
+        process.env.NODE_ROLE = 'noservice';
+        process.env.ARCHIPEL_HEARTBEATS_ENABLE = 'false';
+        process.env.ARCHIPEL_ORCHESTRATION_ENABLE = 'false';
+
+        // Config must be
+        const config = {
+            mnemonic: 'toto titi toto',
+            service: 'polkashot',
+            nodesWallets: '0x1,0x2,0x3',
+            archipelName: 'real-archipel',
+            nodeGroupId: 42,
+            nodeRole: 'noservice',
+            nodeWs: 'ws://127.0.0.8/',
+            aliveTime: 50,
+            serviceMode: 'passive',
+            heartbeatEnabled: false,
+            orchestrationEnabled: false
+        };
+
+        // Constructing configuration
+        const generatedConfig = constructConfiguration();
+
+        assert.equal(JSON.stringify(generatedConfig), JSON.stringify(config), 'Check if configuration was generated correctly');
+    });
+    it('Test config generation with wrong alive time and nodeGroupId', async function () {
+        // Set env variables
+        process.env.MNEMONIC = 'toto titi toto';
+        process.env.NODES_WALLETS = '0x1,0x2,0x3';
+        process.env.ALIVE_TIME = 'notandinteger';
+        process.env.NODE_GROUP_ID = 'notandinteger';
+
+        try{
+            constructConfiguration();
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Alive time must be an integer', 'Check error trigger if alive time is not an integer');
+        }
+
+        process.env.ALIVE_TIME = '50';
+
+        try{
+            constructConfiguration();
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Node group id must be an integer', 'Check error trigger if node group id is not an integer');
+        }
+    });
+    it('Test hearbeat send and orchestration enabled if any value except false', async function () {
+        // Set env variables
+        process.env.NODE_WS = 'ws://127.0.0.8/';
+        process.env.ALIVE_TIME = '50';
+        process.env.SERVICES = 'polkashot';
+        process.env.ARCHIPEL_SERVICE_MODE = 'passive';
+        process.env.ARCHIPEL_NAME = 'real-archipel';
+        process.env.NODE_GROUP_ID = '42';
+        process.env.MNEMONIC = 'toto titi toto';
+        process.env.NODES_WALLETS = '0x1,0x2,0x3';
+        process.env.NODE_ROLE = 'noservice';
+        process.env.ARCHIPEL_HEARTBEATS_ENABLE = 'toto';
+        process.env.ARCHIPEL_ORCHESTRATION_ENABLE = 'toto';
+
+        // Config must be
+        const config = {
+            mnemonic: 'toto titi toto',
+            service: 'polkashot',
+            nodesWallets: '0x1,0x2,0x3',
+            archipelName: 'real-archipel',
+            nodeGroupId: 42,
+            nodeRole: 'noservice',
+            nodeWs: 'ws://127.0.0.8/',
+            aliveTime: 50,
+            serviceMode: 'passive',
+            heartbeatEnabled: true,
+            orchestrationEnabled: true
+        };
+
+        const generatedConfig = constructConfiguration();
+        assert.equal(JSON.stringify(generatedConfig), JSON.stringify(config), 'Check if configuration was generated correctly');
+    });
+
+    it('Test load operator config from configuration file', async function () {
+        // Set env variables
+        process.env.CONFIG_FILE = 'true';
+        process.env.CONFIG_FILE_PATH = './test/mock-config.json';
+        process.env.NODE_ID = '1';
+
+        // Config must be
+        const config = {
+            nodeId: 1,
+            configFilePath: './test/mock-config.json',
+            mnemonic: 'wrong media admit arrange image genuine cement cannon donor ranch number hammer',
+            service: 'polkadot',
+            nodesWallets: '5GukhqQ4gVspJk2CckH9Hqd4UnKtc8DzUWsfuD7L4A43d8hp,5DfFAjZV9gTVo1xmQFvreC4KLhkp8W7MfLnxw4XZifEPyL7L,5Ek9C71aaEi1YtqgSmZfaC9UXYRxUeS95MSrzehPUpXK5brb,5FsStWpfyVMX29GBvzi3h6HRzoTZi76F8U4PZJqvtKdpftz1,5FxVdGGzSZYhThrnPs9hMepGNmtn4G29MS8eEs4XrGugMyYe,5Gzn3mQogz7X4G6GfzaVa51GYJ4AzPS6CZJMukSqWkgmSvNE,5HmxRRN9DAQDz9JvZaw8Z8qgQvkNk6w6EJwsW9EwT1imBW6P,5CAULNfnnoJ1Ua7PqZ2NL2mkNMa73CQ8HQB4JJdGhfuK6398,5FP8VC7bHCPXuuShV8cjPyu3CxGDj8KTQb7kB19X3f9wATnb,5CctGfiDrnSELKTedsSbadXAb7XteoSQLPPuYCaAH1mgg7mk,5DqQWqfuQWLkG9Di6PRSSzpRVZz1teAC1kypR4rrqWQVggry,5CJC5GXbgG7SEPsH6MsDe4afrB7NJs7EC2pQRSSP7zFqUNJY,5FgjJmrEpACCCFQTYuFLwxQSk9yNQjeebzWUc3QAM2Hr12bJ',
+            archipelName: 'archipel',
+            nodeGroupId: 1,
+            nodeRole: 'operator',
+            nodeWs: 'ws://127.0.0.8/',
+            aliveTime: 50,
+            serviceMode: 'passive',
+            heartbeatEnabled: true,
+            orchestrationEnabled: true
+        };
+        
+        const generatedConfig = constructConfiguration();
+        assert.equal(JSON.stringify(generatedConfig), JSON.stringify(config), 'Check if configuration was generated correctly');
+    });
+
+    it('Test wrong node config from configuration file', async function () {
+        // Set env variables
+        process.env.CONFIG_FILE = 'true';
+        process.env.CONFIG_FILE_PATH = './test/mock-config.json';
+        process.env.NODE_ID = '99';
+
+        try {
+            constructConfiguration();
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Error parsing config file or invalid node number. Please check it', 'Check if error was raised if bad node id');
+        }
+
+    });
+
+    it('Test if node id is not an integer', async function () {
+        // Set env variables
+        process.env.CONFIG_FILE = 'true';
+        process.env.CONFIG_FILE_PATH = './test/mock-config.json';
+        process.env.NODE_ID = 'sdsd';
+
+        try {
+            constructConfiguration();
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Node id must be an integer', 'Check if error was raised if node id is not an integer');
+        }
+    });
+
+    it('Test with wrong configuration file', async function () {
+        // Set env variables
+        process.env.CONFIG_FILE = 'true';
+        process.env.CONFIG_FILE_PATH = './test/mock-config-empty.json';
+        process.env.NODE_ID = '1';
+        try {
+            constructConfiguration();
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Error parsing config file or invalid node number. Please check it', 'Check if error was raised if node id is not an integer');
+        }
+    });
+});
+
