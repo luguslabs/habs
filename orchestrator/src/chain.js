@@ -4,7 +4,7 @@ const debug = require('debug')('chain');
 const {
   getKeysFromSeed,
   fromModeToNodeStatus,
-  transactionShowStatus
+  transactionGetStatus
 } = require('./utils');
 
 class Chain {
@@ -88,7 +88,7 @@ class Chain {
         // Send transaction
           .send(({ events = [], status }) => {
           // Debug show transaction status
-            transactionShowStatus(status, 'addHeartbeat');
+            debug('addHeartbeat', transactionGetStatus(status));
             if (status.isFinalized) {
               events.forEach(async ({ event: { data, method, section } }) => {
                 if (section.toString() === 'archipelModule' && method.toString() === 'NewHeartbeat') {
@@ -134,7 +134,7 @@ class Chain {
         // Send transaction
         .send(({ events = [], status }) => {
           // Debug show transaction status
-          transactionShowStatus(status, 'setLeader');
+          debug('setLeader', transactionGetStatus(status));
           if (status.isFinalized) {
             events.forEach(async ({ event: { data, method, section } }) => {
               if (section.toString() === 'archipelModule' && method.toString() === 'NewLeader') {
@@ -176,7 +176,8 @@ class Chain {
         // Send transaction
         .send(({ events = [], status }) => {
           // Debug show transaction status
-          transactionShowStatus(status, 'giveUpLeadership');
+          debug('giveUpLeadership', transactionGetStatus(status));
+          setLeader
           if (status.isFinalized) {
             events.forEach(async ({ event: { data, method, section } }) => {
               if (section.toString() === 'archipelModule' && method.toString() === 'GiveUpLeader') {

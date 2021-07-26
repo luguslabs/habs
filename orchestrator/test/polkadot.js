@@ -1,5 +1,4 @@
 /* eslint-disable */
-const { isTestChain } = require('@polkadot/util');
 const { assert } = require('chai');
 const { Docker } = require('../src/docker');
 

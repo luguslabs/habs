@@ -41,7 +41,7 @@ const fromModeToNodeStatus = mode => {
 };
 
 // Cleanup on exit
-const catchExitSignals = (cleanUpCallback, docker, service) => {
+const catchExitSignals = (cleanUpCallback) => {
   // catching signals and calling cleanup callback before exit
   ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
     'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
@@ -50,7 +50,7 @@ const catchExitSignals = (cleanUpCallback, docker, service) => {
       if (typeof sig === 'string') {
         console.log('Received %s - terminating app ...', sig);
         // Waiting for cleanup to be finished
-        await cleanUpCallback(docker, service);
+        await cleanUpCallback();
         // Exiting
         process.exit(1);
       }
@@ -68,10 +68,14 @@ const checkVariable = (value, name) => {
   if (isEmptyString(value)) {
     throw Error(`Error! Variable ${name} was not set.`);
   }
+  return true;
 };
 
 // Format option list permits to create telemetry url params and reserved nodes params
 const formatOptionList = (option, inputList) => {
+  if (option === '' || inputList === '') {
+    return [];
+  }
   return inputList.split(',').reduce((resultArray, item) => {
     resultArray.push(option);
     resultArray.push(item);
@@ -81,6 +85,9 @@ const formatOptionList = (option, inputList) => {
 
 // Create a list of params from a string separated by a space
 const formatOptionCmds = inputCmds => {
+  if (!inputCmds) {
+    return [];
+  }
   if (inputCmds.split(' ').length === 1) {
     return [inputCmds];
   }
@@ -92,28 +99,30 @@ const formatOptionCmds = inputCmds => {
 
 // Construct nodes list with wallets and nodes names
 const constructNodesList = (nodesWallets, archipelName) => {
-  const result = [];
-  if (!isEmptyString(nodesWallets) && !isEmptyString(archipelName)) {
-    const nodesWalletsList = nodesWallets.toString().split(',');
-    nodesWalletsList.forEach((value, index) => {
-      result.push({
-        wallet: value,
-        name: `${archipelName.toString()}-NODE-${index + 1}`
-      });
-    });
+  if (isEmptyString(nodesWallets) || isEmptyString(archipelName)) {
+    return [];
   }
-  return result;
+  return nodesWallets.toString().split(',').reduce((resultArray, item, index) => {
+    resultArray.push({
+      wallet: item,
+      name: `${archipelName.toString()}-NODE-${index + 1}`
+    });
+    return resultArray;
+  }, []);
+
 };
 
 // Show transaction status in debug
-const transactionShowStatus = (status, where) => {
-  if (status.isInvalid) debug(where, 'Transaction is invalid.');
-  if (status.isDropped) debug(where, 'Transaction is dropped.');
-  if (status.isUsurped) debug(where, 'Transaction is usurped.');
-  if (status.isReady) debug(where, 'Transaction is ready.');
-  if (status.isFuture) debug(where, 'Transaction is future.');
-  if (status.isFinalized) debug(where, 'Transaction is finalized.');
-  if (status.isBroadcast) debug(where, 'Transaction is broadcast.');
+const transactionGetStatus = (status) => {
+  if (!status) return 'Failed to get status.';
+  if (status.isInvalid) return 'Transaction is invalid.';
+  if (status.isDropped) return 'Transaction is dropped.';
+  if (status.isUsurped) return 'Transaction is usurped.';
+  if (status.isReady) return 'Transaction is ready.';
+  if (status.isFuture) return 'Transaction is future.';
+  if (status.isFinalized) return 'Transaction is finalized.';
+  if (status.isBroadcast) return 'Transaction is broadcast.';
+  return 'Unknown transaction state.';
 };
 
 module.exports = {
@@ -127,5 +136,5 @@ module.exports = {
   formatOptionCmds,
   constructNodesList,
   fromModeToNodeStatus,
-  transactionShowStatus
+  transactionGetStatus
 };
