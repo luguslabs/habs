@@ -24,7 +24,7 @@ class Service {
 
   // Check if service is ready
   async serviceReady () {
-    return await this.serviceInstance.isServiceReadyToStart();
+    return await this.serviceInstance.isServiceReadyToStart(this.mode);
   }
 
   // Check service

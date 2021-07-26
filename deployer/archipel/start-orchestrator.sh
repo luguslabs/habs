@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #prefix output
 # setup fd-3 to point to the original stdout
 exec 3>&1
@@ -11,31 +10,8 @@ printf -v PREFIX "%-10.10s" ${SUPERVISOR_PROCESS_NAME}
 exec 1> >( perl -ne '$| = 1; print "'"${PREFIX}"' | $_"' >&3)
 exec 2> >( perl -ne '$| = 1; print "'"${PREFIX}"' | $_"' >&4)
 
-#detect error in piped command
-set -eo pipefail
-
-#functions
-function check_cmd {
-      if [ "$1" != "0" ]; then
-            echo "Error! Can't execute command to $2."
-            exit 1
-      fi
-}
-
-function check_result {
-      if [ "$1" == "null" ]; then
-            echo "Error! Config for '$2' not found"
-            exit 1
-      fi
-}
-
-#parsing config file
+#unzip config file if exists
 if [ ! -z "$CONFIG_FILE" ]; then
-    if [ -z "$NODE_ID" ]; then
-        echo "\$NODE_ID must be set"
-        exit 1
-    fi
-
     #unpack config file
     if [ -f "/config/archipel-config.zip" ]; then
           echo "Unzip archipel-config.zip file from /config directory."
@@ -59,143 +35,14 @@ if [ ! -z "$CONFIG_FILE" ]; then
                 fi
                 unzip -f -o /config/archipel-config.zip -d /config
           fi
+          CONFIG_FILE_PATH="/config/config.json"
     else
           echo "No config file found in /config/archipel-config.zip"
           exit 1
     fi
-
-    #check if node id is valid
-    NODES_NUMBER=$(cat /config/config.json | jq ".nodesNumber")
-    if [ "$NODE_ID" -eq "0" ] || [ "$NODE_ID" -gt "$NODES_NUMBER" ]; then
-        echo "Invalid node number! Node number must be between 1 and $NODES_NUMBER..."
-        exit 1
-    fi
-
-    #set variables from config file
-    #get NODES_ROLE
-    if [ -z "$NODES_ROLE" ]; then
-        NODES_ROLE=$(cat /config/config.json | jq ".nodesRole" | sed 's/\"//g')
-        check_cmd $? 'retrieve NODES_ROLE'
-        if [ "$NODES_ROLE" == "null" ]; then
-            echo "Assure old config support. Force config NODES_ROLE to 'operator,operator,operator'"
-            NODES_ROLE="operator,operator,operator"
-        fi
-        IFS=',' read -ra rolesArray <<< "$NODES_ROLE"
-        index=$(( $NODE_ID - 1 ))
-        NODE_ROLE=${rolesArray[index]}
-
-        #if node role is no service this process will sleep eternally
-        if [ "$NODE_ROLE" == "noservice" ]; then
-          echo "This node is a NO SERVICE node. So the orchestrator will sleep eternally..."
-          sleep infinity
-          exit 1
-        fi
-    fi
-
-    if [ -z "$NODE_GROUP" ]; then
-        NODES_GROUP=$(cat /config/config.json | jq ".nodesGroup" | sed 's/\"//g')
-        check_cmd $? 'retrieve NODES_GROUP'
-        IFS=',' read -ra groupsArray <<< "$NODES_GROUP"
-        index=$(( $NODE_ID - 1 ))
-        NODE_GROUP=${groupsArray[index]}
-    fi
-
-    if [ -z "$NODE_GROUP_ID" ]; then
-        NODES_GROUP_ID=$(cat /config/config.json | jq ".nodesGroupId" | sed 's/\"//g')
-        check_cmd $? 'retrieve NODES_GROUP_ID'
-        IFS=',' read -ra groupIdsArray <<< "$NODES_GROUP_ID"
-        index=$(( $NODE_ID - 1 ))
-        NODE_GROUP_ID=${groupIdsArray[index]}
-    fi
-
-    #get ARCHIPEL_KEY_SEED
-    if [ -z "$ARCHIPEL_KEY_SEED" ]; then
-        ARCHIPEL_KEY_SEED=$(cat /config/config.json | jq ".archipelNodes[$(( $NODE_ID - 1))].seed" | sed 's/\"//g')
-        #check result and if config was extracted successfully
-        check_cmd $? 'retrieve ARCHIPEL_KEY_SEED'
-        check_result "$ARCHIPEL_KEY_SEED" 'ARCHIPEL_KEY_SEED'
-    fi
-    #get SERVICES
-    if [ -z "$SERVICES" ]; then
-        cat /config/config.json | jq ".services[] | .name" | sed 's/\"//g'
-        export SERVICES=$(cat /config/config.json | jq ".services[] | .name" | sed 's/\"//g')
-        check_cmd $? 'retrieve SERVICES'
-        check_result "$SERVICES" 'SERVICES'
-    fi
-    #get ARCHIPEL_AUTHORITIES_SR25519_LIST
-    if [ -z "$ARCHIPEL_AUTHORITIES_SR25519_LIST" ]; then
-        ARCHIPEL_AUTHORITIES_SR25519_LIST=$(cat /config/config.json | jq ".archipelSr25519List" | sed 's/\"//g')
-        check_cmd $? 'retrieve ARCHIPEL_AUTHORITIES_SR25519_LIST'
-        check_result $ARCHIPEL_AUTHORITIES_SR25519_LIST 'ARCHIPEL_AUTHORITIES_SR25519_LIST'
-    fi
-    #get ARCHIPEL_NAME
-    if [ -z "$ARCHIPEL_NAME" ]; then
-        ARCHIPEL_NAME=$(cat /config/config.json | jq ".name" | sed 's/\"//g')
-        check_cmd $? 'retrieve ARCHIPEL_NAME'
-        check_result $ARCHIPEL_NAME 'ARCHIPEL_NAME'
-    fi
-
 fi
-
-if [ -z "$NODES_ROLE" ]; then
-  echo "Assure old config support. Force config NODES_ROLE to 'operator,operator,operator'"
-  NODES_ROLE="operator,operator,operator"
-fi
-echo "NODES_ROLE=$NODES_ROLE"
-
-if [ -z "$NODE_ROLE" ]; then
-  echo "Assure old config support. Force config NODE_ROLE to 'operator'"
-  NODE_ROLE="operator"
-fi
-echo "NODE_ROLE=$NODE_ROLE"
-
-if [ -z "$NODE_GROUP" ]; then
-  echo "Assure old config support. Force config NODE_GROUP to '1'"
-  NODE_GROUP=1
-fi
-
-if [ -z "$NODE_GROUP_ID" ]; then
-  echo "Assure old config support. Force config NODE_GROUP_ID to '1'"
-  NODE_GROUP_ID=1
-fi
-
-if [ -z "$ARCHIPEL_SERVICE_MODE" ]; then
-  # ARCHIPEL_SERVICE_MODE = active|passive|orchestrator
-  ARCHIPEL_SERVICE_MODE="orchestrator"
-fi
-
-if [ -z "$ARCHIPEL_HEARTBEATS_ENABLE" ]; then
-  ARCHIPEL_HEARTBEATS_ENABLE="true"
-fi
-
-if [ -z "$ARCHIPEL_ORCHESTRATION_ENABLE" ]; then
-  ARCHIPEL_ORCHESTRATION_ENABLE="true"
-fi
-
-# Setting Archipel orchestrator variables
-NODE_ROLE=$(echo $NODE_ROLE | sed 's/\"//g')
-NODES_ROLE=$(echo $NODES_ROLE | sed 's/\"//g')
+# Export env variables
 export NODE_ENV=production
-export NODE_WS="ws://127.0.0.1:9944"
-export NODE_ROLE=$NODE_ROLE
-export NODE_GROUP=$NODE_GROUP
-export NODE_GROUP_ID=$NODE_GROUP_ID
-export NODES_ROLE=$NODES_ROLE
-export MNEMONIC="$ARCHIPEL_KEY_SEED"
-export NODES_WALLETS="$ARCHIPEL_AUTHORITIES_SR25519_LIST"
-export ARCHIPEL_NAME="$ARCHIPEL_NAME"
-export ALIVE_TIME=12
-export ARCHIPEL_SERVICE_MODE="$ARCHIPEL_SERVICE_MODE"
-export ARCHIPEL_HEARTBEATS_ENABLE="$ARCHIPEL_HEARTBEATS_ENABLE"
-export ARCHIPEL_ORCHESTRATION_ENABLE="$ARCHIPEL_ORCHESTRATION_ENABLE"
-export AUTHORITIES_LIST="$ARCHIPEL_AUTHORITIES_SR25519_LIST"
-
-# Generate env file in shared volume for Archipel UI to auto-detect the local API endpoint
-ARCHIPEL_CONTAINER_IP=$(awk 'END{print $1}' /etc/hosts)
-echo "Generate env file /config/archipel-ui.env in shared volume for Archipel UI to auto-detect the local API endpoint"
-echo 'export REACT_APP_API_URL=http://'$ARCHIPEL_CONTAINER_IP':3000'
-mkdir -p /config
-echo 'export REACT_APP_API_URL=http://'$ARCHIPEL_CONTAINER_IP':3000' > /config/archipel-ui.env
 
 # Launching orchestrator
 echo "Waiting 5 seconds for Archipel Node to start..."

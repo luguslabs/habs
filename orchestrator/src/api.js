@@ -3,7 +3,6 @@ const mainRoutes = require('./routes/main');
 const heartbeatsRoutes = require('./routes/heartbeats');
 const orchestratorRoutes = require('./routes/orchestrator');
 const serviceRoutes = require('./routes/service');
-const { RestoreDb } = require('./restoredb');
 
 // Return not found response
 const get404 = (req, res, next) => {
@@ -36,9 +35,6 @@ const errorHandler = (err, req, res, next) => {
 // Init api
 const initApi = async orchestrator => {
   const app = express();
-
-  // Creating restore db instance and saving it
-  app.set('restoredb', new RestoreDb(orchestrator));
 
   // Saving orchestrator instance
   app.set('orchestrator', orchestrator);

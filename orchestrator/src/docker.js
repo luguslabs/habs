@@ -141,7 +141,7 @@ class Docker {
         await this.pullImage(containerData.Image);
 
         // Starting container
-        debug('startContainer', `Creating and starting container ${containerData.Name}.`);
+        debug('startContainer', `Creating and starting container ${containerData.name}.`);
         const newContainer = await this.docker.createContainer(containerData);
         await newContainer.start();
         return true;
