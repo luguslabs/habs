@@ -43,7 +43,7 @@ const config = {
   heartbeatEnabled: true,
   orchestrationEnabled: true,
   mnemonic: mnemonic1,
-  nodeGroupId: '1',
+  nodeGroupId: 1,
   nodesWallets: nodesWallets, 
   archipelName: archipelName,
   aliveTime: 12,
