@@ -1,6 +1,6 @@
 const debug = require('debug')('service');
 
-const { Polkadot } = require('./services/polkadot');
+const { Polkadot } = require('./services/polkadot/service');
 
 class Service {
   constructor (serviceName) {

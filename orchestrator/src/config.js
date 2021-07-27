@@ -13,25 +13,25 @@ const constructConfiguration = () => {
   // Get configuration from config file
   if (process.env.CONFIG_FILE) {
     // Setting default config path if is not set by env var
-    config.configFilePath = process.env.CONFIG_FILE_PATH || "/config/config.json";
+    config.configFilePath = process.env.CONFIG_FILE_PATH || '/config/config.json';
 
     // Constructing configuration from config file
-    config = {...constructConfigurationFromConfigFile(process.env.CONFIG_FILE_PATH, process.env.NODE_ID)};
+    config = { ...constructConfigurationFromConfigFile(process.env.CONFIG_FILE_PATH, process.env.NODE_ID) };
   }
 
   // If config was not set by config file trying to get it from env variables
   // If env variables are empty setting default values
   config.mnemonic = config.mnemonic ? config.mnemonic : process.env.MNEMONIC;
-  config.service = config.service ? config.service : process.env.SERVICES || "polkadot";
+  config.service = config.service ? config.service : process.env.SERVICES || 'polkadot';
   config.nodesWallets = config.nodesWallets ? config.nodesWallets : process.env.NODES_WALLETS;
-  config.archipelName = config.archipelName ? config.archipelName : process.env.ARCHIPEL_NAME || "test-archipel";
+  config.archipelName = config.archipelName ? config.archipelName : process.env.ARCHIPEL_NAME || 'test-archipel';
   config.nodeGroupId = config.nodeGroupId ? config.nodeGroupId : process.env.NODE_GROUP_ID || 1;
-  config.nodeRole = config.nodeRole ? config.nodeRole : process.env.NODE_ROLE || "operator";
+  config.nodeRole = config.nodeRole ? config.nodeRole : process.env.NODE_ROLE || 'operator';
 
   // Get config from env variables and setting default values if env vars are empty
-  config.nodeWs = process.env.NODE_WS || "ws://127.0.0.1:9944";
+  config.nodeWs = process.env.NODE_WS || 'ws://127.0.0.1:9944';
   config.aliveTime = process.env.ALIVE_TIME || 12;
-  config.serviceMode = process.env.ARCHIPEL_SERVICE_MODE || "orchestrator";
+  config.serviceMode = process.env.ARCHIPEL_SERVICE_MODE || 'orchestrator';
   config.heartbeatEnabled = process.env.ARCHIPEL_HEARTBEATS_ENABLE;
   config.orchestrationEnabled = process.env.ARCHIPEL_ORCHESTRATION_ENABLE;
   config.heartbeatEnabled = (!config.heartbeatEnabled || !config.heartbeatEnabled.includes('false'));
@@ -79,7 +79,7 @@ const constructConfigurationFromConfigFile = (configFilePath, nodeId) => {
     throw Error(`${error.toString()}. Please check config file.`);
   }
   return config;
-}
+};
 
 module.exports = {
   constructConfiguration,

@@ -7,6 +7,7 @@ const { Docker } = require('../src/docker');
 const { Heartbeats } = require('../src/heartbeats');
 const { Chain } = require('../src/chain');
 const { getKeysFromSeed } = require('../src/utils');
+const { constructConfiguration } = require('../src/config');
 
 // Set env variables
 process.env.POLKADOT_NAME = 'validator-test';
@@ -1208,4 +1209,53 @@ describe('Orchestrator test', function() {
     orchestrator.mnemonic = saveMnemonic;
     orchestrator.serviceMode = saveServiceMode; 
   });
+
+  it('Test orchestrator with polkadot service and config file', async function () {
+    // Set env variables
+    process.env.CONFIG_FILE = 'true';
+    process.env.CONFIG_FILE_PATH = './test/mock-config.json';
+    process.env.NODE_ID = '1';
+
+    // Create configuration
+    const config = constructConfiguration();
+
+    // Change only mnemonic1 to able to submit transactions
+    config.mnemonic = mnemonic1;
+    
+    // Adding some heartbeats
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+
+    const keys1 = await getKeysFromSeed(mnemonic1);
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const keys3 = await getKeysFromSeed(mnemonic3);
+
+    let blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
+
+    // Create Orchestrator instance
+    const orchestrator = new Orchestrator(
+      config,
+      chain,
+      heartbeats);
+    // Start service before orchestration
+    await orchestrator.bootstrapService();
+
+    // Mock isServiceReadyToStart method of service
+    orchestrator.service.serviceInstance.isServiceReadyToStart = () => true;
+
+    let isLeadedGroupTrue = await chain.isLeadedGroup(1);
+    assert.equal(isLeadedGroupTrue, false, 'check if the group is not leaded');
+
+    await orchestrator.orchestrateService();
+
+    isLeadedGroup = await chain.isLeadedGroup(1);
+    assert.equal(isLeadedGroup, true, 'check if the group becomes leaded');
+  
+    const leader = await chain.getLeader(1);
+    assert.equal(leader.toString(), keys1.address, 'check if leader was set correctly');
+
+  });
+
 });

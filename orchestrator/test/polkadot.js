@@ -2,7 +2,7 @@
 const { assert } = require('chai');
 const { Docker } = require('../src/docker');
 
-const { Polkadot } = require('../src/services/polkadot');
+const { Polkadot } = require('../src/services/polkadot/service');
 
 // Set env variables
 process.env.POLKADOT_NAME = 'validator-test';
