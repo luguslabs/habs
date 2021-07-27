@@ -23,6 +23,7 @@ function launch_archipel () {
     --env CONFIG_FILE=true \
     --env CONFIG_FILE_PASSWORD=test \
     --env NODE_ID=$4 \
+    --env POLKADOT_PREFIX=$1 \
     luguslabs/archipel:$ARCHIPEL_VERSION
 
   echo "Waiting 10 seconds to be sure that archipel is started..."

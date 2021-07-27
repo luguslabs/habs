@@ -76,7 +76,7 @@ const constructConfigurationFromConfigFile = (configFilePath, nodeId) => {
     config.nodeGroupId = configObject.nodesGroupId.split(',')[config.nodeId - 1];
     config.nodeRole = configObject.nodesRole.split(',')[config.nodeId - 1];
   } catch (error) {
-    throw Error(`${error.toSting()}. Please check config file.`);
+    throw Error(`${error.toString()}. Please check config file.`);
   }
   return config;
 }
