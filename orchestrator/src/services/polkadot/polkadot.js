@@ -48,7 +48,7 @@ class Polkadot {
     // Check if the key was already imported
     if (this.importedKeys.includes(publicKey)) {
       debug('importKey', `Key ${publicKey} was already imported to keystore...`);
-      return;
+      return false;
     }
 
     debug('importKey', `Importing ${type} ${publicKey} to ${containerName}...`);
@@ -73,50 +73,55 @@ class Polkadot {
     // Checking command result
     if (!result.includes('"result":null')) {
       console.log(`Can't add key. ${type} - ${result}. Will retry the next time...`);
-      return;
+      return false;
     }
 
     // Check if key is present in containers file system
     const keyAdded = await this.checkKeyAdded(mnemonic, crypto, containerName);
     if (!keyAdded) {
-      console.log(`Key (${type} - ${result}) can not be found in container. Will retry to add the next time...`);
-      return;
+      console.log(`Key (${type} - ${publicKey}) can not be found in container. Will retry to add the next time...`);
+      return false;
     }
 
     // Add key into imported key list
     this.importedKeys.push(publicKey);
 
     console.log(`The ${publicKey} key was successfully added to service keystore.`);
+    return true;
   }
 
   // Import wallets to polkadot keystore
   async polkadotKeysImport (containerName) {
     try {
-      // Adding keys to polkadot keystore if there is no already 5 keys
-      if (this.importedKeys.length < 5) {
-        console.log('Waiting 5 seconds before importing keys...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        // Importing 6 validator keys into keystore
-        console.log('Importing keys to keystore...');
-        await this.importKey(containerName, this.config.polkadotKeyGran, 'ed25519', 'gran');
-        await this.importKey(containerName, this.config.polkadotKeyBabe, 'sr25519', 'babe');
-        await this.importKey(containerName, this.config.polkadotKeyImon, 'sr25519', 'imon');
-        await this.importKey(containerName, this.config.polkadotKeyPara, 'sr25519', 'para');
-        await this.importKey(containerName, this.config.polkadotKeyAsgn, 'sr25519', 'asgn');
-        await this.importKey(containerName, this.config.polkadotKeyAudi, 'sr25519', 'audi');
+      // Check if there is no already 6 keys added
+      if (this.importedKeys.length >= 6) {
+        debug('polkadotKeysImport', 'There are aleady 6 or more keys in the keystore.');
+        return false;
       }
+      console.log('Waiting 5 seconds before importing keys...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      // Importing 6 validator keys into keystore
+      console.log('Importing keys to keystore...');
+      await this.importKey(containerName, this.config.polkadotKeyGran, 'ed25519', 'gran');
+      await this.importKey(containerName, this.config.polkadotKeyBabe, 'sr25519', 'babe');
+      await this.importKey(containerName, this.config.polkadotKeyImon, 'sr25519', 'imon');
+      await this.importKey(containerName, this.config.polkadotKeyPara, 'sr25519', 'para');
+      await this.importKey(containerName, this.config.polkadotKeyAsgn, 'sr25519', 'asgn');
+      await this.importKey(containerName, this.config.polkadotKeyAudi, 'sr25519', 'audi');
+      
+      return true;
       // if (this.config.polkadotSessionKeyToCheck) {
       //  await this.checkSessionKeyOnNode(containerName, this.config.polkadotSessionKeyToCheck);
       // }
     } catch (error) {
       debug('polkadotKeysImport', error);
       console.error('Error: Can\'t add keys. We will retry the next time.');
-      console.error(error);
+      return false;
     }
   }
 
-  // Check if session keys were successfully set
+/*   // Check if session keys were successfully set
   async checkSessionKeyOnNode (containerName, sessionKey) {
     try {
       debug('checkSessionKeyOnNode', `Checking Session Key validity on node for session key value : ${sessionKey}`);
@@ -134,6 +139,7 @@ class Polkadot {
       // Importing key by executing command in docker container
       const result = await this.docker.dockerExecute(containerName, command);
       debug('checkSessionKeyOnNode', `Command hasSessionKeys result: "${result}"`);
+
       return result;
     } catch (error) {
       debug('checkSessionKeyOnNode', error);
@@ -141,7 +147,7 @@ class Polkadot {
       console.error(error);
       return false;
     }
-  }
+  } */
 
   // Check if a key file is present in container file system
   async checkKeyAdded (mnemonic, crypto, containerName) {
@@ -162,7 +168,7 @@ class Polkadot {
     const result = await this.docker.dockerExecute(containerName, command);
     debug('checkKeyAdded', `Command find key result: "${result}"`);
 
-    return !!result;
+    return result.length !== 0;
   }
 
   // Check if polkadot node is ready to operate
@@ -221,7 +227,7 @@ class Polkadot {
       }
 
       // Check if node is synching
-      const isSyncingSystemHealth = resultSystemHealth.match(/"isSyncing":true|false/);
+      const isSyncingSystemHealth = resultSystemHealth.match(/"isSyncing":true|false/).toString();
       debug('isServiceReadyToStart', 'isSyncingSystemHealth:' + isSyncingSystemHealth);
       if (isSyncingSystemHealth.includes('true')) {
         debug('isServiceReadyToStart', 'Node is currently syncing. Service is not ready.');
@@ -234,21 +240,6 @@ class Polkadot {
       console.error(err);
       return false;
     }
-  }
-
-  // Copy keys files to volume
-  async copyFilesToServiceDirectory () {
-    // Create keys directory
-    await fs.ensureDir('/service/keys');
-
-    // Copy polkadot node key file
-    console.log(`Copying ${this.config.polkadotNodeKeyFile} from /config/ to /service/keys/...`);
-    await fs.copy(`/config/${this.config.polkadotNodeKeyFile}`, `/service/keys/${this.config.polkadotNodeKeyFile}`);
-
-    // Fix permissions
-    await fs.chown('/service', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
-    await fs.chown('/service/keys', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
-    await fs.chown(`/service/keys/${this.config.polkadotNodeKeyFile}`, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
   }
 
   // Check launched container
@@ -283,7 +274,7 @@ class Polkadot {
 
     // If polkadotNodeKeyFile variable is set
     // And service directory exists use node key file
-    if (!isEmptyString(this.config.polkadotNodeKeyFile) && fs.existsSync('/service')) {
+    if (!isEmptyString(this.config.polkadotNodeKeyFile)) {
       await this.copyFilesToServiceDirectory();
       this.commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + this.config.polkadotNodeKeyFile);
     }
@@ -483,6 +474,20 @@ class Polkadot {
       debug('cleanUp', error);
       console.error(error);
     }
+  }
+  // Copy keys files to volume
+  async copyFilesToServiceDirectory () {
+    // Create keys directory
+    await fs.ensureDir('/service/keys');
+
+    // Copy polkadot node key file
+    console.log(`Copying ${this.config.polkadotNodeKeyFile} from /config/ to /service/keys/...`);
+    await fs.copy(`/config/${this.config.polkadotNodeKeyFile}`, `/service/keys/${this.config.polkadotNodeKeyFile}`);
+
+    // Fix permissions
+    await fs.chown('/service', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
+    await fs.chown('/service/keys', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
+    await fs.chown(`/service/keys/${this.config.polkadotNodeKeyFile}`, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
   }
 }
 
