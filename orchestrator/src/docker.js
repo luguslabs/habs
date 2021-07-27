@@ -23,7 +23,7 @@ class Docker {
   // Pull docker image
   async pullImage (image) {
     try {
-      return new Promise((resolve, reject) => {
+      const imagePull = await new Promise((resolve, reject) => {
         // Pulling docker image
         this.docker.pull(image, (error, stream) => {
           console.log(`Pulling ${image} image...`);
@@ -38,8 +38,10 @@ class Docker {
           });
         });
       });
+      return imagePull;
     } catch (error) {
       debug('pullImage', error);
+      console.error(error.toString());
       return false;
     }
   }
@@ -138,7 +140,13 @@ class Docker {
       // If container doesnt exist we will create one
       if (!container) {
         // Pulling image
-        await this.pullImage(containerData.Image);
+        if (!await this.getImage(containerData.Image)) {
+          debug('startContainer', `Image ${containerData.Image} was not found at host.`);
+          const pullImage = await this.pullImage(containerData.Image);
+          if (!pullImage) {
+            return false;
+          }
+        }
 
         // Starting container
         debug('startContainer', `Creating and starting container ${containerData.name}.`);

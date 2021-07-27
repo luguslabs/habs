@@ -35,7 +35,7 @@ if [ ! -z "$CONFIG_FILE" ]; then
                 fi
                 unzip -f -o /config/archipel-config.zip -d /config
           fi
-          CONFIG_FILE_PATH="/config/config.json"
+          export CONFIG_FILE_PATH="/config/config.json"
     else
           echo "No config file found in /config/archipel-config.zip"
           exit 1
@@ -45,7 +45,5 @@ fi
 export NODE_ENV=production
 
 # Launching orchestrator
-echo "Waiting 5 seconds for Archipel Node to start..."
-sleep 5
 echo "Launching orchestrator..."
-exec node src/app.js
+node src/app.js

@@ -150,5 +150,65 @@ describe('Docker test', function(){
 
     containerRunnig = await docker.isContainerRunning(activeName);
     assert.equal(containerRunnig, false, 'check if docker container is not running');
+
+    let volumeRemove = await docker.removeVolume(volume);
+    assert.equal(volumeRemove, true, 'check volume removal result');
+
+    let removeImage = await docker.removeImage(image);
+    assert.equal(removeImage, true, 'check remove image result');
+  });
+  it('Test docker image pull when starting container', async function() {
+
+    let container = await docker.getContainer(activeName);
+    assert.equal(container, false, 'check if docker container doesnt exist');
+
+    let containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, false, 'check if docker container is not running');
+
+    const containerData = {
+      name: activeName,
+      Image: image,
+      Cmd: command,
+      HostConfig: {
+        Mounts: [
+          {
+            Target: mountDir,
+            Source: volume,
+            Type: 'volume',
+            ReadOnly: false
+          }
+        ]
+      }
+    };
+
+    await docker.createVolume(volume);
+
+    let startContainer = await docker.startContainer(containerData);
+    assert.equal(startContainer, true, 'check start container result');
+
+    containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, true, 'check if docker container is running');
+
+    let removeContainer = await docker.removeContainer(activeName);
+    assert.equal(removeContainer, true, 'check if docker container removal is ok');
+
+    containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, false, 'check if docker container is not running');
+
+    // Trying to start container with wrong image
+    containerData.Image = "nginx:wrong-image-version";
+
+    startContainer = await docker.startContainer(containerData);
+    assert.equal(startContainer, false, 'check start container fails');
+
+    containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, false, 'check if docker container is not running');
+
+    let volumeRemove = await docker.removeVolume(volume);
+    assert.equal(volumeRemove, true, 'check volume removal result');
+    let removeImage = await docker.removeImage(image);
+    assert.equal(removeImage, true, 'check remove image result');
+
+
   });
 });
