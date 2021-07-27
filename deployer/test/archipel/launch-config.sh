@@ -23,7 +23,7 @@ function launch_archipel () {
     --env CONFIG_FILE=true \
     --env CONFIG_FILE_PASSWORD=test \
     --env NODE_ID=$4 \
-    --env POLKADOT_PREFIX=$1 \
+    --env POLKADOT_PREFIX=$5 \
     luguslabs/archipel:$ARCHIPEL_VERSION
 
   echo "Waiting 10 seconds to be sure that archipel is started..."
@@ -55,21 +55,25 @@ launch_archipel "archipel1" \
                 "$NODE1_IP" \
                 3001 \
                 1 \
+                "node1-" \
 
 launch_archipel "archipel2" \
                 "$NODE2_IP" \
                 3002 \
                 2 \
+                "node2-" \
 
 launch_archipel "archipel3" \
                 "$NODE3_IP" \
                 3003 \
                 3 \
+                "node3-" \
 
 launch_archipel "archipel4" \
                 "$NODE4_IP" \
                 3004 \
                 4 \
+                "node4-" \
 
 
 echo "Launching UI..."
