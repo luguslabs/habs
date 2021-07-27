@@ -54,7 +54,7 @@ class Polkadot {
     debug('importKey', `Importing ${type} ${publicKey} to ${containerName}...`);
 
     // Constructing command to import key
-    const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+    const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
                     `{
                       "jsonrpc":"2.0",
                       "id":1,
@@ -121,7 +121,7 @@ class Polkadot {
     try {
       debug('checkSessionKeyOnNode', `Checking Session Key validity on node for session key value : ${sessionKey}`);
       // Constructing command check session key
-      const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+      const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
       `{
         "jsonrpc":"2.0",
         "id":1,
@@ -185,7 +185,7 @@ class Polkadot {
       }
 
       // Construct command to check node system_health
-      const commandSystemHealth = ['curl', 'http://localhost:' + this.config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+      const commandSystemHealth = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
                        `{
                         "jsonrpc":"2.0",
                         "id":1,
@@ -273,7 +273,7 @@ class Polkadot {
       '--rpc-cors',
       'http://localhost',
       '--rpc-port',
-      this.config.polkadotRpcPort
+      this.config.polkadotRpcPort.toString()
     ];
 
     // Adding additional Polkadot Option Commands
@@ -302,8 +302,8 @@ class Polkadot {
       }
     }
 
-    // This variable will be set only in testing suite
-    if (this.config.testing === 'false') {
+    // In testing mode the network will not be attached to orchestrator container
+    if (!this.config.testing) {
       // Setting network mode
       this.networkMode = `container:${os.hostname()}`;
       console.log(`Container network mode: ${this.networkMode}...`);

@@ -23,27 +23,27 @@
           },
           {
             "name": "babeKey",
-            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "value": "ladder mushroom bomb tornado clown wife bean creek axis flat pave cloud",
             "env": "POLKADOT_KEY_BABE"
           },
           {
             "name": "imonKey",
-            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "value": "bomb mushroom ladder tornado clown wife bean creek axis flat pave cloud",
             "env": "POLKADOT_KEY_IMON"
           },
           {
             "name": "paraKey",
-            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "value": "tornado mushroom ladder bomb clown wife bean creek axis flat pave cloud",
             "env": "POLKADOT_KEY_PARA"
           },
           {
             "name": "asgnKey",
-            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "value": "clown mushroom ladder bomb tornado wife bean creek axis flat pave cloud",
             "env": "POLKADOT_KEY_ASGN"
           },
           {
             "name": "audiKey",
-            "value": "mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud",
+            "value": "wife mushroom ladder bomb tornado clown bean creek axis flat pave cloud",
             "env": "POLKADOT_KEY_AUDI"
           }
         ],

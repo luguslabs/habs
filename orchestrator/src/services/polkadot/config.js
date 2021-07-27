@@ -17,18 +17,18 @@ const constructConfiguration = () => {
     config.configFilePath = process.env.CONFIG_FILE_PATH || '/config/config.json';
 
     // Constructing configuration from config file
-    config = { ...constructConfigurationFromConfigFile(process.env.CONFIG_FILE_PATH, process.env.NODE_ID) };
+    config = { ...constructConfigurationFromConfigFile(config.configFilePath, process.env.NODE_ID) };
   }
 
   // General configuration
   config.polkadotUnixUserId = 1000;
   config.polkadotUnixGroupId = 1000;
-  config.polkadotRpcPort = '9993';
+  config.polkadotRpcPort = 9993;
 
   // Mandatory environment variables
   config.polkadotName = config.polkadotName ? config.polkadotName : process.env.POLKADOT_NAME;
-  config.polkadotImage = config.polkadotImage ? config.polkadotImage : process.env.POLKADOT_IMAGE || 'parity/polkadot:latest';
-  config.polkadotPrefix = config.polkadotPrefix ? config.polkadotPrefix : process.env.POLKADOT_PREFIX || 'node-';
+  config.polkadotImage = process.env.POLKADOT_IMAGE || 'parity/polkadot:latest';
+  config.polkadotPrefix = process.env.POLKADOT_PREFIX || 'node-';
   config.polkadotKeyGran = config.polkadotKeyGran ? config.polkadotKeyGran : process.env.POLKADOT_KEY_GRAN;
   config.polkadotKeyBabe = config.polkadotKeyBabe ? config.polkadotKeyBabe : process.env.POLKADOT_KEY_BABE;
   config.polkadotKeyImon = config.polkadotKeyImon ? config.polkadotKeyImon : process.env.POLKADOT_KEY_IMON;
@@ -48,9 +48,13 @@ const constructConfiguration = () => {
   config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
   config.polkadotAdditionalOptions = process.env.POLKADOT_ADDITIONAL_OPTIONS;
   config.databasePath = process.env.POLKADOT_DATABASE_PATH || '/polkadot/.local/share/polkadot/chains';
-  config.polkadotSimulateSynch = process.env.POLKADOT_SIMULATE_SYNCH || 'false';
-  config.testing = process.env.TESTING || 'false';
   config.polkadotSessionKeyToCheck = process.env.POLKADOT_SESSION_KEY_TO_CHECK;
+
+  config.polkadotSimulateSynch = process.env.POLKADOT_SIMULATE_SYNCH || false;
+  config.polkadotSimulateSynch = (config.polkadotSimulateSynch && config.polkadotSimulateSynch.includes('true'));
+
+  config.testing = process.env.TESTING || false;
+  config.testing = (config.testing && config.testing.includes('true'));
 
   return config;
 };
