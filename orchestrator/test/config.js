@@ -1,9 +1,9 @@
 /* eslint-disable */
+const { arrayFilter } = require('@polkadot/util');
 const { assert } = require('chai');
 
 const {
-    constructConfiguration,
-    constructConfigurationFromConfigFile
+    constructConfiguration
 } = require("../src/config");
 
 // Test configuration
@@ -13,6 +13,23 @@ const testTimeout = 60000;
 
 describe('Config test', function(){
     this.timeout(testTimeout);
+
+    after(() => {
+        delete process.env.CONFIG_FILE;
+        delete process.env.CONFIG_FILE_PATH;
+        delete process.env.NODE_ID;
+        delete process.env.NODE_WS;
+        delete process.env.ALIVE_TIME;
+        delete process.env.SERVICES;
+        delete process.env.ARCHIPEL_SERVICE_MODE;
+        delete process.env.ARCHIPEL_NAME;
+        delete process.env.NODE_GROUP_ID;
+        delete process.env.MNEMONIC;
+        delete process.env.NODES_WALLETS;
+        delete process.env.NODE_ROLE;
+        delete process.env.ARCHIPEL_HEARTBEATS_ENABLE;
+        delete process.env.ARCHIPEL_ORCHESTRATION_ENABLE;
+    });
   
     it('Test config generation from minimal env variables', async function () {
         // Set env variables
@@ -164,7 +181,7 @@ describe('Config test', function(){
         try {
             constructConfiguration();
         } catch (error) {
-            assert.equal(error.toString(), 'Error: Error parsing config file or invalid node number. Please check it', 'Check if error was raised if bad node id');
+            assert.equal(error.toString(), 'Error: Error: Invalid node id. It must be between 1 and 13. Please check config file.', 'Check if error was raised if bad node id');
         }
 
     });
@@ -178,7 +195,7 @@ describe('Config test', function(){
         try {
             constructConfiguration();
         } catch (error) {
-            assert.equal(error.toString(), 'Error: Node id must be an integer', 'Check if error was raised if node id is not an integer');
+            assert.equal(error.toString(), 'Error: Node id must be set and must be an integer', 'Check if error was raised if node id is not an integer');
         }
     });
 
@@ -190,7 +207,7 @@ describe('Config test', function(){
         try {
             constructConfiguration();
         } catch (error) {
-            assert.equal(error.toString(), 'Error: Error parsing config file or invalid node number. Please check it', 'Check if error was raised if node id is not an integer');
+            assert.equal(error.toString(), `Error: TypeError: Cannot read property '0' of undefined. Please check config file.`, 'Check if error was raised if cant read some properties from config file');
         }
     });
 });

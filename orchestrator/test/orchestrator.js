@@ -1193,8 +1193,11 @@ describe('Orchestrator test', function() {
     orchestrator.serviceMode = 'inexistant-service-mode';
     orchestrator.mnemonic = mnemonic1;
     orchestrator.heartbeats = heartbeats;
-
-    await orchestrator.orchestrateService();
+    try {
+      await orchestrator.orchestrateService();
+    } catch (error) {
+      assert.equal(error.toString(), `Error: Wrong service mode ${orchestrator.serviceMode}...`, 'Test if orchestrator throws an error if wrong service mode');
+    }
 
     isLeadedGroup = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroup, false, 'check if the group remains not leaded');
@@ -1256,6 +1259,9 @@ describe('Orchestrator test', function() {
     const leader = await chain.getLeader(1);
     assert.equal(leader.toString(), keys1.address, 'check if leader was set correctly');
 
+    delete process.env.CONFIG_FILE;
+    delete process.env.CONFIG_FILE_PATH;
+    delete process.env.NODE_ID;
   });
 
 });
