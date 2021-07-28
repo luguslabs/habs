@@ -16,7 +16,7 @@ const constructConfiguration = () => {
     config.configFilePath = process.env.CONFIG_FILE_PATH || '/config/config.json';
 
     // Constructing configuration from config file
-    config = { ...constructConfigurationFromConfigFile(process.env.CONFIG_FILE_PATH, process.env.NODE_ID) };
+    config = { ...constructConfigurationFromConfigFile(config.configFilePath, process.env.NODE_ID) };
   }
 
   // If config was not set by config file trying to get it from env variables

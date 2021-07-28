@@ -21,6 +21,21 @@ const testTimeout = 360000;
 describe('Polkadot config test', function() {
     this.timeout(testTimeout);
 
+    before(() => {
+        // Set env variables
+        process.env.POLKADOT_NAME = 'validator-test';
+        process.env.POLKADOT_PREFIX = 'validatortest-';
+        process.env.POLKADOT_IMAGE = 'parity/polkadot:latest';
+        process.env.POLKADOT_KEY_GRAN = 'april shift pupil quit mandate school cost oven gospel castle brain student';
+        process.env.POLKADOT_KEY_BABE = 'region run sunset rule light gap cool element angle example laundry stadium';
+        process.env.POLKADOT_KEY_IMON = 'screen sustain clog husband assist noble artist sea fringe afford coil hawk';
+        process.env.POLKADOT_KEY_PARA = 'produce hover hurdle lobster december slight hat note quit bomb drama notice';
+        process.env.POLKADOT_KEY_ASGN = 'rough open marine belt rib violin december gesture word fall catalog side';
+        process.env.POLKADOT_KEY_AUDI = 'oak tail stomach fluid trade aunt fire fringe mercy roast style garlic';
+        process.env.POLKADOT_ADDITIONAL_OPTIONS = '--chain kusama --db-cache 512';
+        process.env.TESTING = 'true';
+    });
+
     after(() => {
         delete process.env.CONFIG_FILE;
         delete process.env.CONFIG_FILE_PATH;
