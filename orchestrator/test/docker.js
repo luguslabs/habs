@@ -208,7 +208,60 @@ describe('Docker test', function(){
     assert.equal(volumeRemove, true, 'check volume removal result');
     let removeImage = await docker.removeImage(image);
     assert.equal(removeImage, true, 'check remove image result');
+  });
 
+  it('Check docker functions fails', async () => {
+    const saveGetImage = docker.getImage;
+    docker.getImage = async () => { throw Error('Test error throw'); }
+
+    let result = await docker.removeImage('toto');
+    assert.equal(result, false, 'check if remove image is false cause get image will throw an error');
+
+    docker.getImage = saveGetImage;
+
+    const saveGetVolume = docker.getVolume;
+    docker.getVolume = async () => { throw Error('Test error throw'); }
+
+    result = await docker.createVolume('toto');
+
+    assert.equal(result, false, 'check if create volume is false cause get volume throws an error');
+
+    result = await docker.removeVolume('toto');
+
+    assert.equal(result, false, 'check if remove volume is false cause get volume throws an error');
+
+    docker.getVolume = saveGetVolume;
+
+    const saveDockerListContainers = docker.docker.listContainers;
+
+    docker.docker.listContainers = async () => { throw Error('Test error throw'); }
+
+    result = await docker.getContainer('toto');
+
+    assert.equal(result, false, 'check if get container is false cause docker list containers throws an error');
+
+    docker.docker.listContainers = saveDockerListContainers;
+
+    const saveGetContainer = docker.getContainer;
+
+    docker.getContainer = async () => { throw Error('Test error throw'); }
+
+    result = await docker.startContainer();
+    assert.equal(result, false, 'check if start container is false cause get container throws an error');
+
+    result = await docker.removeContainer();
+    assert.equal(result, false, 'check if remove container is false cause get container throws an error');
+
+    result = await docker.isContainerRunning();
+    assert.equal(result, false, 'check if is container running is false cause get container throws an error');
+
+    result = await docker.getMount();
+    assert.equal(result, false, 'check if get mount is false cause get container throws an error');
+
+    result = await docker.dockerExecute();
+    assert.equal(result, false, 'check if docker execute is false cause get container throws an error');
+
+    docker.getContainer = saveGetContainer;
 
   });
 });

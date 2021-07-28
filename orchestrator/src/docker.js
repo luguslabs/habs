@@ -13,7 +13,7 @@ class Docker {
     try {
       const imageInstance = await this.docker.getImage(imageName);
       imageInstance.description = await imageInstance.inspect();
-      return imageInstance || false;
+      return imageInstance;
     } catch (error) {
       debug('getImage', error);
       return false;
@@ -66,7 +66,7 @@ class Docker {
     try {
       const volume = await this.docker.getVolume(name);
       volume.description = await volume.inspect();
-      return volume || false;
+      return volume;
     } catch (error) {
       debug('getVolume', error);
       return false;
