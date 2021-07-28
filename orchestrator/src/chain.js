@@ -287,8 +287,7 @@ class Chain {
   // Get bestNumber Chain
   async getBestNumber () {
     try {
-      const bestNumber = await this.api.derive.chain.bestNumber();
-      return bestNumber;
+      return await this.api.derive.chain.bestNumber();
     } catch (error) {
       debug('getBestNumber', error);
       return 0;

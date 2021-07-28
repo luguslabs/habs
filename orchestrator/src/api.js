@@ -60,7 +60,9 @@ const initApi = async orchestrator => {
   app.use(errorHandler);
 
   // Set listen port
-  app.listen(3000);
+  const server = app.listen(3000);
+
+  return {app, server};
 };
 
 module.exports = {
