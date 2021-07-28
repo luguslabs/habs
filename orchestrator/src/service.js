@@ -18,8 +18,8 @@ class Service {
 
   // Start service
   async serviceStart (mode) {
-    await this.serviceInstance.start(mode);
     this.mode = mode;
+    return await this.serviceInstance.start(mode);
   }
 
   // Check if service is ready

@@ -238,10 +238,10 @@ class Polkadot {
         return false;
       }
 
-      // If no return was triggered considering that service is ready
+      // If no return was triggered till now considering that service is ready
       return true;
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      debug('isServiceReadyToStart', error)
       return false;
     }
   }
@@ -422,7 +422,7 @@ class Polkadot {
       }
 
       // Start active service container
-      await this.startServiceContainer(
+      const serviceStarted = await this.startServiceContainer(
         'active',
         this.config.polkadotPrefix + 'polkadot-validator',
         this.config.polkadotPrefix + 'polkadot-sync',
@@ -433,16 +433,17 @@ class Polkadot {
         this.networkMode
       );
 
-      // Import keys to service container
-      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-validator');
-
-      return;
+      if (serviceStarted) {
+        // Import keys to service container
+        await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-validator');
+      }
+      return serviceStarted;
     }
 
     // Start service in passive mode
     if (mode === 'passive') {
       // Start passive service container
-      await this.startServiceContainer(
+      const serviceStarted = await this.startServiceContainer(
         'passive',
         this.config.polkadotPrefix + 'polkadot-validator',
         this.config.polkadotPrefix + 'polkadot-sync',
@@ -453,10 +454,12 @@ class Polkadot {
         this.networkMode
       );
 
-      // Import keys to service container
-      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-sync');
+      if (serviceStarted) {
+        // Import keys to service container
+        await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-sync');
+      }
 
-      return;
+      return serviceStarted;
     }
 
     // If here the service mode is unknown
@@ -480,7 +483,6 @@ class Polkadot {
       return true;
     } catch (error) {
       debug('cleanUp', error);
-      console.error(error);
       return false;
     }
   }
@@ -490,7 +492,7 @@ class Polkadot {
     // Check if from and to dirs where set
     if (!fromDir || !toDir) throw Error('Must set to and from dirs');
     // Check if full path was specified
-    if (toDir[0] !== '/' || fromDir[0] !== '/') throw Error('Please specify full path');
+    if (toDir[0] !== '/' || fromDir[0] !== '/') throw Error('Please specify absolute path');
 
     // Create toDir directory
     const options = {

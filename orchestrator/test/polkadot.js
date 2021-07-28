@@ -87,6 +87,20 @@ describe('Polkadot test', function() {
         await polkadot.cleanUp();
     });
 
+    it('Test polkadot keys import fail', async () => {
+        const saveImportKey = polkadot.importKey;
+
+        // Make import key to throw an error
+        polkadot.importKey = async () => { throw Error('Simulating general fail'); }
+
+        let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+        const keysImportResult = await polkadot.polkadotKeysImport(containerName);
+
+        assert.equal(keysImportResult, false, 'Must return false cause import key throws an error');
+
+        polkadot.importKey = saveImportKey;
+    });
+
     it('Test if service ready to start functionality', async () => {
 
         let serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
@@ -134,12 +148,27 @@ describe('Polkadot test', function() {
         polkadot.docker.dockerExecute = () => systemHealthGetResult;
 
         serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
-        assert.equal(serviceReadyToStart, true, 'check if service is ready');
+        assert.equal(serviceReadyToStart, true, 'check if service is ready for active service');
+
+        // Launching service and testing
+        await polkadot.start('passive');
+
+        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
+        assert.equal(serviceReadyToStart, true, 'check if service is ready for passive service');
 
         polkadot.docker.dockerExecute = saveDockerExecute;
-
         polkadot.importedKeys = [];
         await polkadot.cleanUp();
+    });
+
+    it('Test if service ready to start fail', async () => {
+        const saveDockerContainerRunning = polkadot.docker.isContainerRunning;
+        polkadot.docker.isContainerRunning = async () => { throw Error('Simulate error throw'); }
+
+        let serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        assert.equal(serviceReadyToStart, false, 'check if service is not ready cause an exception was thrown');
+
+        polkadot.docker.isContainerRunning = saveDockerContainerRunning;
     });
 
     it('Check launched container functionality', async () => {
@@ -196,7 +225,29 @@ describe('Polkadot test', function() {
         assert.equal(JSON.stringify(polkadot.commonPolkadotOptions), JSON.stringify(commonPolkadotOptionsNeedToBe), 'check if common options where set');
         assert.equal(polkadot.prepared, true, 'check if polkadot service become prepared');
 
-        // Testin polkadot node keyfile
+        // Test no additional options
+        const savePolkadotAdditionalOptions = polkadot.config.polkadotAdditionalOptions;
+        polkadot.config.polkadotAdditionalOptions = '';
+
+        await polkadot.prepareService();
+
+        commonPolkadotOptionsNeedToBe = [
+            '--prometheus-external',
+            '--prometheus-port',
+            '9615',
+            '--pruning=archive',
+            '--rpc-cors',
+            'http://localhost',
+            '--rpc-port',
+            '9993'
+        ];
+
+        assert.equal(JSON.stringify(polkadot.commonPolkadotOptions), JSON.stringify(commonPolkadotOptionsNeedToBe), 'check if common options where set');
+        assert.equal(polkadot.prepared, true, 'check if polkadot service become prepared');
+
+        polkadot.config.polkadotAdditionalOptions = savePolkadotAdditionalOptions;
+
+        // Test polkadot node keyfile
         const savePolkadotNodeKeyFile = polkadot.config.polkadotNodeKeyFile;
         polkadot.config.polkadotNodeKeyFile = 'node-file.id'
 
@@ -553,6 +604,20 @@ describe('Polkadot test', function() {
         await polkadot.cleanUp();
     });
 
+    it('Check if keys will not be added if container was not able to start', async () => {
+        const saveStartServiceContainer = polkadot.startServiceContainer;
+
+        polkadot.startServiceContainer = async () => false;
+
+        let startResult = await polkadot.start('active');
+        assert.equal(startResult, false, 'Check if start returns false for active container if start service container was false');
+
+        startResult = await polkadot.start('passive');
+        assert.equal(startResult, false, 'Check if start returns false for passive container if start service container was false');
+
+        polkadot.startServiceContainer = saveStartServiceContainer;
+    });
+
     it('Test cleanup function', async () => {
         // Constructing container data
         const containerData = {
@@ -586,9 +651,21 @@ describe('Polkadot test', function() {
         assert.equal(container, false, 'check if sync container was removed');
 
         // Launching two cleanups without waiting to check double cleanup
-        polkadot.cleanUp();
+        const promise = polkadot.cleanUp();
         await polkadot.cleanUp();
 
+        // Waiting for first cleanup to finish
+        await promise;
+    });
+
+    it('Test cleanup function fail', async () => {
+        const saveDockerRemoveContainer = polkadot.docker.removeContainer;
+        polkadot.docker.removeContainer = async () => { throw Error('Simulate error throw'); }
+
+        const cleanupResult = await polkadot.cleanUp();
+        assert.equal(cleanupResult, false, 'Check if cleanup result returns false cause an exception was thrown');
+
+        polkadot.docker.removeContainer = saveDockerRemoveContainer;
     });
 
     it('Test copyPolkadotNodeKeyFile function', async () => {
@@ -617,6 +694,29 @@ describe('Polkadot test', function() {
         polkadot.config.polkadotNodeKeyFile = savePolkadotKeyFile;
         polkadot.config.polkadotUnixUserId = savePolkadotUnixUserId;
         polkadot.config.polkadotUnixGroupId = savePolkadotUnixGroupId;
+    });
+
+    it('Test copyPolkadotNodeKeyFile function fails', async () => {
+        try{
+            polkadot.copyPolkadotNodeKeyFile();
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Must set to and from dirs', 'Check if copy fails when no arguments were given');
+        }
+        try{
+            polkadot.copyPolkadotNodeKeyFile('/fromdir');
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Must set to and from dirs', 'Check if copy fails when only from dir is given');
+        }
+        try{
+            polkadot.copyPolkadotNodeKeyFile('fromdir','/todir');
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Please specify absolute path', 'Check if copy fails when from dir is no absolute path');
+        }
+        try{
+            polkadot.copyPolkadotNodeKeyFile('/fromdir', 'todir');
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Please specify absolute path', 'Check if copy fails when to dir is no absolute path');
+        }
     });
 
     after(async () => {

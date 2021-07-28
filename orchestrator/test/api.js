@@ -393,7 +393,23 @@ describe('Orchestrator test', function() {
     await orchestrator.service.serviceCleanUp();
   });
 
-  it('Test orchestration enable functionality', async () => { 
+  it('Test service start without passing service mode', async () => {
+
+    let result = await chai.request(api).post('/service/start').send({});
+    let bodyMustBe = {
+      errors: [
+        {
+          status: '500',
+          title: 'Error',
+          detail: 'Error: Service start mode is empty'
+        }
+      ]
+    };
+    chai.assert.equal(JSON.stringify(result.body), JSON.stringify(bodyMustBe), 'Check if API returns an error cause service mode is empty');
+
+  });
+
+  it('Test service stop functionality', async () => { 
     // Starting service in active mode
     let request = {
         mode: 'active'
