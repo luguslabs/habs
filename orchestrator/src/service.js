@@ -34,12 +34,7 @@ class Service {
 
   // Cleanup a service
   async serviceCleanUp () {
-    try {
-      await this.serviceInstance.cleanUp();
-    } catch (error) {
-      debug('serviceCleanUp', error);
-      console.error(error);
-    }
+    return await this.serviceInstance.cleanUp();
   }
 }
 

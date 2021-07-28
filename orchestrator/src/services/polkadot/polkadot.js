@@ -474,11 +474,14 @@ class Polkadot {
         await this.docker.removeContainer(this.config.polkadotPrefix + 'polkadot-validator');
       } else {
         console.log('Cleaning up was already started...');
+        return false;
       }
       this.cleaningUp = false;
+      return true;
     } catch (error) {
       debug('cleanUp', error);
       console.error(error);
+      return false;
     }
   }
 

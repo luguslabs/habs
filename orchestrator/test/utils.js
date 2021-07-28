@@ -139,7 +139,9 @@ describe('Utils test', function() {
     });
 
     // Testing exit signals processing
-    ['SIGINT', 'SIGHUP'].forEach(SIGNAL => {
+    ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
+    'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
+    ].forEach(SIGNAL => {
         describe(`Testing signal ${ SIGNAL }`, () => {
             let sandbox, serviceCleanUpStub, exitStub;
 

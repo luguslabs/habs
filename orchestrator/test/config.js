@@ -210,5 +210,18 @@ describe('Config test', function(){
             assert.equal(error.toString(), `Error: TypeError: Cannot read property '0' of undefined. Please check config file.`, 'Check if error was raised if cant read some properties from config file');
         }
     });
+
+    it('Test if no config file was set', async function () {
+        // Set env variables
+        process.env.CONFIG_FILE = 'true';
+        delete process.env.CONFIG_FILE_PATH;
+        process.env.NODE_ID = '1';
+        try {
+            constructConfiguration();
+        } catch (error) {
+            assert.equal(error.toString(), `Error: ENOENT: no such file or directory, open '/config/config.json'`, 'Check if error was raised if cant read some properties from config file');
+        }
+
+    });
 });
 

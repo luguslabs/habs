@@ -46,13 +46,11 @@ const catchExitSignals = (cleanUpCallback) => {
     'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
   ].forEach(sig => {
     process.on(sig, async () => {
-      if (typeof sig === 'string') {
         console.log('Received %s - terminating app ...', sig);
         // Waiting for cleanup to be finished
         await cleanUpCallback();
         // Exiting
         process.exit(1);
-      }
     });
   });
 };
