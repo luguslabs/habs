@@ -1,6 +1,7 @@
 /* eslint-disable */
 const { assert } = require('chai');
 const os = require('os');
+const fs = require('fs');
 const { Docker } = require('../src/docker');
 const { Polkadot } = require('../src/services/polkadot/polkadot');
 const { constructConfiguration } = require('../src/services/polkadot/config');
@@ -298,10 +299,10 @@ describe('Orchestrator test', function() {
         const saveNetworkMode = polkadot.networkMode;
         const savePolkadotVolume = polkadot.polkadotVolume;
         const savePrepared = polkadot.prepared;
-        const saveCopyFilesToServiceDirectory = polkadot.copyFilesToServiceDirectory;
+        const saveCopyPolkadotNodeKeyFile = polkadot.copyPolkadotNodeKeyFile;
         const saveDockerGetMount = polkadot.docker.getMount;
 
-        polkadot.copyFilesToServiceDirectory = async () => {};
+        polkadot.copyPolkadotNodeKeyFile = () => {};
 
         // Testing with default config
         polkadot.commonPolkadotOptions = [];
@@ -445,8 +446,308 @@ describe('Orchestrator test', function() {
         polkadot.commonPolkadotOptions = saveCommonPolkadotOpts;
         polkadot.polkadotVolume = savePolkadotVolume;
         polkadot.prepared = savePrepared;
-        polkadot.copyFilesToServiceDirectory = saveCopyFilesToServiceDirectory;
+        polkadot.copyPolkadotNodeKeyFile = saveCopyPolkadotNodeKeyFile;
 
+    });
+
+    it('Test prepare and start function', async () => {
+        // Constructing args list
+        const mustBeArgs = [
+            '--name',
+            `${polkadot.name}-passive`,
+            '--prometheus-external',
+            '--prometheus-port',
+            '9615',
+            '--pruning=archive',
+            '--rpc-cors',
+            'http://localhost',
+            '--rpc-port',
+            '9993',
+            '--chain',
+            'kusama',
+            '--db-cache',
+            '512',
+            '--validator'
+        ];
+
+        // Constructing container data
+        const containerData = {
+            name: '',
+            Image: polkadot.config.polkadotImage,
+            Cmd: mustBeArgs
+        };
+
+        const validatorContainerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+        const syncContainerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+
+        let prepareAndStart = await polkadot.prepareAndStart(containerData, validatorContainerName, syncContainerName);
+        assert.equal(prepareAndStart, true, 'Checking if prepare and start returns true 1');
+
+        let container = await docker.getContainer(validatorContainerName);
+        assert.equal(container.description.State.Running, true, 'check if validator container was launched');
+
+        prepareAndStart = await polkadot.prepareAndStart(containerData, validatorContainerName, syncContainerName);
+        assert.equal(prepareAndStart, false, 'Checking if prepare and start returns false cause container is already started');
+
+        // Stopping docker container and see if it will be restarted
+        await docker.stopContainer(validatorContainerName);
+
+        container = await docker.getContainer(validatorContainerName);
+        assert.equal(container.description.State.Running, false, 'check if validator service container is not running');
+
+        prepareAndStart = await polkadot.prepareAndStart(containerData, validatorContainerName, syncContainerName);
+        assert.equal(prepareAndStart, true, 'Checking if prepare and start returns true 2');
+
+        container = await docker.getContainer(validatorContainerName);
+        assert.equal(container.description.State.Running, true, 'check if validator container was relaunched');
+
+        // Stopping one container and launching another
+        prepareAndStart = await polkadot.prepareAndStart(containerData, syncContainerName, validatorContainerName);
+        assert.equal(prepareAndStart, true, 'Checking if prepare and start returns true 3');
+
+        container = await docker.getContainer(syncContainerName);
+        assert.equal(container.description.State.Running, true, 'check if sync container was launched');
+
+        container = await docker.getContainer(validatorContainerName);
+        assert.equal(container, false, 'check if validator container was stopped');
+
+        // Testing if container was launched with correct info
+        container = await docker.getContainer(syncContainerName);
+        assert.equal(JSON.stringify(container.description.Args), JSON.stringify(mustBeArgs), 'Check if active container was launched with correct args');
+        assert.equal(container.description.Config.Image, polkadot.config.polkadotImage, 'Check if active container was launched with correct image');
+        assert.equal(container.description.Name, `/${syncContainerName}`, 'Check if active container was launched with correct name');
+
+        await polkadot.cleanUp();
+    });
+
+    it('Test start service container function', async () => {
+        const mustBeArgs = [
+            '--name',
+            `${polkadot.name}-passive`,
+            '--prometheus-external',
+            '--prometheus-port',
+            '9615',
+            '--pruning=archive',
+            '--rpc-cors',
+            'http://localhost',
+            '--rpc-port',
+            '9993',
+            '--chain',
+            'kusama',
+            '--db-cache',
+            '512'
+        ];
+
+        const validatorContainerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+        const syncContainerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+
+        // Launching service in active mode
+        let startServiceContainer = await polkadot.startServiceContainer("active", validatorContainerName, syncContainerName, polkadot.config.polkadotImage, mustBeArgs, '/polkadot', 'test-service-volume', 'host');
+        assert.equal(startServiceContainer, true, 'See if start service container returns true');
+
+        let container = await docker.getContainer(validatorContainerName);
+        assert.equal(container.description.State.Running, true, 'check if validator container was launched');
+
+        // Check network mode set
+        assert.equal(container.description.HostConfig.NetworkMode, 'host', 'Check if container network mode was set correctly');
+
+        container = await docker.getContainer(syncContainerName);
+        assert.equal(container, false, 'check if sync container is not launched');
+
+        startServiceContainer = await polkadot.startServiceContainer("active", validatorContainerName, syncContainerName, polkadot.config.polkadotImage, mustBeArgs, '/polkadot', 'test-service-volume', 'host');
+        assert.equal(startServiceContainer, false, 'See if start service container returns false cause active container was already launched');
+
+        container = await docker.getContainer(validatorContainerName);
+        assert.equal(container.description.State.Running, true, 'check if validator container remains launched');
+
+        container = await docker.getContainer(syncContainerName);
+        assert.equal(container, false, 'check if sync container remains not launched');
+
+        // Launching service in passive mode
+        startServiceContainer = await polkadot.startServiceContainer("passive", validatorContainerName, syncContainerName, polkadot.config.polkadotImage, mustBeArgs, '/polkadot', 'test-service-volume', 'host');
+        assert.equal(startServiceContainer, true, 'See if start service container returns true 2');
+
+        container = await docker.getContainer(syncContainerName);
+        assert.equal(container.description.State.Running, true, 'check if passive container was launched');
+
+        container = await docker.getContainer(validatorContainerName);
+        assert.equal(container, false, 'check if validator container is not launched');
+
+        startServiceContainer = await polkadot.startServiceContainer("passive", validatorContainerName, syncContainerName, polkadot.config.polkadotImage, mustBeArgs, '/polkadot', 'test-service-volume', 'host');
+        assert.equal(startServiceContainer, false, 'See if start service container returns false cause passive container was already launched');
+
+        container = await docker.getContainer(syncContainerName);
+        assert.equal(container.description.State.Running, true, 'check if passive container remains launched');
+
+        container = await docker.getContainer(validatorContainerName);
+        assert.equal(container, false, 'check if validator container remains not launched');
+
+        try {
+            await polkadot.startServiceContainer("toto", validatorContainerName, syncContainerName, polkadot.config.polkadotImage, mustBeArgs, '/polkadot', 'test-service-volume', 'host');
+        } catch (error) {
+            assert.equal(error.toString(), `Error: Service type 'toto' is unknown.`, 'Check if function throws an unknown service error');
+        }
+
+        await docker.removeVolume('test-service-volume');
+        await polkadot.cleanUp();
+    });
+
+    it('Test polkadot start function', async () => {
+        assert.equal(polkadot.name, polkadot.config.polkadotName, 'Check if name was correctly set');
+
+        // Try to launch polkadot in unknown mode
+        try {
+            await polkadot.start('toto');
+        } catch (error) {
+            assert.equal(error.toString(), `Error: Mode 'toto' is unknown.`);
+        }
+
+        // Launching in active mode with polkadot validator name and checking
+        const savePolkadotValidatorName = polkadot.config.polkadotValidatorName;
+        polkadot.config.polkadotValidatorName = 'archipel-test-validator';
+        // Launching service and testing
+        await polkadot.start('active');
+        assert.equal(polkadot.name, polkadot.config.polkadotValidatorName, 'Check if name was correctly set if polkadot validator name is set in config');
+        
+        containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+        container = await docker.getContainer(containerName);
+        assert.equal(container, false, 'check if passive service container is not running');
+
+        containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+        container = await docker.getContainer(containerName);
+        assert.equal(container.description.State.Running, true, 'check if active service container was started');
+
+        // Check params of launched container
+        let mustBeArgs = [
+            '--name',
+            `${polkadot.config.polkadotValidatorName}`,
+            '--prometheus-external',
+            '--prometheus-port',
+            '9615',
+            '--pruning=archive',
+            '--rpc-cors',
+            'http://localhost',
+            '--rpc-port',
+            '9993',
+            '--chain',
+            'kusama',
+            '--db-cache',
+            '512',
+            '--validator'
+        ];
+
+        assert.equal(JSON.stringify(container.description.Args), JSON.stringify(mustBeArgs), 'Check if active container was launched with correct args');
+        assert.equal(container.description.Config.Image, polkadot.config.polkadotImage, 'Check if active container was launched with correct image');
+        assert.equal(container.description.Name, `/${containerName}`, 'Check if active container was launched with correct name');
+        assert.equal(container.description.Mounts[0].Name, polkadot.polkadotVolume, 'Check if active container was launched with correct mount name');
+        assert.equal(container.description.Mounts[0].Destination, '/polkadot', 'Check if active container was launched with correct destination');
+        polkadot.config.polkadotValidatorName = savePolkadotValidatorName;
+        polkadot.importedKeys = [];
+        await polkadot.cleanUp();
+
+
+        // Launching in passive mode and checking
+        await polkadot.start('passive');
+
+        containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+        container = await docker.getContainer(containerName);
+        assert.equal(container, false, 'check if active service container is not running');
+
+        containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+        container = await docker.getContainer(containerName);
+        assert.equal(container.description.State.Running, true, 'check if passsive service container was started');
+
+        // Check params of launched container
+        mustBeArgs = [
+            '--name',
+            `${polkadot.name}-passive`,
+            '--prometheus-external',
+            '--prometheus-port',
+            '9615',
+            '--pruning=archive',
+            '--rpc-cors',
+            'http://localhost',
+            '--rpc-port',
+            '9993',
+            '--chain',
+            'kusama',
+            '--db-cache',
+            '512'
+        ];
+
+        assert.equal(JSON.stringify(container.description.Args), JSON.stringify(mustBeArgs), 'Check if passive container was launched with correct args');
+        assert.equal(container.description.Config.Image, polkadot.config.polkadotImage, 'Check if passive container was launched with correct image');
+        assert.equal(container.description.Name, `/${containerName}`, 'Check if passive container was launched with correct name');
+        assert.equal(container.description.Mounts[0].Name, polkadot.polkadotVolume, 'Check if passive container was launched with correct mount name');
+        assert.equal(container.description.Mounts[0].Destination, '/polkadot', 'Check if passive container was launched with correct destination');
+        polkadot.importedKeys = [];
+        await polkadot.cleanUp();
+    });
+
+    it('Test cleanup function', async () => {
+        // Constructing container data
+        const containerData = {
+            name: '',
+            Image: polkadot.config.polkadotImage
+        };
+
+        const validatorContainerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+        const syncContainerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+
+        let prepareAndStart = await polkadot.prepareAndStart(containerData, validatorContainerName, syncContainerName);
+        assert.equal(prepareAndStart, true, 'Checking if prepare and start returns true 1');
+
+        let container = await docker.getContainer(validatorContainerName);
+        assert.equal(container.description.State.Running, true, 'check if validator container was launched');
+
+        await polkadot.cleanUp();
+
+        container = await docker.getContainer(validatorContainerName);
+        assert.equal(container, false, 'check if validator container was removed');
+
+        prepareAndStart = await polkadot.prepareAndStart(containerData, syncContainerName, validatorContainerName);
+        assert.equal(prepareAndStart, true, 'Checking if prepare and start returns true 2');
+
+        container = await docker.getContainer(syncContainerName);
+        assert.equal(container.description.State.Running, true, 'check if sync container was launched');
+
+        await polkadot.cleanUp();
+
+        container = await docker.getContainer(syncContainerName);
+        assert.equal(container, false, 'check if sync container was removed');
+
+        // Launching two cleanups without waiting to check double cleanup
+        polkadot.cleanUp();
+        await polkadot.cleanUp();
+
+    });
+
+    it('Test copyPolkadotNodeKeyFile function', async () => {
+        const savePolkadotKeyFile = polkadot.config.polkadotNodeKeyFile;
+        const savePolkadotUnixUserId = polkadot.config.polkadotUnixUserId;
+        const savePolkadotUnixGroupId = polkadot.config.polkadotUnixGroupId;
+        polkadot.config.polkadotNodeKeyFile = 'mock-key-file';
+        polkadot.config.polkadotUnixUserId = 1001;
+        polkadot.config.polkadotUnixGroupId = 1001;
+
+        fs.writeFileSync(`/tmp/${polkadot.config.polkadotNodeKeyFile}`, 'mock key file');
+        assert.equal(fs.existsSync(`/tmp/${polkadot.config.polkadotNodeKeyFile}`), true, 'Check if file was successfully created')
+
+        polkadot.copyPolkadotNodeKeyFile('/tmp','/tmp/service/keys');
+
+        assert.equal(fs.existsSync(`/tmp/service/keys`), true, 'Check if /tmp/service/keys was successfully created');
+        assert.equal(fs.existsSync(`/tmp/service/keys/${polkadot.config.polkadotNodeKeyFile}`), true, `Check if ${polkadot.config.polkadotNodeKeyFile} was copied to /tmp/service/keys`);
+
+        //const fileStats = fs.statSync(`/tmp/service/keys/${polkadot.config.polkadotNodeKeyFile}`);
+        //assert.equal(fileStats.uid, polkadot.config.polkadotUnixUserId, 'Check if file uid was set correctly');
+        //assert.equal(fileStats.gid, polkadot.config.polkadotUnixUserId, 'Check if file gid was set correctly');
+
+        fs.rmdirSync(`/tmp/service`, { recursive: true });
+        fs.unlinkSync(`/tmp/${polkadot.config.polkadotNodeKeyFile}`);
+
+        polkadot.config.polkadotNodeKeyFile = savePolkadotKeyFile;
+        polkadot.config.polkadotUnixUserId = savePolkadotUnixUserId;
+        polkadot.config.polkadotUnixGroupId = savePolkadotUnixGroupId;
     });
 
     after(async () => {

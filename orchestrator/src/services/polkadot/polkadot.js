@@ -37,6 +37,9 @@ class Polkadot {
 
     // Service prepared
     this.prepared = false;
+
+    // Setting polkadot name
+    this.name = this.config.polkadotName;
   }
 
   // Importing a key in keystore
@@ -111,6 +114,7 @@ class Polkadot {
       await this.importKey(containerName, this.config.polkadotKeyAudi, 'sr25519', 'audi');
       
       return true;
+      // TODO: See when this check must be activated
       // if (this.config.polkadotSessionKeyToCheck) {
       //  await this.checkSessionKeyOnNode(containerName, this.config.polkadotSessionKeyToCheck);
       // }
@@ -121,7 +125,7 @@ class Polkadot {
     }
   }
 
-/*   // Check if session keys were successfully set
+/*   // TODO: Check if session keys were successfully set
   async checkSessionKeyOnNode (containerName, sessionKey) {
     try {
       debug('checkSessionKeyOnNode', `Checking Session Key validity on node for session key value : ${sessionKey}`);
@@ -275,7 +279,7 @@ class Polkadot {
     // If polkadotNodeKeyFile variable is set
     // And service directory exists use node key file
     if (!isEmptyString(this.config.polkadotNodeKeyFile)) {
-      await this.copyFilesToServiceDirectory();
+      this.copyPolkadotNodeKeyFile('/config','/polkadot/keys');
       this.commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + this.config.polkadotNodeKeyFile);
     }
 
@@ -313,68 +317,6 @@ class Polkadot {
     this.prepared = true;
   }
 
-  // Polkadot start function
-  async start (mode) {
-    // Prepare service before start
-    if (!this.prepared) {
-      await this.prepareService();
-    }
-
-    // Start service in active mode
-    if (mode === 'active') {
-      let name = this.config.polkadotName;
-      // Avoid name change for 1000 validator program check on KUSAMA network
-      if (!isEmptyString(this.config.polkadotAdditionalOptions) && this.config.polkadotAdditionalOptions.includes('kusama')) {
-        name = this.config.polkadotName.slice(0, -2);
-      }
-
-      // Force validator name
-      if (!isEmptyString(this.config.polkadotValidatorName)) {
-        name = this.config.polkadotValidatorName;
-      }
-
-      // Start active service container
-      await this.startServiceContainer(
-        'active',
-        this.config.polkadotPrefix + 'polkadot-validator',
-        this.config.polkadotPrefix + 'polkadot-sync',
-        this.config.polkadotImage,
-        ['--name', `${name}`, ...this.commonPolkadotOptions, '--validator'],
-        '/polkadot',
-        this.polkadotVolume,
-        this.networkMode
-      );
-
-      // Import keys to service container
-      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-validator');
-
-      return;
-    }
-
-    // Start service in passive mode
-    if (mode === 'passive') {
-      // Start passive service container
-      await this.startServiceContainer(
-        'passive',
-        this.config.polkadotPrefix + 'polkadot-validator',
-        this.config.polkadotPrefix + 'polkadot-sync',
-        this.config.polkadotImage,
-        ['--name', `${this.config.polkadotName}-${mode}`, ...this.commonPolkadotOptions],
-        '/polkadot',
-        this.polkadotVolume,
-        this.networkMode
-      );
-
-      // Import keys to service container
-      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-sync');
-
-      return;
-    }
-
-    // If here the service mode is unknown
-    throw new Error(`Mode '${mode}' is unknown.`);
-  }
-
   // Remove 'down' container and start 'up' container
   async prepareAndStart (containerData, upName, downName) {
     // Get passive and active containers
@@ -394,16 +336,15 @@ class Polkadot {
     if (!containerUp) {
       // Starting container
       console.log(`Starting ${upName} container...`);
-      await this.docker.startContainer(containerData);
-      return true;
+      return await this.docker.startContainer(containerData);
     }
 
     // If container exits but is not in running state
     // We will recreate and relaunch it
-    if (this.docker.isContainerRunning(upName)) {
+    if (!await this.docker.isContainerRunning(upName)) {
       console.log(`Restarting container ${containerData.name}...`);
       await this.docker.removeContainer(containerData.name);
-      await this.docker.startContainer(containerData);
+      return await this.docker.startContainer(containerData);
     }
 
     console.log('Service is already started.');
@@ -415,13 +356,13 @@ class Polkadot {
     // Check if active service container is already running
     if (type === 'active' && await this.docker.isContainerRunning(activeName)) {
       console.log(`Service is already running in ${type} mode...`);
-      return;
+      return false;
     }
 
     // Check if passive service container is already running
     if (type === 'passive' && await this.docker.isContainerRunning(passiveName)) {
       console.log(`Service is already running in ${type} mode...`);
-      return;
+      return false;
     }
 
     // Creating volume
@@ -452,9 +393,74 @@ class Polkadot {
     if (type === 'active') {
       return await this.prepareAndStart(containerData, activeName, passiveName);
     // We want to start passive container
-    } else {
+    }
+    if (type === 'passive') {
       return await this.prepareAndStart(containerData, passiveName, activeName);
     }
+
+    // If here the service type is unknown
+    throw new Error(`Service type '${type}' is unknown.`);
+  }
+
+  // Polkadot start function
+  async start (mode) {
+    // Prepare service before start
+    if (!this.prepared) {
+      await this.prepareService();
+    }
+
+    // Start service in active mode
+    if (mode === 'active') {
+      // TODO: Avoid name change for 1000 validator program check on KUSAMA network
+      //if (!isEmptyString(this.config.polkadotAdditionalOptions) && this.config.polkadotAdditionalOptions.includes('kusama')) {
+      //  this.name = this.config.polkadotName.slice(0, -2);
+      //}
+
+      // Force validator name
+      if (!isEmptyString(this.config.polkadotValidatorName)) {
+        this.name = this.config.polkadotValidatorName;
+      }
+
+      // Start active service container
+      await this.startServiceContainer(
+        'active',
+        this.config.polkadotPrefix + 'polkadot-validator',
+        this.config.polkadotPrefix + 'polkadot-sync',
+        this.config.polkadotImage,
+        ['--name', `${this.name}`, ...this.commonPolkadotOptions, '--validator'],
+        '/polkadot',
+        this.polkadotVolume,
+        this.networkMode
+      );
+
+      // Import keys to service container
+      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-validator');
+
+      return;
+    }
+
+    // Start service in passive mode
+    if (mode === 'passive') {
+      // Start passive service container
+      await this.startServiceContainer(
+        'passive',
+        this.config.polkadotPrefix + 'polkadot-validator',
+        this.config.polkadotPrefix + 'polkadot-sync',
+        this.config.polkadotImage,
+        ['--name', `${this.name}-${mode}`, ...this.commonPolkadotOptions],
+        '/polkadot',
+        this.polkadotVolume,
+        this.networkMode
+      );
+
+      // Import keys to service container
+      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-sync');
+
+      return;
+    }
+
+    // If here the service mode is unknown
+    throw new Error(`Mode '${mode}' is unknown.`);
   }
 
   // Cleaning up polkadot service
@@ -475,19 +481,28 @@ class Polkadot {
       console.error(error);
     }
   }
+
   // Copy keys files to volume
-  async copyFilesToServiceDirectory () {
-    // Create keys directory
-    await fs.ensureDir('/service/keys');
+  copyPolkadotNodeKeyFile (fromDir, toDir) {
+    // Check if from and to dirs where set
+    if (!fromDir || !toDir) throw Error('Must set to and from dirs');
+    // Check if full path was specified
+    if (toDir[0] !== '/' || fromDir[0] !== '/') throw Error('Please specify full path');
+
+    // Create toDir directory
+    const options = {
+      mode: 0o2755,
+    };
+    fs.ensureDirSync(toDir, options);
 
     // Copy polkadot node key file
-    console.log(`Copying ${this.config.polkadotNodeKeyFile} from /config/ to /service/keys/...`);
-    await fs.copy(`/config/${this.config.polkadotNodeKeyFile}`, `/service/keys/${this.config.polkadotNodeKeyFile}`);
+    console.log(`Copying ${this.config.polkadotNodeKeyFile} from ${fromDir}/ to ${toDir}/...`);
+    fs.copySync(`${fromDir}/${this.config.polkadotNodeKeyFile}`, `${toDir}/${this.config.polkadotNodeKeyFile}`);
 
     // Fix permissions
-    await fs.chown('/service', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
-    await fs.chown('/service/keys', this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
-    await fs.chown(`/service/keys/${this.config.polkadotNodeKeyFile}`, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
+    // TODO: Test cause seems not to work
+    //fs.chownSync(toDir, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
+    //fs.chownSync(`${toDir}/${this.config.polkadotNodeKeyFile}`, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
   }
 }
 
