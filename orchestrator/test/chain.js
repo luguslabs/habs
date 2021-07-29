@@ -373,7 +373,7 @@ describe('Archipel chain test', function(){
       assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to give up leadership while is not connected to chain 3');
     }
 
-    // See if getter function throws errors
+    // See if getter functions throws errors
     try {
       await chain.getLeader(44);
     } catch (error) {
@@ -386,8 +386,59 @@ describe('Archipel chain test', function(){
       assert.equal(error.toString(), 'Error: WebSocket is not connected', 'Try to check if group is leaded while is not connected to chain');
     }
 
+    // Reconnecting to chain
     await chain.connect();
     chain.canSendTransactions = saveChainCanSendTransactions;
+
+    // Simulating transactions fails
+    let transactionFailSimulation = () => {
+      return { 
+        sign: () => {
+          return { 
+            send: (callback) => {
+              const status = {
+                isFinalized: false,
+                isDropped: true,
+                isInvalid: false,
+                isUsurped: false
+              }
+              callback({events: [], status});
+            }
+          }
+        } 
+      }
+    };
+
+    // Simulate add heartbeat transaction drop
+    const saveAddHeartbeat = chain.api.tx.archipelModule.addHeartbeat;
+
+    chain.api.tx.archipelModule.addHeartbeat = transactionFailSimulation;
+
+    let result = await chain.addHeartbeat('active', mnemonic1, 1);
+    assert.equal(result, false, 'Check if add hearbeat returns false cause transaction is dropped');
+
+    chain.api.tx.archipelModule.addHeartbeat = saveAddHeartbeat;
+
+    // Simulate set leader transaction drop
+    const saveSetLeader = chain.api.tx.archipelModule.setLeader;
+
+    chain.api.tx.archipelModule.setLeader = transactionFailSimulation;
+
+    result = await chain.setLeader(1, 1, mnemonic1);
+    assert.equal(result, false, 'Check if set leader returns false cause transaction is dropped');
+
+    chain.api.tx.archipelModule.setLeader = saveSetLeader;
+
+    // Simulate giveup leadership transaction drop
+    const saveGiveUpLeadership = chain.api.tx.archipelModule.giveUpLeadership;
+
+    chain.api.tx.archipelModule.giveUpLeadership = transactionFailSimulation;
+
+    result = await chain.giveUpLeadership(1, mnemonic1);
+    assert.equal(result, false, 'Check if giveup leadership returns false cause transaction is dropped');
+
+    chain.api.tx.archipelModule.giveUpLeadership = saveGiveUpLeadership;
+
   });
 
 });
