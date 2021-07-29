@@ -100,6 +100,9 @@ describe('Docker test', function(){
     startContainer = await docker.startContainer(containerData);
     assert.equal(startContainer, false, 'trying to start already started container');
 
+    container = await docker.getContainer(passiveName);
+    assert.equal(container, false, 'check if passive docker container is not running');
+
     container = await docker.getContainer(activeName);
     assert.equal(container.description.Name, `/${activeName}`, 'check if docker container has a correct name after creation');
     assert.equal(container.description.State.Running, true, 'check if docker container is in running state');
@@ -156,7 +159,10 @@ describe('Docker test', function(){
 
     let removeImage = await docker.removeImage(image);
     assert.equal(removeImage, true, 'check remove image result');
+
+    await docker.removeContainer(activeName);
   });
+
   it('Test docker image pull when starting container', async function() {
 
     let container = await docker.getContainer(activeName);
@@ -263,5 +269,59 @@ describe('Docker test', function(){
 
     docker.getContainer = saveGetContainer;
 
+    const saveDockerModemFollowProgress = docker.docker.modem.followProgress;
+    docker.docker.modem.followProgress = async (stream, callback) => {
+      callback('Provoke Error');
+    }
+    
+    result = await docker.pullImage('nginx');
+    assert.equal(result, false, 'check if pull image is false cause follow progress calls callback with an error');
+
+    docker.docker.modem.followProgress = saveDockerModemFollowProgress;
+  });
+
+  it('Test get container by id', async () => {
+    let container = await docker.getContainer(activeName);
+    assert.equal(container, false, 'check if docker container doesnt exist');
+
+    let containerRunnig = await docker.isContainerRunning(activeName);
+    assert.equal(containerRunnig, false, 'check if docker container is not running');
+
+    const containerData = {
+      name: activeName,
+      Image: image,
+      Cmd: command,
+      HostConfig: {
+        Mounts: [
+          {
+            Target: mountDir,
+            Source: volume,
+            Type: 'volume',
+            ReadOnly: false
+          }
+        ]
+      }
+    };
+
+    await docker.createVolume(volume);
+
+    let startContainer = await docker.startContainer(containerData);
+    assert.equal(startContainer, true, 'check start container result');
+
+    container = await docker.getContainer(activeName);
+    assert.equal(container.description.Name, `/${activeName}`, 'check if docker container has a correct name after creation');
+    assert.equal(container.description.State.Running, true, 'check if docker container is in running state');
+    
+    // Getting container by its ID and checking its info
+    container = await docker.getContainer(container.description.Id);
+    assert.equal(container.description.Name, `/${activeName}`, 'check if docker container got by id has a correct name');
+    assert.equal(container.description.State.Running, true, 'check if docker container got by id is in running state');
+    assert.equal(container.description.Mounts[0].Name, volume, 'check if docker container got by id has a correct volume attached');
+    assert.equal(container.description.Mounts[0].Destination, mountDir, 'check if docker container got by id has a correct mount dir');
+    assert.equal(container.description.Config.Image, image, 'check if docker container got by id has a correct image');
+    assert.equal(container.description.Config.Cmd.join(' '), command.join(' '), 'check if docker container got by id has a correct command');
+
+    await docker.removeContainer(activeName);
+    await docker.removeVolume(volume);
   });
 });

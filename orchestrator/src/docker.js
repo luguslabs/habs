@@ -227,9 +227,7 @@ class Docker {
       if (container) {
         // Search for volume by name in mounts
         const mount = container.description.Mounts.find(element => {
-          if ('Name' in element) {
-            return element.Name.endsWith(volumeName) ? element : false;
-          }
+            return 'Name' in element && element.Name.endsWith(volumeName) ? element : false;
         });
         return mount || false;
       }
