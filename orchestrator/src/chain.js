@@ -257,10 +257,10 @@ class Chain {
   // Get heartbeat from Runtime
   async getHeartbeat (key) {
     try {
-      return await this.api.query.archipelModule.heartbeats(key);
+      return parseInt(await this.api.query.archipelModule.heartbeats(key));
     } catch (error) {
       debug('getHeartbeat', error);
-      return false;
+      return 0;
     }
   }
 

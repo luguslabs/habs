@@ -94,20 +94,6 @@ const formatOptionCmds = inputCmds => {
   }, []);
 };
 
-// Construct nodes list with wallets and nodes names
-const constructNodesList = (nodesWallets, archipelName) => {
-  if (isEmptyString(nodesWallets) || isEmptyString(archipelName)) {
-    return [];
-  }
-  return nodesWallets.toString().split(',').reduce((resultArray, item, index) => {
-    resultArray.push({
-      wallet: item,
-      name: `${archipelName.toString()}-NODE-${index + 1}`
-    });
-    return resultArray;
-  }, []);
-};
-
 // Show transaction status in debug
 const transactionGetStatus = (status) => {
   if (!status) return 'Failed to get status.';
@@ -130,7 +116,6 @@ module.exports = {
   checkVariable,
   formatOptionList,
   formatOptionCmds,
-  constructNodesList,
   fromModeToNodeStatus,
   transactionGetStatus
 };

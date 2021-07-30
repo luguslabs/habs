@@ -8,15 +8,11 @@ class Orchestrator {
     config,
     chain,
     heartbeats) {
-    // No liveness data from leader count init
-    this.noLivenessFromLeader = 0;
-    this.noLivenessThreshold = 5;
     this.chain = chain;
 
     // Create service instance
     this.service = new Service(config.service);
 
-    this.heartbeats = heartbeats;
     this.aliveTime = config.aliveTime;
     this.serviceMode = config.serviceMode;
 
@@ -31,7 +27,13 @@ class Orchestrator {
 
     // Service not ready and node is in active mode
     this.noReadyCount = 0;
-    this.noReadyThreshold = 30; // ~ 300 seconds
+    this.noReadyThreshold = 30;
+
+    // No liveness data from leader count init
+    this.noLivenessFromLeader = 0;
+    this.noLivenessThreshold = 5;
+
+    this.nodesWallets = config.nodesWallets;
   }
 
   // Bootstrap service at boot
@@ -116,7 +118,8 @@ class Orchestrator {
 
     // Check if anyone is alive
     console.log('Checking is anyone in federation is alive...');
-    if (!this.heartbeats.anyOneAlive(nodeKey, this.aliveTime, this.group, bestNumber)) {
+    const anyOneIsAlive = await this.anyOneAlive(nodeKey);
+    if (!anyOneIsAlive) {
       console.log(
         "Seems that no one is alive. Enforcing 'passive' service mode..."
       );
@@ -156,6 +159,33 @@ class Orchestrator {
     await this.service.serviceStart('active');
   }
 
+  // Manage leadership
+  // Returns true if node is leader or was able to take leadership
+  async leadershipManagement (nodeKey) {
+    // Get current leader from chain
+    const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
+    debug('orchestrateService', `Is Group ${this.group} a leaded group: ${isLeadedGroup}.`);
+
+    // If the group is not leaded
+    // First time Archipel boot
+    if (isLeadedGroup === false) {
+      console.log('Trying to take leadership...');
+      return await this.becomeLeader(nodeKey);;
+    }
+
+    const currentLeader = (await this.chain.getLeader(this.group)).toString();
+    // If this node is current leader
+    if (currentLeader === nodeKey) {
+      console.log('Current node is leader...');
+      return true;
+    }
+
+    // Other node is leader
+    debug('orchestrateService', `Current Leader is: ${currentLeader}`);
+    console.log('Other node is leader...');
+    return await this.otherLeaderAction(currentLeader);
+  }
+
   // Take leader place
   async becomeLeader (nodeKey) {
     const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
@@ -175,47 +205,14 @@ class Orchestrator {
     }
   }
 
-  // Manage leadership
-  // Returns true if node is leader or was able to take leadership
-  async leadershipManagement (nodeKey) {
-    // Get current leader from chain
-    let currentLeader = await this.chain.getLeader(this.group);
-    const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
-
-    debug('orchestrateService', `Is Group ${this.group} a leaded group: ${isLeadedGroup}.`);
-    currentLeader = currentLeader.toString();
-
-    // If current leader is empty
-    // First time Archipel boot
-    if (isLeadedGroup === false) {
-      console.log('Trying to take leadership...');
-      const becomeLeaderResult = await this.becomeLeader(nodeKey);
-      return becomeLeaderResult;
-    }
-
-    // If this node is current leader
-    if (currentLeader === nodeKey) {
-      console.log('Current node is leader...');
-      return true;
-    }
-
-    // Other node is leader
-    debug('orchestrateService', `Current Leader is: ${currentLeader}`);
-    console.log('Other node is leader...');
-
-    const otherLeaderActionResult = await this.otherLeaderAction(
-      currentLeader
-    );
-    return otherLeaderActionResult;
-  }
-
   // Act if other node is leader
   async otherLeaderAction (currentLeader) {
-    // Get leader heartbeats known
-    const leaderHeartbeat = this.heartbeats.getHeartbeat(currentLeader);
+    // Get learder hearbeat from chain
+    const leaderHeartbeat = await this.chain.getHeartbeat(currentLeader);
 
-    // If no heartbeat received we will wait noLivenessThreshold
-    if (leaderHeartbeat === undefined) {
+    // If leader never sent a heartbeat
+    // Possibly he will sent the heartbeat next
+    if (leaderHeartbeat === 0) {
       // How much checks remains
       const checksNumber =
         this.noLivenessThreshold - this.noLivenessFromLeader;
@@ -234,22 +231,19 @@ class Orchestrator {
           `Can't check leader ${currentLeader} liveness for ${this.noLivenessThreshold} times. Trying to become new leader...`
         );
         this.noLivenessFromLeader = 0;
-        const becomeLeaderResult = await this.becomeLeader(currentLeader);
-        return becomeLeaderResult;
+        return await this.becomeLeader(currentLeader);
       }
     }
 
     const bestNumber = await this.chain.getBestNumber();
-    debug('orchestrateService', `bestNumber: ${bestNumber}`);
-    const lastSeenAgo = bestNumber - leaderHeartbeat.blockNumber;
+    const lastSeenAgo = bestNumber - leaderHeartbeat;
 
     // Checking if leader can be considered alive
     if (lastSeenAgo > this.aliveTime) {
       console.log(
         `Leader ${currentLeader} is down. Trying to become new leader...`
       );
-      const becomeLeaderResult = await this.becomeLeader(currentLeader);
-      return becomeLeaderResult;
+      return await this.becomeLeader(currentLeader);;
     } else {
       console.log(`Leader ${currentLeader} is alive...`);
       return false;
@@ -261,6 +255,7 @@ class Orchestrator {
     const serviceReady = await this.service.serviceReady();
 
     // If service is not ready and current node is leader
+    // We will wait some orchestrations 
     if (!serviceReady && this.service.mode === 'active') {
       // Waiting for this.noReadyThreshold orchestrations
       if (this.noReadyCount < this.noReadyThreshold) {
@@ -297,6 +292,26 @@ class Orchestrator {
 
     // Return isServiceReadyToStart result
     return serviceReady;
+  }
+
+  async anyOneAlive(nodeKey) {
+    // Get block number from chain
+    const bestNumber = await this.chain.getBestNumber();
+    const nodesWallets = this.nodesWallets.split(',');
+    for (const node of nodesWallets){
+      // Excluding nodeKey
+      if (nodeKey === node) continue;
+
+      const heartbeat = await this.chain.getHeartbeat(node);
+      console.log(`${node}: ${heartbeat}`);
+      // If heartbeat is not set for this node
+      if (heartbeat === 0) continue;
+
+      // If heartbeat is set calculating if it is not very old
+      if ((bestNumber - heartbeat) < this.aliveTime) return true;
+    }
+    // If no alive node found return false
+    return false;
   }
 }
 
