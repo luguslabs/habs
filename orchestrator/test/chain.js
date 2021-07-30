@@ -72,6 +72,26 @@ describe('Archipel chain test', function(){
     assert.isAbove(parseInt(bestNumber), 0, 'check if blocks are created');
   });
 
+  it('Testing disconnect function', async () => {
+    let isConnected = chain.isConnected();
+    assert.equal(isConnected, true, 'Check if connected to chain');
+
+    // Disconnecting from chain
+    let disconnect = await chain.disconnect();
+    assert.equal(disconnect, true, 'Check if disconnect returns true');
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+  
+    disconnect = await chain.disconnect();
+    assert.equal(disconnect, false, 'Check if disconnect returns false cause already disconnected');
+
+    isConnected = chain.isConnected();
+    assert.equal(isConnected, false, 'Check if not connected to chain');
+
+    // Reconnecting to chain
+    await chain.connect();
+  });
+
   it('Test heartbeat addition', async function() {
     const keys = await getKeysFromSeed(mnemonic1);
     const noHeartbeatYet = await chain.getHeartbeat(keys.address.toString());
@@ -307,9 +327,10 @@ describe('Archipel chain test', function(){
     assert.equal(result, true, 'Try to add hearbeat if chain can recieve transactions');
   });
 
-  it('Test chain transaction fail tests', async function () {
+  it('Test chain transaction fails if not connected to chain', async function () {
     // Disconnecting from chain and trying to execute each transaction
-    await chain.disconnect();
+    let disconnect = await chain.disconnect();
+    assert.equal(disconnect, true, 'Check if disconnect returns true');
 
     const keys = await getKeysFromSeed(mnemonic1);
 
@@ -389,7 +410,9 @@ describe('Archipel chain test', function(){
     // Reconnecting to chain
     await chain.connect();
     chain.canSendTransactions = saveChainCanSendTransactions;
+  });
 
+  it('Test transaction drop simulation', async () => {
     // Simulating transactions fails
     let transactionFailSimulation = () => {
       return { 
@@ -438,7 +461,57 @@ describe('Archipel chain test', function(){
     assert.equal(result, false, 'Check if giveup leadership returns false cause transaction is dropped');
 
     chain.api.tx.archipelModule.giveUpLeadership = saveGiveUpLeadership;
+  });
 
+  it('Test no events after transaction finalize', async () => {
+    // Simulating transactions fails
+    let transactionFinalizedWithoutEventsSimulation = () => {
+      return { 
+        sign: () => {
+          return { 
+            send: (callback) => {
+              const status = {
+                isFinalized: true,
+                isDropped: false,
+                isInvalid: false,
+                isUsurped: false
+              }
+              callback({status});
+            }
+          }
+        } 
+      }
+    };
+
+    // Simulate add heartbeat transaction drop
+    const saveAddHeartbeat = chain.api.tx.archipelModule.addHeartbeat;
+
+    chain.api.tx.archipelModule.addHeartbeat = transactionFinalizedWithoutEventsSimulation;
+
+    let result = await chain.addHeartbeat('active', mnemonic1, 1);
+    assert.equal(result, false, 'Check if add hearbeat returns false cause no events recieved');
+
+    chain.api.tx.archipelModule.addHeartbeat = saveAddHeartbeat;
+
+    // Simulate set leader transaction drop
+    const saveSetLeader = chain.api.tx.archipelModule.setLeader;
+
+    chain.api.tx.archipelModule.setLeader = transactionFinalizedWithoutEventsSimulation;
+
+    result = await chain.setLeader(1, 1, mnemonic1);
+    assert.equal(result, false, 'Check if set leader returns false cause no events recieved');
+
+    chain.api.tx.archipelModule.setLeader = saveSetLeader;
+
+    // Simulate giveup leadership transaction drop
+    const saveGiveUpLeadership = chain.api.tx.archipelModule.giveUpLeadership;
+
+    chain.api.tx.archipelModule.giveUpLeadership = transactionFinalizedWithoutEventsSimulation;
+
+    result = await chain.giveUpLeadership(1, mnemonic1);
+    assert.equal(result, false, 'Check if giveup leadership returns false cause no events recieved');
+
+    chain.api.tx.archipelModule.giveUpLeadership = saveGiveUpLeadership;
   });
 
 });

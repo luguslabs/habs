@@ -43,7 +43,7 @@ class Chain {
     // Subscribe to events
     await this.api.query.system.events((events) => {
       // Loop through events
-      events.forEach(({ event = [] }) => {
+      events.forEach(({ event }) => {
         // If change leader event received
         if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewLeader') {
           debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
@@ -320,7 +320,7 @@ class Chain {
   async getPeerId () {
     try {
       const localPeerId = await this.api.rpc.system.localPeerId();
-      return localPeerId ? localPeerId.toString() : false;
+      return localPeerId.toString();
     } catch (error) {
       debug('getPeerId', error);
       return false;
@@ -334,8 +334,12 @@ class Chain {
 
   // Disconnect from chain
   async disconnect () {
-    if (this.api) {
+    try{
       await this.api.disconnect();
+      return true;
+    } catch (error) {
+      debug('disconnect', error);
+      return false;
     }
   }
 }
