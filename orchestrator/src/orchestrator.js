@@ -35,9 +35,13 @@ class Orchestrator {
   }
 
   // Bootstrap service at boot
-  async bootstrapService () {
+  async bootstrapOrchestrator () {
+    // Starting service in default passive mode
     console.log('Starting service in passive mode...');
-    await this.service.serviceStart('passive');
+    const serviceStart = await this.service.serviceStart('passive');
+    if(!serviceStart) {
+      throw Error('Unable to start service in passive mode. Please check your configuration and docker daemon.');
+    }
   }
 
   // Orchestrate service
@@ -203,10 +207,9 @@ class Orchestrator {
     debug('orchestrateService', `Current Leader is: ${currentLeader}`);
     console.log('Other node is leader...');
 
-    const otherLeaderActionResult = await this.otherLeaderAction(
+    return await this.otherLeaderAction(
       currentLeader
     );
-    return otherLeaderActionResult;
   }
 
   // Act if other node is leader
@@ -234,8 +237,7 @@ class Orchestrator {
           `Can't check leader ${currentLeader} liveness for ${this.noLivenessThreshold} times. Trying to become new leader...`
         );
         this.noLivenessFromLeader = 0;
-        const becomeLeaderResult = await this.becomeLeader(currentLeader);
-        return becomeLeaderResult;
+        return await this.becomeLeader(currentLeader);
       }
     }
 
@@ -248,8 +250,7 @@ class Orchestrator {
       console.log(
         `Leader ${currentLeader} is down. Trying to become new leader...`
       );
-      const becomeLeaderResult = await this.becomeLeader(currentLeader);
-      return becomeLeaderResult;
+      return await this.becomeLeader(currentLeader);
     } else {
       console.log(`Leader ${currentLeader} is alive...`);
       return false;

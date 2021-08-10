@@ -150,14 +150,18 @@ describe('Polkadot test', function() {
         serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
         assert.equal(serviceReadyToStart, true, 'check if service is ready for active service');
 
+        polkadot.importedKeys = [];
+        serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        assert.equal(serviceReadyToStart, false, 'check if service is not ready to start for active service cause not all keys where added to keystore');
+
         // Launching service and testing
         await polkadot.start('passive');
 
         serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
         assert.equal(serviceReadyToStart, true, 'check if service is ready for passive service');
 
-        polkadot.docker.dockerExecute = saveDockerExecute;
         polkadot.importedKeys = [];
+        polkadot.docker.dockerExecute = saveDockerExecute;
         await polkadot.cleanUp();
     });
 

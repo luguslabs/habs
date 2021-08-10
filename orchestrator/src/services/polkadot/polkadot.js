@@ -112,7 +112,7 @@ class Polkadot {
       await this.importKey(containerName, this.config.polkadotKeyPara, 'sr25519', 'para');
       await this.importKey(containerName, this.config.polkadotKeyAsgn, 'sr25519', 'asgn');
       await this.importKey(containerName, this.config.polkadotKeyAudi, 'sr25519', 'audi');
-      
+
       return true;
       // TODO: See when this check must be activated
       // if (this.config.polkadotSessionKeyToCheck) {
@@ -235,6 +235,12 @@ class Polkadot {
       debug('isServiceReadyToStart', 'isSyncingSystemHealth:' + isSyncingSystemHealth);
       if (isSyncingSystemHealth.includes('true')) {
         debug('isServiceReadyToStart', 'Node is currently syncing. Service is not ready.');
+        return false;
+      }
+
+      // Check if all keys were added to keystore
+      if (this.importedKeys.length < 6 && mode === 'active') {
+        debug('isServiceReadyToStart', 'Servie is not ready for active mode cause not all keys where added to keystore.');
         return false;
       }
 

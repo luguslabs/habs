@@ -28,8 +28,8 @@ async function main () {
       chain,
       heartbeats);
 
-    // Start service before orchestration
-    await orchestrator.bootstrapService();
+    // Bootstrap orchestration before orchestration
+    await orchestrator.bootstrapOrchestrator();
 
     // Create chain event listener
     chain.listenEvents(heartbeats, orchestrator, orchestrator.mnemonic);

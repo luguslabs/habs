@@ -116,12 +116,24 @@ describe('Orchestrator test', function() {
   });
 
   it('Test service bootstrap before orchestration', async function () {
-    await orchestrator.bootstrapService();
+    await orchestrator.bootstrapOrchestrator();
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
 
+    await orchestrator.service.serviceCleanUp();
+
+    const saveOrchestratorServiceStart = orchestrator.service.serviceStart;
+    orchestrator.service.serviceStart = async () => false;
+
+    try {
+      await orchestrator.bootstrapOrchestrator();
+    } catch (error) {
+      assert.equal(error.toString(), 'Error: Unable to start service in passive mode. Please check your configuration and docker daemon.', 'check if bootstrap orchestrator throws an error if service start unsuccessful');
+    }
+
+    orchestrator.service.serviceStart = saveOrchestratorServiceStart;
     await orchestrator.service.serviceCleanUp();
   });
 
@@ -1243,7 +1255,7 @@ describe('Orchestrator test', function() {
       chain,
       heartbeats);
     // Start service before orchestration
-    await orchestrator.bootstrapService();
+    await orchestrator.bootstrapOrchestrator();
 
     // Mock isServiceReadyToStart method of service
     orchestrator.service.serviceInstance.isServiceReadyToStart = () => true;
