@@ -130,82 +130,19 @@ describe('Orchestrator test', function () {
   });
 
   it('Test orchestrator default information get', async () => {
-
-    // Mock some functions to get previsible result
-    const saveChainBestNumber = chain.getBestNumber;
-    const saveGetPeerNumber = chain.getPeerNumber;
-    const saveGetPeerId = chain.getPeerId;
-    const saveGetLeader = chain.getLeader;
-
-    chain.getBestNumber = async () => '0x00000001';
-    chain.getPeerNumber = async () => 2;
-    chain.getPeerId = async () => '12D3';
-    chain.getLeader = async () => '12D4';
-
-    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
-    // Adding some heartbeats
-    const keys1 = await getKeysFromSeed(mnemonic1);
-    const keys2 = await getKeysFromSeed(mnemonic2);
-    const keys3 = await getKeysFromSeed(mnemonic3);
-
-    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, '0x00000001');
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, '0x00000001');
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, '0x00000001');
-
-    const saveOrchestratorHeartbeats = orchestrator.heartbeats;
-    orchestrator.heartbeats = heartbeats;
+    const saveOrchestratorGetInfo = orchestrator.getOrchestratorInfo;
+    orchestrator.getOrchestratorInfo = async () => {
+      return { test: 'test' }
+    }
     
     const result = await chai.request(api).get('/');
     const bodyMustBe = {
         status: '200',
-        orchestratorAddress: '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs',
-        archipelName: 'test-archipel',
-        isConnected: true,
-        peerId: '12D3',
-        peerNumber: 2,
-        bestNumber: '0x00000001',
-        synchState: false,
-        leader: '12D4',
-        service: 'polkadot',
-        orchestrationEnabled: true,
-        isServiceReadyToStart: true,
-        serviceMode: 'none',
-        serviceContainer: 'none',
-        heartbeatSendEnabledAdmin: true,
-        heartbeatSendEnabled: true,
-        heartbeats: [
-          {
-            wallet: '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs',
-            name: 'test-archipel-NODE-1',
-            group: 1,
-            nodeStatus: 2,
-            blockNumber: '0x00000001'
-          },
-          {
-            wallet: '5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex',
-            name: 'test-archipel-NODE-2',
-            group: 1,
-            nodeStatus: 2,
-            blockNumber: '0x00000001'
-          },
-          {
-            wallet: '5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s',
-            name: 'test-archipel-NODE-3',
-            group: 1,
-            nodeStatus: 2,
-            blockNumber: '0x00000001'
-          }
-        ],
-        "sessionKeysString":undefined,
-        "checkSessionKeysOnNode":false,
-        "launchedContainer":"none"
+        test: 'test'
     };
     chai.assert.equal(JSON.stringify(result.body), JSON.stringify(bodyMustBe), 'Check if API returns correct information in correct format');  
-    chain.getBestNumber = saveChainBestNumber;
-    chain.getPeerNumber = saveGetPeerNumber;
-    chain.getPeerId = saveGetPeerId;
-    chain.getLeader = saveGetLeader;
-    orchestrator.heartbeats = saveOrchestratorHeartbeats;
+
+    orchestrator.getOrchestratorInfo = saveOrchestratorGetInfo;
   });
 
   it('Test unknown ressource', async () => {

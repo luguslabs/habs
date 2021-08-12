@@ -39,13 +39,13 @@ class Orchestrator {
   // Bootstrap service at boot
   async bootstrapOrchestrator () {
     // If node is not operator there is nothing to bootstrap
-    if (this.nodeRole !== 'operator') {
-      console.log('Nothing to bootstrap cause non operator');
-      return;
-    }
+    // if (this.nodeRole !== 'operator') {
+    //  console.log('Nothing to bootstrap cause non operator');
+    //  return;
+    // }
     // Starting service in default passive mode
     console.log('Starting service in passive mode...');
-    const serviceStart = await this.service.serviceStart('passive');
+    const serviceStart = await this.serviceStart('passive');
     if (!serviceStart) {
       throw Error('Unable to start service in passive mode. Please check your configuration and docker daemon.');
     }
@@ -61,7 +61,7 @@ class Orchestrator {
     // If node is already leader on chain
     if (currentLeader.toString() === nodeKey) {
       console.log('Current node is leader so starting service in active mode...');
-      await this.service.serviceStart('active');
+      await this.serviceStart('active');
       return true;
     }
 
@@ -75,7 +75,7 @@ class Orchestrator {
       // Checking current leader and starting in active mode
       currentLeader = await this.chain.getLeader(this.group);
       if (currentLeader.toString() === nodeKey) {
-        await this.service.serviceStart('active');
+        await this.serviceStart('active');
         return true;
       }
     }
@@ -103,7 +103,7 @@ class Orchestrator {
     // If service mode is passive we will start the service in passive mode
     if (this.serviceMode === 'passive') {
       console.log('serviceMode is forced to passive. Start node in passive mode...');
-      await this.service.serviceStart('passive');
+      await this.serviceStart('passive');
       return;
     }
 
@@ -126,7 +126,7 @@ class Orchestrator {
       console.log(
         "Archipel chain node can't receive transactions. Enforcing 'passive' service mode..."
       );
-      await this.service.serviceStart('passive');
+      await this.serviceStart('passive');
       return;
     }
 
@@ -145,7 +145,7 @@ class Orchestrator {
       console.log(
         "Seems that no one is alive. Enforcing 'passive' service mode..."
       );
-      await this.service.serviceStart('passive');
+      await this.serviceStart('passive');
       return;
     }
 
@@ -154,14 +154,14 @@ class Orchestrator {
     const serviceReady = await this.serviceReadinessManagement();
     if (!serviceReady) {
       console.log("Service is not ready. Enforcing 'passive' service mode...");
-      await this.service.serviceStart('passive');
+      await this.serviceStart('passive');
       return;
     }
 
     // If heartbeats are disabled enforcing passive service mode
     if (!this.heartbeatSendEnabled || !this.heartbeatSendEnabledAdmin) {
       console.log('Heartbeat send is disabled. Enforcing passive service mode...');
-      await this.service.serviceStart('passive');
+      await this.serviceStart('passive');
       return;
     }
 
@@ -172,7 +172,7 @@ class Orchestrator {
       console.log(
         "The current node is not leader. Enforcing 'passive' service mode..."
       );
-      await this.service.serviceStart('passive');
+      await this.serviceStart('passive');
       return;
     }
 
@@ -182,7 +182,7 @@ class Orchestrator {
 
     if (currentLeader.toString() === nodeKey) {
       console.log('All checks passed and current node is leader. Launching service in active mode...');
-      await this.service.serviceStart('active');
+      await this.serviceStart('active');
     }
   }
 
@@ -329,14 +329,14 @@ class Orchestrator {
     return await this.service.serviceCleanUp();
   }
 
+  // Service start
+  async serviceStart (mode) {
+    return await this.service.serviceStart(mode);
+  }
+
   // Get service mode
   getServiceMode () {
     return this.service.mode;
-  }
-
-  // Service start
-  async serviceStart (mode) {
-    return this.service.serviceStart(mode);
   }
 
   // Get orchestrator info
@@ -353,7 +353,7 @@ class Orchestrator {
       service: this.service.serviceName,
       orchestrationEnabled: this.orchestrationEnabled,
       isServiceReadyToStart: await this.service.serviceReady(),
-      serviceMode: this.service.mode,
+      serviceMode: this.getServiceMode(),
       serviceContainer: await this.service.serviceCheck(),
       heartbeatSendEnabledAdmin: this.heartbeatSendEnabledAdmin,
       heartbeatSendEnabled: this.heartbeatSendEnabled,

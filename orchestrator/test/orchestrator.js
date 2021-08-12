@@ -97,7 +97,7 @@ describe('Orchestrator test', function () {
 
   after(async () => {
     // Remove service containers
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     // Disconnect from test chain
     if (chain && await chain.isConnected()) {
@@ -122,10 +122,10 @@ describe('Orchestrator test', function () {
     let container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
 
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
-    const saveOrchestratorServiceStart = orchestrator.service.serviceStart;
-    orchestrator.service.serviceStart = async () => false;
+    const saveOrchestratorServiceStart = orchestrator.serviceStart;
+    orchestrator.serviceStart = async () => false;
 
     try {
       await orchestrator.bootstrapOrchestrator();
@@ -133,88 +133,88 @@ describe('Orchestrator test', function () {
       assert.equal(error.toString(), 'Error: Unable to start service in passive mode. Please check your configuration and docker daemon.', 'check if bootstrap orchestrator throws an error if service start unsuccessful');
     }
 
-    orchestrator.service.serviceStart = saveOrchestratorServiceStart;
-    await orchestrator.service.serviceCleanUp();
+    orchestrator.serviceStart = saveOrchestratorServiceStart;
+    await orchestrator.serviceCleanUp();
   });
 
   it('Test passive service start and cleanup', async () => {
     // Starting passive service container
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     
     const containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
  
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
   
     container = await docker.getContainer(containerName);
     assert.equal(container, false, 'check if passive service container was shutdown correctly');
 
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
   });
 
   it('Test active service start and cleanup', async function () {
-    await orchestrator.service.serviceStart('active');
+    await orchestrator.serviceStart('active');
 
     const containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
     let container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if active service container was started correctly');
   
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
   
     container = await docker.getContainer(containerName);
     assert.equal(container, false, 'check if active service container was shutdown correctly');
 
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
   });
 
   it('Test service switch from active to passive mode', async function () {
     const containerNameActive = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
     const containerNamePassive = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
   
-    await orchestrator.service.serviceStart('active');
+    await orchestrator.serviceStart('active');
     let container = await docker.getContainer(containerNameActive);
     assert.equal(container.description.State.Running, true, 'check if active service container was started correctly');
   
     container = await docker.getContainer(containerNamePassive);
     assert.equal(container, false, 'check if passive service container is not running');
 
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     container = await docker.getContainer(containerNamePassive);
     assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
   
     container = await docker.getContainer(containerNameActive);
     assert.equal(container, false, 'check if active service container was shutdown');
   
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
   });
 
   it('Test service switch from passive to active mode', async function () {
     const containerNameActive = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
     const containerNamePassive = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
   
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     let container = await docker.getContainer(containerNamePassive);
     assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
   
     container = await docker.getContainer(containerNameActive);
     assert.equal(container, false, 'check if active service container was not started');
 
-    await orchestrator.service.serviceStart('active');
+    await orchestrator.serviceStart('active');
     container = await docker.getContainer(containerNameActive);
     assert.equal(container.description.State.Running, true, 'check if active service container was started correctly');
   
     container = await docker.getContainer(containerNamePassive);
     assert.equal(container, false, 'check if passive service container was shutdown');
 
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
   });
 
   it('Test force passive services mode at startup', async function () {
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
 
     // Starting active service container
-    await orchestrator.service.serviceStart('active');
+    await orchestrator.serviceStart('active');
 
     let container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if service container was started in active mode');
@@ -248,7 +248,7 @@ describe('Orchestrator test', function () {
 
   it('Test force active services mode at startup no leader in group', async function () {
     // Starting passive service container
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
@@ -277,7 +277,7 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const status = await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(status, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     // Test if become leader gives true but the leardership was not taken
     // Possible when chain issues
@@ -300,7 +300,7 @@ describe('Orchestrator test', function () {
 
   it('Test force active services mode if set leadership failed', async function () {
     // Starting passive service container
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
@@ -324,7 +324,7 @@ describe('Orchestrator test', function () {
     isLeadedGroup = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroup, false, 'check if the group remains not leaded');
   
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.serviceMode = saveServiceMode;
     orchestrator.chain.setLeader = saveChainSetLeader;
@@ -332,7 +332,7 @@ describe('Orchestrator test', function () {
 
   it('Test force active services mode at startup group is already leaded by other node', async function () {
     // Starting passive service container
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
@@ -369,14 +369,14 @@ describe('Orchestrator test', function () {
     orchestrator.serviceMode = 'orchestrator';
     const status= await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(status, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.serviceMode = saveServiceMode;
   });
 
   it('Test force active services mode at startup group is leaded by current node', async function () {
     // Starting passive service container
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
@@ -409,13 +409,13 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const status2= await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(status2, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.serviceMode = saveServiceMode;
   });
 
   it('Test if no one is alive the service remains is passive mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
@@ -433,13 +433,13 @@ describe('Orchestrator test', function () {
     const container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if passive service node was started');
 
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
   });
 
   it('Check if service is not ready to start the service remains in passive mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
@@ -467,14 +467,14 @@ describe('Orchestrator test', function () {
 
     orchestrator.service.serviceInstance.isServiceReadyToStart = () => true;
   
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Test if chain can not receive transactions the service remains in passive mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
@@ -500,13 +500,13 @@ describe('Orchestrator test', function () {
     const container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if passive service node was started');
     
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.chain.canSendTransactions = canSendTransactionsSave;
   });
 
   it('Test if no leader and someone is alive take leadership and start service in active mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
@@ -539,14 +539,14 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const status= await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(status, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Test if leadership take transaction was executed and orchestrator must start active service but really leadership was no taken on chain', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
@@ -578,7 +578,7 @@ describe('Orchestrator test', function () {
     assert.equal(container, false, 'check if active service node was not started');
   
     console.log('Cleanup...');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.leadershipManagement = saveLeadershipManagement;
     orchestrator.heartbeats = saveHeartbeats;
@@ -586,7 +586,7 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if no leader and someone is alive but in another group get leadership on your group and start service in active mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
@@ -618,14 +618,14 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const status= await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(status, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Test if I am leader and someone is alive the service remains in active mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -671,14 +671,14 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const status= await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(status, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('If other node is leader and nobody is alive no leadership change and service remains in passive mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -706,14 +706,14 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const statusGiveUp = await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Test if other node is leader, is offline and someone other is alive try to get leadership and launch service in active mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -749,7 +749,7 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const statusGiveUp = await chain.giveUpLeadership(1, mnemonic2);
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
@@ -757,7 +757,7 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader, is offline and nobody other is alive do not get leadership and service remains in passive mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys2 = await getKeysFromSeed(mnemonic2);
@@ -797,7 +797,7 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const statusGiveUp = await chain.giveUpLeadership(1, mnemonic2);
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
@@ -806,7 +806,7 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader, is offline and someone other is alive test threshold', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -868,7 +868,7 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const statusGiveUp = await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.noLivenessThreshold = saveNoLivenessThreshold;
     orchestrator.heartbeats = saveHeartbeats;
@@ -876,7 +876,7 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if other node is leader and is alive. Staying in passive mode...', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
 
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
@@ -909,13 +909,13 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const statusGiveUp = await chain.giveUpLeadership(1, mnemonic2);
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
   });
 
   it('Test serviceReadinessManagement', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -1015,7 +1015,7 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const statusGiveUp = await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.noReadyThreshold = saveNoReadyThreshold;
     orchestrator.aliveTime = saveAliveTime;
@@ -1040,7 +1040,7 @@ describe('Orchestrator test', function () {
     heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
   
     // Starting active service container
-    await orchestrator.service.serviceStart('active');
+    await orchestrator.serviceStart('active');
 
     let container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if service container was started in active mode');
@@ -1076,7 +1076,7 @@ describe('Orchestrator test', function () {
   });
 
   it('Other node is leader and his hearbeat was long time ago', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
@@ -1133,7 +1133,7 @@ describe('Orchestrator test', function () {
     console.log('Giveup leadership to cleanup...');
     const statusGiveUp = await chain.giveUpLeadership(1, mnemonic2);
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.aliveTime = saveAliveTime;
@@ -1141,7 +1141,7 @@ describe('Orchestrator test', function () {
   });
 
   it('Try to orchestrate when orchestration is disabled', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
@@ -1179,7 +1179,7 @@ describe('Orchestrator test', function () {
     container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if service remains in passive mode');
 
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
@@ -1187,7 +1187,7 @@ describe('Orchestrator test', function () {
   });
 
   it('Set leadership failed on chain', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
@@ -1225,7 +1225,7 @@ describe('Orchestrator test', function () {
     container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if service remains in passive mode');
 
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
@@ -1233,7 +1233,7 @@ describe('Orchestrator test', function () {
   });
 
   it('Test orchestration with bad service mode', async function () {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
@@ -1274,7 +1274,7 @@ describe('Orchestrator test', function () {
     container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if service remains in passive mode');
 
-    await orchestrator.service.serviceCleanUp();
+    await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
@@ -1330,6 +1330,89 @@ describe('Orchestrator test', function () {
     delete process.env.CONFIG_FILE;
     delete process.env.CONFIG_FILE_PATH;
     delete process.env.NODE_ID;
+    await orchestrator.serviceCleanUp();
   });
 
+  it('Test get orchestrator info', async () => {
+    // Mock some functions to get previsible result
+    const saveChainBestNumber = chain.getBestNumber;
+    const saveGetPeerNumber = chain.getPeerNumber;
+    const saveGetPeerId = chain.getPeerId;
+    const saveGetLeader = chain.getLeader;
+    const saveServiceMode = orchestrator.service.mode;
+
+    chain.getBestNumber = async () => '0x00000001';
+    chain.getPeerNumber = async () => 2;
+    chain.getPeerId = async () => '12D3';
+    chain.getLeader = async () => '12D4';
+    orchestrator.service.mode = 'none';
+
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+    // Adding some heartbeats
+    const keys1 = await getKeysFromSeed(mnemonic1);
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const keys3 = await getKeysFromSeed(mnemonic3);
+
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, '0x00000001');
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, '0x00000001');
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, '0x00000001');
+
+    const saveOrchestratorHeartbeats = orchestrator.heartbeats;
+    orchestrator.heartbeats = heartbeats;
+
+    const orchestratorInfo = await orchestrator.getOrchestratorInfo();
+    
+    const bodyMustBe = {
+        orchestratorAddress: '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs',
+        archipelName: 'test-archipel',
+        isConnected: true,
+        peerId: '12D3',
+        peerNumber: 2,
+        bestNumber: '0x00000001',
+        synchState: false,
+        leader: '12D4',
+        service: 'polkadot',
+        orchestrationEnabled: true,
+        isServiceReadyToStart: true,
+        serviceMode: 'none',
+        serviceContainer: 'none',
+        heartbeatSendEnabledAdmin: true,
+        heartbeatSendEnabled: true,
+        heartbeats: [
+          {
+            wallet: '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs',
+            name: 'test-archipel-NODE-1',
+            group: 1,
+            nodeStatus: 2,
+            blockNumber: '0x00000001'
+          },
+          {
+            wallet: '5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex',
+            name: 'test-archipel-NODE-2',
+            group: 1,
+            nodeStatus: 2,
+            blockNumber: '0x00000001'
+          },
+          {
+            wallet: '5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s',
+            name: 'test-archipel-NODE-3',
+            group: 1,
+            nodeStatus: 2,
+            blockNumber: '0x00000001'
+          }
+        ],
+        "sessionKeysString":undefined,
+        "checkSessionKeysOnNode":false,
+        "launchedContainer":"none"
+    };
+
+    assert.equal(JSON.stringify(orchestratorInfo), JSON.stringify(bodyMustBe), 'Check if getOrchestratorInfo returns correct information');
+
+    chain.getBestNumber = saveChainBestNumber;
+    chain.getPeerNumber = saveGetPeerNumber;
+    chain.getPeerId = saveGetPeerId;
+    chain.getLeader = saveGetLeader;
+    orchestrator.heartbeats = saveOrchestratorHeartbeats;
+    orchestrator.service.mode = saveServiceMode;
+  });
 });
