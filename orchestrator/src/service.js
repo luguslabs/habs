@@ -1,5 +1,3 @@
-const debug = require('debug')('service');
-
 const { Polkadot } = require('./services/polkadot/polkadot');
 
 class Service {

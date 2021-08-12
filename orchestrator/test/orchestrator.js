@@ -137,6 +137,79 @@ describe('Orchestrator test', function() {
     await orchestrator.service.serviceCleanUp();
   });
 
+  it('Test passive service start and cleanup', async function() {
+    // Starting passive service container
+    await orchestrator.service.serviceStart('passive');
+    
+    const containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+    let container = await docker.getContainer(containerName);
+    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
+ 
+    await orchestrator.service.serviceCleanUp();
+  
+    container = await docker.getContainer(containerName);
+    assert.equal(container, false, 'check if passive service container was shutdown correctly');
+
+    await orchestrator.service.serviceCleanUp();
+  });
+
+  it('Test active service start and cleanup', async function () {
+    await orchestrator.service.serviceStart('active');
+
+    const containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+    let container = await docker.getContainer(containerName);
+    assert.equal(container.description.State.Running, true, 'check if active service container was started correctly');
+  
+    await orchestrator.service.serviceCleanUp();
+  
+    container = await docker.getContainer(containerName);
+    assert.equal(container, false, 'check if active service container was shutdown correctly');
+
+    await orchestrator.service.serviceCleanUp();
+  });
+
+  it('Test service switch from active to passive mode', async function () {
+    const containerNameActive = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+    const containerNamePassive = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+  
+    await orchestrator.service.serviceStart('active');
+    let container = await docker.getContainer(containerNameActive);
+    assert.equal(container.description.State.Running, true, 'check if active service container was started correctly');
+  
+    container = await docker.getContainer(containerNamePassive);
+    assert.equal(container, false, 'check if passive service container is not running');
+
+    await orchestrator.service.serviceStart('passive');
+    container = await docker.getContainer(containerNamePassive);
+    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
+  
+    container = await docker.getContainer(containerNameActive);
+    assert.equal(container, false, 'check if active service container was shutdown');
+  
+    await orchestrator.service.serviceCleanUp();
+  });
+
+  it('Test service switch from passive to active mode', async function () {
+    const containerNameActive = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+    const containerNamePassive = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+  
+    await orchestrator.service.serviceStart('passive');
+    let container = await docker.getContainer(containerNamePassive);
+    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
+  
+    container = await docker.getContainer(containerNameActive);
+    assert.equal(container, false, 'check if active service container was not started');
+
+    await orchestrator.service.serviceStart('active');
+    container = await docker.getContainer(containerNameActive);
+    assert.equal(container.description.State.Running, true, 'check if active service container was started correctly');
+  
+    container = await docker.getContainer(containerNamePassive);
+    assert.equal(container, false, 'check if passive service container was shutdown');
+
+    await orchestrator.service.serviceCleanUp();
+  });
+
   it('Test force passive services mode at startup', async function () {
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
 
@@ -206,6 +279,22 @@ describe('Orchestrator test', function() {
     assert.equal(status, true, 'check if give up leadership transaction was executed');
     await orchestrator.service.serviceCleanUp();
 
+    // Test if become leader gives true but the leardership was not taken
+    // Possible when chain issues
+    const saveBecomeLeader = orchestrator.becomeLeader;
+    orchestrator.serviceMode = 'active';
+    orchestrator.becomeLeader = async () => true;
+
+    await orchestrator.orchestrateService();
+
+    containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+    container = await docker.getContainer(containerName);
+    assert.equal(container, false, 'check if active service container was not started');
+
+    isLeadedGroupTrue = await chain.isLeadedGroup(1);
+    assert.equal(isLeadedGroupTrue, false, 'check if the group remains not leaded');
+
+    orchestrator.becomeLeader = saveBecomeLeader;
     orchestrator.serviceMode = saveServiceMode;
   });
 
@@ -323,79 +412,6 @@ describe('Orchestrator test', function() {
     await orchestrator.service.serviceCleanUp();
 
     orchestrator.serviceMode = saveServiceMode;
-  });
-
-  it('Test passive service start and cleanup', async function() {
-    // Starting passive service container
-    await orchestrator.service.serviceStart('passive');
-    
-    const containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-    let container = await docker.getContainer(containerName);
-    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
- 
-    await orchestrator.service.serviceCleanUp();
-  
-    container = await docker.getContainer(containerName);
-    assert.equal(container, false, 'check if passive service container was shutdown correctly');
-
-    await orchestrator.service.serviceCleanUp();
-  });
-
-  it('Test active service start and cleanup', async function () {
-    await orchestrator.service.serviceStart('active');
-
-    const containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
-    let container = await docker.getContainer(containerName);
-    assert.equal(container.description.State.Running, true, 'check if active service container was started correctly');
-  
-    await orchestrator.service.serviceCleanUp();
-  
-    container = await docker.getContainer(containerName);
-    assert.equal(container, false, 'check if active service container was shutdown correctly');
-
-    await orchestrator.service.serviceCleanUp();
-  });
-
-  it('Test service switch from active to passive mode', async function () {
-    const containerNameActive = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
-    const containerNamePassive = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-  
-    await orchestrator.service.serviceStart('active');
-    let container = await docker.getContainer(containerNameActive);
-    assert.equal(container.description.State.Running, true, 'check if active service container was started correctly');
-  
-    container = await docker.getContainer(containerNamePassive);
-    assert.equal(container, false, 'check if passive service container is not running');
-
-    await orchestrator.service.serviceStart('passive');
-    container = await docker.getContainer(containerNamePassive);
-    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
-  
-    container = await docker.getContainer(containerNameActive);
-    assert.equal(container, false, 'check if active service container was shutdown');
-  
-    await orchestrator.service.serviceCleanUp();
-  });
-
-  it('Test service switch from passive to active mode', async function () {
-    const containerNameActive = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
-    const containerNamePassive = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-  
-    await orchestrator.service.serviceStart('passive');
-    let container = await docker.getContainer(containerNamePassive);
-    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
-  
-    container = await docker.getContainer(containerNameActive);
-    assert.equal(container, false, 'check if active service container was not started');
-
-    await orchestrator.service.serviceStart('active');
-    container = await docker.getContainer(containerNameActive);
-    assert.equal(container.description.State.Running, true, 'check if active service container was started correctly');
-  
-    container = await docker.getContainer(containerNamePassive);
-    assert.equal(container, false, 'check if passive service container was shutdown');
-
-    await orchestrator.service.serviceCleanUp();
   });
 
   it('Test if no one is alive the service remains is passive mode', async function () {
@@ -525,6 +541,46 @@ describe('Orchestrator test', function() {
     assert.equal(status, true, 'check if give up leadership transaction was executed');
     await orchestrator.service.serviceCleanUp();
 
+    orchestrator.heartbeats = saveHeartbeats;
+    orchestrator.mnemonic = saveMnemonic;
+  });
+
+  it('Test if leadership take transaction was executed and orchestrator must start active service but really leadership was no taken on chain', async function () {
+    await orchestrator.service.serviceStart('passive');
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+  
+    const isLeadedGroupFalse = await chain.isLeadedGroup(1);
+    assert.equal(isLeadedGroupFalse, false, 'check if the group is not leaded');
+  
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+  
+    const saveHeartbeats = orchestrator.heartbeats;
+    const saveMnemonic = orchestrator.mnemonic;
+
+    orchestrator.heartbeats = heartbeats;
+    orchestrator.mnemonic = mnemonic1;
+
+    const keys1 = await getKeysFromSeed(mnemonic1);
+
+    // We will simulate leadershipManagement function
+    const saveLeadershipManagement = orchestrator.leadershipManagement;
+    orchestrator.leadershipManagement = async () => true;
+
+    await orchestrator.orchestrateService();
+
+    const isLeadedGroupTrue = await chain.isLeadedGroup(1);
+    assert.equal(isLeadedGroupTrue, false, 'check if the group remains not leaded');
+  
+    const containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+    const container = await docker.getContainer(containerName);
+    assert.equal(container, false, 'check if active service node was not started');
+  
+    console.log('Cleanup...');
+    await orchestrator.service.serviceCleanUp();
+
+    orchestrator.leadershipManagement = saveLeadershipManagement;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });

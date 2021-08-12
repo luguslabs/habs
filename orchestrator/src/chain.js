@@ -214,8 +214,8 @@ class Chain {
   // If node state permits to send transactions
   async canSendTransactions () {
     // Check if connected to chain
-    if(!this.isConnected()) {
-      debug('canSendTransactions', `Node is not connected to archipel chain.`);
+    if (!this.isConnected()) {
+      debug('canSendTransactions', 'Node is not connected to archipel chain.');
       return false;
     }
 
@@ -341,7 +341,7 @@ class Chain {
 
   // Disconnect from chain
   async disconnect () {
-    try{
+    try {
       await this.api.disconnect();
       return true;
     } catch (error) {

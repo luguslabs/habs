@@ -125,7 +125,7 @@ class Polkadot {
     }
   }
 
-/*   // TODO: Check if session keys were successfully set
+  /*   // TODO: Check if session keys were successfully set
   async checkSessionKeyOnNode (containerName, sessionKey) {
     try {
       debug('checkSessionKeyOnNode', `Checking Session Key validity on node for session key value : ${sessionKey}`);
@@ -247,7 +247,7 @@ class Polkadot {
       // If no return was triggered till now considering that service is ready
       return true;
     } catch (error) {
-      debug('isServiceReadyToStart', error)
+      debug('isServiceReadyToStart', error);
       return false;
     }
   }
@@ -285,7 +285,7 @@ class Polkadot {
     // If polkadotNodeKeyFile variable is set
     // And service directory exists use node key file
     if (!isEmptyString(this.config.polkadotNodeKeyFile)) {
-      this.copyPolkadotNodeKeyFile('/config','/polkadot/keys');
+      this.copyPolkadotNodeKeyFile('/config', '/polkadot/keys');
       this.commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + this.config.polkadotNodeKeyFile);
     }
 
@@ -418,9 +418,9 @@ class Polkadot {
     // Start service in active mode
     if (mode === 'active') {
       // TODO: Avoid name change for 1000 validator program check on KUSAMA network
-      //if (!isEmptyString(this.config.polkadotAdditionalOptions) && this.config.polkadotAdditionalOptions.includes('kusama')) {
+      // if (!isEmptyString(this.config.polkadotAdditionalOptions) && this.config.polkadotAdditionalOptions.includes('kusama')) {
       //  this.name = this.config.polkadotName.slice(0, -2);
-      //}
+      // }
 
       // Force validator name
       if (!isEmptyString(this.config.polkadotValidatorName)) {
@@ -502,7 +502,7 @@ class Polkadot {
 
     // Create toDir directory
     const options = {
-      mode: 0o2755,
+      mode: 0o2755
     };
     fs.ensureDirSync(toDir, options);
 
@@ -512,8 +512,8 @@ class Polkadot {
 
     // Fix permissions
     // TODO: Test cause seems not to work
-    //fs.chownSync(toDir, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
-    //fs.chownSync(`${toDir}/${this.config.polkadotNodeKeyFile}`, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
+    // fs.chownSync(toDir, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
+    // fs.chownSync(`${toDir}/${this.config.polkadotNodeKeyFile}`, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
   }
 }
 

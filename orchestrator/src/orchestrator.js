@@ -39,12 +39,12 @@ class Orchestrator {
     // Starting service in default passive mode
     console.log('Starting service in passive mode...');
     const serviceStart = await this.service.serviceStart('passive');
-    if(!serviceStart) {
+    if (!serviceStart) {
       throw Error('Unable to start service in passive mode. Please check your configuration and docker daemon.');
     }
   }
 
-  // If leadership is forced somewhere we will take leadership on chain and launch service in active mode
+  // If active service mode is forced somewhere we will take leadership on chain and launch service in active mode
   async forceActive () {
     console.log('Checking leadership on chain...');
     const key = await getKeysFromSeed(this.mnemonic);
