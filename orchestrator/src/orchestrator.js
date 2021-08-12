@@ -40,8 +40,39 @@ class Orchestrator {
     console.log('Starting service in passive mode...');
     const serviceStart = await this.service.serviceStart('passive');
     if(!serviceStart) {
-      throw Error('Unable to start service in passive mode. PlbecomeLeaderease check your configuration and docker daemon.');
+      throw Error('Unable to start service in passive mode. Please check your configuration and docker daemon.');
     }
+  }
+
+  // If leadership is forced somewhere we will take leadership on chain and launch service in active mode
+  async forceActive () {
+    console.log('Checking leadership on chain...');
+    const key = await getKeysFromSeed(this.mnemonic);
+    const nodeKey = key.address;
+    let currentLeader = await this.chain.getLeader(this.group);
+
+    // If node is already leader on chain
+    if (currentLeader.toString() === nodeKey) {
+      console.log('Current node is leader so starting service in active mode...');
+      await this.service.serviceStart('active');
+      return true;
+    }
+
+    // Trying to take leadership
+    const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
+    currentLeader = isLeadedGroup ? currentLeader : nodeKey;
+    const becomeLeaderResult = await this.becomeLeader(currentLeader);
+    if (becomeLeaderResult) {
+      console.log('Leadership was taken successfully...');
+      // Checking current leader and starting in active mode
+      currentLeader = await this.chain.getLeader(this.group);
+      if (currentLeader.toString() === nodeKey) {
+        await this.service.serviceStart('active');
+        return true;
+      }
+    }
+    console.log('Can\'t launch service in active mode cause the leadership on chain was not taken...');
+    return false;
   }
 
   // Orchestrate service
@@ -70,29 +101,11 @@ class Orchestrator {
 
     // If service mode is active we will take the leadership and start service in active mode
     if (this.serviceMode === 'active') {
-      console.log('serviceMode is forced to active. Trying to take leadership on chain...');
-      const key = await getKeysFromSeed(this.mnemonic);
-      const nodeKey = key.address;
-      let currentLeader = await this.chain.getLeader(this.group);
-
-      if (currentLeader.toString() === nodeKey) {
-        console.log('Current node is leader so starting service in active mode...');
-        await this.service.serviceStart('active');
-        return;
-      }
-
-      // Trying to take leadership
-      const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
-      currentLeader = isLeadedGroup ? currentLeader : nodeKey;
-      const becomeLeaderResult = await this.becomeLeader(currentLeader);
-      if (becomeLeaderResult) {
-        console.log('Leadership was successfully taken so starting service in active mode...');
-        await this.service.serviceStart('active');
-        return;
-      }
-      console.log('Can\'t launch service in active mode cause the leadership on chain was not taken...');
+      console.log('serviceMode is forced to active...');
+      await this.forceActive();
       return;
     }
+
     throw Error('Wrong service mode ' + this.serviceMode + '...');
   }
 
@@ -163,7 +176,6 @@ class Orchestrator {
       console.log('All checks passed and current node is leader. Launching service in active mode...');
       await this.service.serviceStart('active');
     }
-
   }
 
   // Take leader place

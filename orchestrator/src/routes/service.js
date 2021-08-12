@@ -14,7 +14,11 @@ const checkRequestFields = (req, res, next) => {
 // Starting service in a specific mode
 const serviceStart = async (orchestrator, mode) => {
   console.log(`[API] Starting service in ${mode} mode...`);
-  await orchestrator.service.serviceStart(mode);
+  if (mode === 'active') {
+    await orchestrator.forceActive();
+  } else {
+    await orchestrator.service.serviceStart('passive');
+  }
 };
 
 // Stopping service in any mode
