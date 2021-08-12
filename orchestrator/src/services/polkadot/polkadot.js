@@ -75,12 +75,13 @@ class Polkadot {
 
     // Checking command result
     if (!result.includes('"result":null')) {
-      console.log(`Can't add key. ${type} - ${result}. Will retry the next time...`);
-      return false;
+      console.log(`Can't add key. ${type} - ${publicKey}. Will retry the next time...`);
+    } else {
+      console.log(`The ${type} - ${publicKey} key was successfully added to service keystore.`);
     }
 
     // Check if key is present in containers file system
-    const keyAdded = await this.checkKeyAdded(mnemonic, crypto, containerName);
+    const keyAdded = await this.checkKeyAdded(containerName, publicKey, type);
     if (!keyAdded) {
       console.log(`Key (${type} - ${publicKey}) can not be found in container. Will retry to add the next time...`);
       return false;
@@ -88,10 +89,50 @@ class Polkadot {
 
     // Add key into imported key list
     this.importedKeys.push(publicKey);
-
-    console.log(`The ${publicKey} key was successfully added to service keystore.`);
     return true;
   }
+
+  // Check if a key was successfully added
+  async checkKeyAdded (containerName, key, keyType) {
+      // Constructing command to check a key
+      const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+      `{
+        "jsonrpc":"2.0",
+        "id":1,
+        "method":"author_hasKey",
+        "params": [
+          "${key}",
+          "${keyType}"
+        ]
+      }`];
+
+      // Executing command in docker container
+      const result = await this.docker.dockerExecute(containerName, command);
+      debug('checkKeyAdded', `HasKey command result: "${result}"`);
+
+      return result.includes('true');
+  }
+
+  // Check if session keys were successfully set
+  async checkSessionKeysOnNode (containerName, sessionKey) {
+      debug('checkSessionKeyOnNode', `Checking session keys on node: ${sessionKey}`);
+      // Constructing command to check session key
+      const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+      `{
+        "jsonrpc":"2.0",
+        "id":1,
+        "method":"author_hasSessionKeys",
+        "params": [
+          "${sessionKey}"
+        ]
+      }`];
+
+      // Executing command to check session keys
+      const result = await this.docker.dockerExecute(containerName, command);
+      debug('checkSessionKeyOnNode', `Author_hasSessionKeys result: "${result}"`);
+
+      return result.includes('true');
+  } 
 
   // Import wallets to polkadot keystore
   async polkadotKeysImport (containerName) {
@@ -114,65 +155,11 @@ class Polkadot {
       await this.importKey(containerName, this.config.polkadotKeyAudi, 'sr25519', 'audi');
 
       return true;
-      // TODO: See when this check must be activated
-      // if (this.config.polkadotSessionKeyToCheck) {
-      //  await this.checkSessionKeyOnNode(containerName, this.config.polkadotSessionKeyToCheck);
-      // }
     } catch (error) {
       debug('polkadotKeysImport', error);
       console.error('Error: Can\'t add keys. We will retry the next time.');
       return false;
     }
-  }
-
-  /*   // TODO: Check if session keys were successfully set
-  async checkSessionKeyOnNode (containerName, sessionKey) {
-    try {
-      debug('checkSessionKeyOnNode', `Checking Session Key validity on node for session key value : ${sessionKey}`);
-      // Constructing command check session key
-      const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-      `{
-        "jsonrpc":"2.0",
-        "id":1,
-        "method":"author_hasSessionKeys",
-        "params": [
-          "${sessionKey}"
-        ]
-      }`];
-
-      // Importing key by executing command in docker container
-      const result = await this.docker.dockerExecute(containerName, command);
-      debug('checkSessionKeyOnNode', `Command hasSessionKeys result: "${result}"`);
-
-      return result;
-    } catch (error) {
-      debug('checkSessionKeyOnNode', error);
-      console.error('Error: Can\'t check session key');
-      console.error(error);
-      return false;
-    }
-  } */
-
-  // Check if a key file is present in container file system
-  async checkKeyAdded (mnemonic, crypto, containerName) {
-    const keys = await getKeysFromSeed(mnemonic, crypto);
-    const publicKey = u8aToHex(keys.publicKey);
-
-    // Construct command to execute
-    const command = [
-      'find',
-      this.config.databasePath,
-      '-name',
-      `*${publicKey.substring(2)}`
-    ];
-
-    debug('checkKeyAdded', `Command executed: "${command}"`);
-
-    // Call find command in container
-    const result = await this.docker.dockerExecute(containerName, command);
-    debug('checkKeyAdded', `Command find key result: "${result}"`);
-
-    return result.length !== 0;
   }
 
   // Check if polkadot node is ready to operate

@@ -4,6 +4,7 @@ const os = require('os');
 const fs = require('fs');
 const { Docker } = require('../src/docker');
 const { Polkadot } = require('../src/services/polkadot/polkadot');
+const { getKeysFromSeed } = require('../src/utils');
 
 // Variables
 let polkadot;
@@ -59,11 +60,11 @@ describe('Polkadot test', function() {
         polkadot.config.polkadotRpcPort = savePolkadotRpcPort;
 
         // Test if check key added command fails
-        const saveDatabasePath = polkadot.config.databasePath;
-        polkadot.config.databasePath = '/toto';
+        const saveCheckKeyAdded = polkadot.checkKeyAdded;
+        polkadot.checkKeyAdded = async () => false;
         importKey = await polkadot.importKey(containerName, 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud', 'ed25519', 'gran');
         assert.equal(importKey, false, 'check if check command fails the function returns false');
-        polkadot.config.databasePath = saveDatabasePath;
+        polkadot.checkKeyAdded = saveCheckKeyAdded;
 
         // Finally check successfull add
         importKey = await polkadot.importKey(containerName, 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud', 'ed25519', 'gran');
@@ -82,6 +83,44 @@ describe('Polkadot test', function() {
         // Trying to relaunch all processus of key addition
         const importAllKeys = await polkadot.polkadotKeysImport(containerName);
         assert.equal(importAllKeys, false, 'check if keys import returns false cause there is more than 6 keys already in the keystore');
+
+        polkadot.importedKeys = [];
+        await polkadot.cleanUp();
+    });
+
+    it('Test checkKeyAdded function', async () => {
+        await polkadot.start('passive');
+    
+        // Test imported keys
+        let mustBeImportedKeys = [
+            '0xa588f6cd3f7a970a9ebf2b5a7c10dc4e5c8cd3b5fc5dbd29955538d8d2b045d8',
+            '0x8ee8898041d849ac9e8d9967a98555f54f7664376c5df55e1429f0d8545d6002',
+            '0xe86d86b9e0f53ded99ac69a92cd66c2ccc224b63ec278afa1c6432619a764c2a',
+            '0xf8e2f01f36176af753773aaf83685858b7a5314108ab5283601f73dc8c0b726a',
+            '0xe4b3843690cc86b6583c44817044a4dda2dfa82bc1b26801fbef33be011e8364',
+            '0x9ad38069449ccbe42ad74dc8db390b4fc1adce5f1e8e59504dfee5ae6eb8a20e'
+        ];
+        assert.equal(JSON.stringify(polkadot.importedKeys), JSON.stringify(mustBeImportedKeys), 'check if keys where imported correctly');
+    
+        let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+    
+        let result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[0], 'gran');
+        assert.equal(result, true, 'Check if gran key was added correctly');
+
+        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[1], 'babe');
+        assert.equal(result, true, 'Check if babe key was added correctly');
+
+        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[2], 'imon');
+        assert.equal(result, true, 'Check if imon key was added correctly');
+
+        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[3], 'para');
+        assert.equal(result, true, 'Check if para key was added correctly');
+
+        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[4], 'asgn');
+        assert.equal(result, true, 'Check if asgn key was added correctly');
+
+        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[5], 'audi');
+        assert.equal(result, true, 'Check if audi key was added correctly');
 
         polkadot.importedKeys = [];
         await polkadot.cleanUp();
