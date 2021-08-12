@@ -196,7 +196,7 @@ describe('Orchestrator test', function() {
             blockNumber: '0x00000001'
           }
         ],
-        "sessionKeysString":"",
+        "sessionKeysString":undefined,
         "checkSessionKeysOnNode":false,
         "launchedContainer":"none"
     };
