@@ -29,7 +29,7 @@ class Orchestrator {
     this.heartbeatSendEnabled = true;
     this.heartbeatSendEnabledAdmin = config.heartbeatEnabled;
 
-    // Service not ready and node is in active mode
+    // If service is not ready and is in active node counters
     this.noReadyCount = 0;
     this.noReadyThreshold = 30; // ~ 300 seconds
   }
@@ -311,9 +311,7 @@ class Orchestrator {
     }
 
     // Reset noReady counter
-    if (this.noReadyCount !== 0) {
-      this.noReadyCount = 0;
-    }
+    this.noReadyCount = 0;
 
     // Return isServiceReadyToStart result
     return serviceReady;

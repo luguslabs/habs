@@ -239,8 +239,8 @@ class Polkadot {
       }
 
       // Check if all keys were added to keystore
-      if (this.importedKeys.length < 6 && mode === 'active') {
-        debug('isServiceReadyToStart', 'Servie is not ready for active mode cause not all keys where added to keystore.');
+      if (this.importedKeys.length < 6) {
+        debug('isServiceReadyToStart', 'Servie is not ready for cause not all keys where added to keystore.');
         return false;
       }
 
