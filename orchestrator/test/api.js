@@ -343,7 +343,7 @@ describe('Orchestrator test', function() {
     orchestrator.orchestrationEnabled = saveOrchestrationEnabled;
   });
 
-  it('Test service start functionality', async () => {
+  it.only('Test service start functionality', async () => {
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);
@@ -352,6 +352,9 @@ describe('Orchestrator test', function() {
     containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
     container = await docker.getContainer(containerName);
     chai.assert.equal(container, false, 'check if active service container is not running');
+
+    let isLeadedGroup = await chain.isLeadedGroup(1);
+    chai.assert.equal(isLeadedGroup, false, 'check if the group is not leaded');
 
     let request = {
         mode: 'active'
@@ -366,6 +369,13 @@ describe('Orchestrator test', function() {
     containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
     container = await docker.getContainer(containerName);
     chai.assert.equal(container.description.State.Running, true, 'check if active service container is running');
+
+    isLeadedGroup = await chain.isLeadedGroup(1);
+    chai.assert.equal(isLeadedGroup, true, 'check if the group becomes leaded');
+
+    const keys1 = await getKeysFromSeed(mnemonic1);
+    const leader = await chain.getLeader(1);
+    chai.assert.equal(leader.toString(), keys1.address, 'check if leadership was correctly set');
 
     containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     container = await docker.getContainer(containerName);
@@ -389,7 +399,10 @@ describe('Orchestrator test', function() {
     container = await docker.getContainer(containerName);
     chai.assert.equal(container, false, 'check if active service container is not running');
 
-    // Remove service containers
+    // Cleaning
+    console.log('Giveup leadership to cleanup...');
+    const status = await chain.giveUpLeadership(1, mnemonic1);
+    chai.assert.equal(status, true, 'check if give up leadership transaction was executed');
     await orchestrator.service.serviceCleanUp();
   });
 

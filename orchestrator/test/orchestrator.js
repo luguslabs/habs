@@ -202,7 +202,7 @@ describe('Orchestrator test', function() {
     assert.equal(leader.toString(), keys1.address, 'check if leadership was taken');
 
     console.log('Giveup leadership to cleanup...');
-    const status= await chain.giveUpLeadership(1, mnemonic1);
+    const status = await chain.giveUpLeadership(1, mnemonic1);
     assert.equal(status, true, 'check if give up leadership transaction was executed');
     await orchestrator.service.serviceCleanUp();
 
