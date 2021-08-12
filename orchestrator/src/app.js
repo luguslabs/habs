@@ -32,7 +32,7 @@ async function main () {
     await orchestrator.bootstrapOrchestrator();
 
     // Create chain event listener
-    chain.listenEvents(heartbeats, orchestrator, orchestrator.mnemonic);
+    chain.listenEvents(heartbeats, config.mnemonic, orchestrator);
 
     // Add heartbeats every 10 seconds
     setIntervalAsync(async () => {
@@ -43,7 +43,7 @@ async function main () {
           console.log('Heartbeat send is disabled...');
           return;
         }
-        await chain.addHeartbeat(orchestrator.service.mode, orchestrator.mnemonic, orchestrator.nodeGroupId);
+        await chain.addHeartbeat(orchestrator.getServiceMode(), config.mnemonic, config.nodeGroupId);
       } catch (error) {
         console.error(error);
       }
@@ -60,7 +60,7 @@ async function main () {
     }, 10000);
 
     // Attach service cleanup to exit signals
-    catchExitSignals(orchestrator.service.serviceCleanUp.bind(orchestrator));
+    catchExitSignals(orchestrator.serviceCleanUp.bind(orchestrator));
 
     // Init api
     initApi(orchestrator);

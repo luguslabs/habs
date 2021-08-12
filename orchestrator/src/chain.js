@@ -38,7 +38,7 @@ class Chain {
   }
 
   // Listen events
-  async listenEvents (heartbeats, orchestrator, mnemonic) {
+  async listenEvents (heartbeats, mnemonic, orchestrator) {
     const keys = await getKeysFromSeed(mnemonic);
     // Subscribe to events
     await this.api.query.system.events((events) => {
@@ -49,7 +49,7 @@ class Chain {
           debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
           // If anyone other took leadership
           if (event.data[0].toString() !== keys.address.toString() && event.data[1].toString() === orchestrator.group.toString()) {
-            orchestrator.service.serviceStart('passive');
+            orchestrator.serviceStart('passive');
           }
         }
         // Add heartbeat if NewHeartbeat event was received

@@ -17,14 +17,14 @@ const serviceStart = async (orchestrator, mode) => {
   if (mode === 'active') {
     await orchestrator.forceActive();
   } else {
-    await orchestrator.service.serviceStart('passive');
+    await orchestrator.serviceStart('passive');
   }
 };
 
 // Stopping service in any mode
 const serviceStop = async orchestrator => {
   console.log('[API] Stopping and removing service container...');
-  await orchestrator.service.serviceCleanUp();
+  await orchestrator.serviceCleanUp();
 };
 
 // Check service start request fields

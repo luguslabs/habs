@@ -8,13 +8,15 @@ class Orchestrator {
     config,
     chain,
     heartbeats) {
+    // Create service instance
+    this.service = new Service(config.service);
+
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
     this.chain = chain;
 
-    // Create service instance
-    this.service = new Service(config.service);
+    this.nodeRole = config.nodeRole;
 
     this.heartbeats = heartbeats;
     this.aliveTime = config.aliveTime;
@@ -36,6 +38,11 @@ class Orchestrator {
 
   // Bootstrap service at boot
   async bootstrapOrchestrator () {
+    // If node is not operator there is nothing to bootstrap
+    if (this.nodeRole !== 'operator') {
+      console.log('Nothing to bootstrap cause non operator');
+      return;
+    }
     // Starting service in default passive mode
     console.log('Starting service in passive mode...');
     const serviceStart = await this.service.serviceStart('passive');
@@ -315,6 +322,44 @@ class Orchestrator {
 
     // Return isServiceReadyToStart result
     return serviceReady;
+  }
+
+  // Service cleanup
+  async serviceCleanUp () {
+    return await this.service.serviceCleanUp();
+  }
+
+  // Get service mode
+  getServiceMode () {
+    return this.service.mode;
+  }
+
+  // Service start
+  async serviceStart (mode) {
+    return this.service.serviceStart(mode);
+  }
+
+  // Get orchestrator info
+  async getOrchestratorInfo () {
+    return {
+      orchestratorAddress: (await getKeysFromSeed(this.mnemonic)).address,
+      archipelName: this.archipelName,
+      isConnected: this.chain.isConnected(),
+      peerId: await this.chain.getPeerId(),
+      peerNumber: await this.chain.getPeerNumber(),
+      bestNumber: await this.chain.getBestNumber(),
+      synchState: await this.chain.getSyncState(),
+      leader: await this.chain.getLeader(this.group),
+      service: this.service.serviceName,
+      orchestrationEnabled: this.orchestrationEnabled,
+      isServiceReadyToStart: await this.service.serviceReady(),
+      serviceMode: this.service.mode,
+      serviceContainer: await this.service.serviceCheck(),
+      heartbeatSendEnabledAdmin: this.heartbeatSendEnabledAdmin,
+      heartbeatSendEnabled: this.heartbeatSendEnabled,
+      heartbeats: this.heartbeats.getAllHeartbeats(),
+      ...(await this.service.getServiceInfo())
+    };
   }
 }
 

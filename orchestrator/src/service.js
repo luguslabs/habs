@@ -11,7 +11,7 @@ class Service {
         throw Error(`Service ${serviceName} is not supported yet.`);
     }
     this.serviceName = serviceName;
-    this.mode = 'passive';
+    this.mode = 'none';
   }
 
   // Start service

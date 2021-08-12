@@ -221,7 +221,7 @@ describe('Archipel chain test', function(){
 
     const orchestrator = { mnemonic: mnemonic1, serviceStart: function () {}, group: 42 };
 
-    chain.listenEvents(heartbeats, orchestrator, mnemonic1);
+    chain.listenEvents(heartbeats, mnemonic1, orchestrator);
 
     const result1 = await chain.addHeartbeat('active', mnemonic1, '42');
     assert.equal(result1, true, 'check if add heartbeat transaction was executed');
@@ -264,7 +264,7 @@ describe('Archipel chain test', function(){
     }
     const orchestrator = { mnemonic: mnemonic1, service: service, group: 43 };
 
-    chain.listenEvents(heartbeats, orchestrator, mnemonic1);
+    chain.listenEvents(heartbeats, mnemonic1, orchestrator);
 
     const status2 = await chain.setLeader(keys.address, 43, mnemonic2);
     assert.equal(status2, true, 'check if leader was correctly changed');
@@ -299,7 +299,7 @@ describe('Archipel chain test', function(){
     }
     const orchestrator = { mnemonic: mnemonic1, service: service, group: 43 };
 
-    chain.listenEvents(heartbeats, orchestrator, mnemonic1);
+    chain.listenEvents(heartbeats, mnemonic1, orchestrator);
 
     const status2 = await chain.setLeader(keys2.address, 44, mnemonic2);
     assert.equal(status2, true, 'check if leader was correctly changed');

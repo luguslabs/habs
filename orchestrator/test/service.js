@@ -36,7 +36,7 @@ describe('Service test', function() {
 
     it('Test service initialization', async function () {
         assert.equal(service.serviceName, 'polkadot', 'Check if service name was set correctly');
-        assert.equal(service.mode, 'passive', 'Check if default mode was set correctly');
+        assert.equal(service.mode, 'none', 'Check if default mode was set correctly');
         assert.equal(service.serviceInstance instanceof Polkadot, true, 'Check if polkadot instance was created and set correctly');
     });
 
