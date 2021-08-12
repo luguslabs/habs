@@ -343,7 +343,7 @@ describe('Orchestrator test', function() {
     orchestrator.orchestrationEnabled = saveOrchestrationEnabled;
   });
 
-  it.only('Test service start functionality', async () => {
+  it('Test service start functionality', async () => {
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
     let container = await docker.getContainer(containerName);

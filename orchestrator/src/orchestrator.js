@@ -59,6 +59,7 @@ class Orchestrator {
     }
 
     // Trying to take leadership
+    console.log('Taking leadership...');
     const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
     currentLeader = isLeadedGroup ? currentLeader : nodeKey;
     const becomeLeaderResult = await this.becomeLeader(currentLeader);
