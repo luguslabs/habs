@@ -30,6 +30,10 @@ describe('Service test', function() {
         service = new Service('polkadot');
     });
 
+    after(async function() {
+        service.serviceCleanUp();
+    });
+
     it('Test service initialization', async function () {
         assert.equal(service.serviceName, 'polkadot', 'Check if service name was set correctly');
         assert.equal(service.mode, 'passive', 'Check if default mode was set correctly');
@@ -90,8 +94,12 @@ describe('Service test', function() {
         }
     });
 
-    after(async function() {
-        service.serviceCleanUp();
-    });
+    it('Test get service info', async () => {
+        const saveServiceInstanceGetInfo = service.serviceInstance.getInfo;
+        service.serviceInstance.getInfo = async () => { return { test: 'test' } };
 
+        assert.equal(JSON.stringify(await service.getServiceInfo()), JSON.stringify({ test: 'test' }), 'Check if service info returns a good result');
+
+        service.serviceInstance.getInfo = saveServiceInstanceGetInfo;
+    });
 });

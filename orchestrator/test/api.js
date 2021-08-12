@@ -195,7 +195,10 @@ describe('Orchestrator test', function() {
             nodeStatus: 2,
             blockNumber: '0x00000001'
           }
-        ]
+        ],
+        "sessionKeysString":"",
+        "checkSessionKeysOnNode":false,
+        "launchedContainer":"none"
     };
     chai.assert.equal(JSON.stringify(result.body), JSON.stringify(bodyMustBe), 'Check if API returns correct information in correct format');  
     chain.getBestNumber = saveChainBestNumber;

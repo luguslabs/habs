@@ -25,7 +25,8 @@ const getOrchestratorInfo = async orchestrator => {
     serviceContainer: await orchestrator.service.serviceCheck(),
     heartbeatSendEnabledAdmin: orchestrator.heartbeatSendEnabledAdmin,
     heartbeatSendEnabled: orchestrator.heartbeatSendEnabled,
-    heartbeats: orchestrator.heartbeats.getAllHeartbeats()
+    heartbeats: orchestrator.heartbeats.getAllHeartbeats(),
+    ...(await orchestrator.service.getServiceInfo())
   };
 };
 

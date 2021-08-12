@@ -20,6 +20,11 @@ class Service {
     return await this.serviceInstance.start(mode);
   }
 
+  // Cleanup a service
+  async serviceCleanUp () {
+    return await this.serviceInstance.cleanUp();
+  }
+
   // Check if service is ready
   async serviceReady () {
     return await this.serviceInstance.isServiceReadyToStart(this.mode);
@@ -30,9 +35,9 @@ class Service {
     return await this.serviceInstance.checkLaunchedContainer();
   }
 
-  // Cleanup a service
-  async serviceCleanUp () {
-    return await this.serviceInstance.cleanUp();
+  // Get service instance information
+  async getServiceInfo () {
+    return await this.serviceInstance.getInfo();
   }
 }
 

@@ -94,8 +94,8 @@ class Polkadot {
 
   // Check if a key was successfully added
   async checkKeyAdded (containerName, key, keyType) {
-      // Constructing command to check a key
-      const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+    // Constructing command to check a key
+    const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
       `{
         "jsonrpc":"2.0",
         "id":1,
@@ -106,16 +106,36 @@ class Polkadot {
         ]
       }`];
 
-      // Executing command in docker container
-      const result = await this.docker.dockerExecute(containerName, command);
-      debug('checkKeyAdded', `HasKey command result: "${result}"`);
+    // Executing command in docker container
+    const result = await this.docker.dockerExecute(containerName, command);
+    debug('checkKeyAdded', `HasKey command result: "${result}"`);
 
-      return result.includes('true');
+    return result.includes('true');
+  }
+
+  // Expose service info use in API
+  async getInfo () {
+    const mode = await this.checkLaunchedContainer();
+    return {
+      sessionKeysString: this.config.polkadotSessionKeyToCheck,
+      checkSessionKeysOnNode: await this.checkSessionKeysOnNode(mode),
+      launchedContainer: mode
+    };
   }
 
   // Check if session keys were successfully set
-  async checkSessionKeysOnNode (containerName, sessionKey) {
-      debug('checkSessionKeyOnNode', `Checking session keys on node: ${sessionKey}`);
+  async checkSessionKeysOnNode (mode) {
+    try {
+      // Which container we must check
+      const containerName = mode === 'active' ? this.config.polkadotPrefix + 'polkadot-validator' : this.config.polkadotPrefix + 'polkadot-sync';
+
+      // Check if session key was set
+      if (!this.config.polkadotSessionKeyToCheck) {
+        console.log('polkadotSessionKeyToCheck must be set to use checkSessionKeysOnNode functionality');
+        return false;
+      }
+
+      debug('checkSessionKeyOnNode', `Checking session keys on node: ${this.config.polkadotSessionKeyToCheck}`);
       // Constructing command to check session key
       const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
       `{
@@ -123,7 +143,7 @@ class Polkadot {
         "id":1,
         "method":"author_hasSessionKeys",
         "params": [
-          "${sessionKey}"
+          "${this.config.polkadotSessionKeyToCheck}"
         ]
       }`];
 
@@ -132,7 +152,11 @@ class Polkadot {
       debug('checkSessionKeyOnNode', `Author_hasSessionKeys result: "${result}"`);
 
       return result.includes('true');
-  } 
+    } catch (error) {
+      debug('checkSessionKeysOnNode', error);
+      return false;
+    }
+  }
 
   // Import wallets to polkadot keystore
   async polkadotKeysImport (containerName) {

@@ -33,6 +33,10 @@ describe('Polkadot test', function() {
         docker = new Docker();
     });
 
+    after(async () => {
+        await polkadot.cleanUp();
+    });
+
     it('Test import keys functionality', async () => {
         await polkadot.start('active');
 
@@ -84,6 +88,52 @@ describe('Polkadot test', function() {
         const importAllKeys = await polkadot.polkadotKeysImport(containerName);
         assert.equal(importAllKeys, false, 'check if keys import returns false cause there is more than 6 keys already in the keystore');
 
+        polkadot.importedKeys = [];
+        await polkadot.cleanUp();
+    });
+
+    it('Test checkSessionKeysOnNode function', async () => {
+        await polkadot.start('active');
+
+        // Test imported keys
+        let mustBeImportedKeys = [
+            '0xa588f6cd3f7a970a9ebf2b5a7c10dc4e5c8cd3b5fc5dbd29955538d8d2b045d8',
+            '0x8ee8898041d849ac9e8d9967a98555f54f7664376c5df55e1429f0d8545d6002',
+            '0xe86d86b9e0f53ded99ac69a92cd66c2ccc224b63ec278afa1c6432619a764c2a',
+            '0xf8e2f01f36176af753773aaf83685858b7a5314108ab5283601f73dc8c0b726a',
+            '0xe4b3843690cc86b6583c44817044a4dda2dfa82bc1b26801fbef33be011e8364',
+            '0x9ad38069449ccbe42ad74dc8db390b4fc1adce5f1e8e59504dfee5ae6eb8a20e'
+        ];
+        assert.equal(JSON.stringify(polkadot.importedKeys), JSON.stringify(mustBeImportedKeys), 'check if keys where imported correctly');
+
+        let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+
+        const savePolkadotSessionKeyToCheck = polkadot.config.polkadotSessionKeyToCheck;
+
+        polkadot.config.polkadotSessionKeyToCheck = mustBeImportedKeys[0];
+        let result = await polkadot.checkSessionKeysOnNode(containerName);
+        assert.equal(result, false, 'check if session keys on node check fails with bad key');
+
+        delete polkadot.config.polkadotSessionKeyToCheck;
+        result = await polkadot.checkSessionKeysOnNode(containerName);
+        assert.equal(result, false, 'check if session keys on node check fails with empty session key to check');
+
+        polkadot.config.polkadotSessionKeyToCheck = mustBeImportedKeys.reduce((string, element) => `${string}${element.substring(2)}`, '0x');
+        console.log(polkadot.config.polkadotSessionKeyToCheck);
+
+        // TODO: MAKE THE TRUE TEST WORK
+        //result = await polkadot.checkSessionKeysOnNode(containerName);
+        //assert.equal(result, true, 'check if session keys on node check returns true');
+
+        // Make the same check for passive polkadot
+        await polkadot.start('passive');
+        containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+
+        delete polkadot.config.polkadotSessionKeyToCheck;
+        result = await polkadot.checkSessionKeysOnNode(containerName);
+        assert.equal(result, false, 'check if session keys on node check fails with empty session key to check');
+
+        polkadot.config.polkadotSessionKeyToCheck = savePolkadotSessionKeyToCheck;
         polkadot.importedKeys = [];
         await polkadot.cleanUp();
     });
@@ -762,7 +812,23 @@ describe('Polkadot test', function() {
         }
     });
 
-    after(async () => {
+    it('Test get info function', async () => {
+
+        const savePolkadotSessionKeyToCheck = polkadot.config.polkadotSessionKeyToCheck;
+
+        delete polkadot.config.polkadotSessionKeyToCheck;
+
+        let startResult = await polkadot.start('active');
+        assert.equal(startResult, true, 'Check if polkadot validator was started');
+
+        let result = await polkadot.getInfo();
+
+        assert.equal(result.sessionKeysString, undefined, 'Check if sessionKeysString was set correctly');
+        assert.equal(result.checkSessionKeysOnNode, false, 'Check if checkSessionKeysOnNode was set correctly');
+        assert.equal(result.launchedContainer, 'active', 'Check if launchedContainer was set correctly');
+
+        polkadot.config.polkadotSessionKeyToCheck = savePolkadotSessionKeyToCheck;
+
         await polkadot.cleanUp();
     });
 });
