@@ -40,7 +40,7 @@ class Orchestrator {
     console.log('Starting service in passive mode...');
     const serviceStart = await this.service.serviceStart('passive');
     if(!serviceStart) {
-      throw Error('Unable to start service in passive mode. Please check your configuration and docker daemon.');
+      throw Error('Unable to start service in passive mode. PlbecomeLeaderease check your configuration and docker daemon.');
     }
   }
 
@@ -155,9 +155,15 @@ class Orchestrator {
       return;
     }
 
-    // If all checks passed we can start service in active mode
-    console.log('All checks passed. Launching service in active mode...');
-    await this.service.serviceStart('active');
+    // We will recheck if after all checks the current node is leader
+    // If so we will launch service in active mode
+    const currentLeader = await this.chain.getLeader(this.group);
+
+    if (currentLeader.toString() === nodeKey) {
+      console.log('All checks passed and current node is leader. Launching service in active mode...');
+      await this.service.serviceStart('active');
+    }
+
   }
 
   // Take leader place

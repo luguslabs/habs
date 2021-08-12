@@ -72,7 +72,7 @@ describe('Archipel chain test', function(){
     assert.isAbove(parseInt(bestNumber), 0, 'check if blocks are created');
   });
 
-  it('Testing disconnect function', async () => {
+  it('Test disconnect function', async () => {
     let isConnected = chain.isConnected();
     assert.equal(isConnected, true, 'Check if connected to chain');
 
@@ -90,6 +90,39 @@ describe('Archipel chain test', function(){
 
     // Reconnecting to chain
     await chain.connect();
+  });
+
+  it('Test can send transaction function', async () => {
+    const saveGetPeerNumber = chain.getPeerNumber;
+    const saveGetSyncState = chain.getSyncState;
+
+    chain.getPeerNumber = async () => 0;
+
+    chain.getSyncState = async () => true;
+
+    let result = await chain.canSendTransactions();
+    assert.equal(result, false, 'Check if chain can send transactions while synching');
+
+    chain.getPeerNumber = async () => 1;
+
+    result = await chain.canSendTransactions();
+    assert.equal(result, false, 'Check if chain can send transactions if peers number is 1 and chain is synching');
+
+    chain.getSyncState = async () => false;
+
+    result = await chain.canSendTransactions();
+    assert.equal(result, true, 'Check if chain can send transactions if peers number is != 0 and chain is not synching');
+
+    // Disconnecting from chain and waiting for full disconnect
+    await chain.disconnect();
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    result = await chain.canSendTransactions();
+    assert.equal(result, false, 'Check if chain can send transactions if not connected to chain');
+
+    // Reconnecting to chain and restoring functions
+    await chain.connect();
+    chain.getPeerNumber = saveGetPeerNumber;
+    chain.getSyncState = saveGetSyncState;
   });
 
   it('Test heartbeat addition', async function() {
@@ -136,7 +169,6 @@ describe('Archipel chain test', function(){
     const statusGiveUp = await chain.giveUpLeadership(42, mnemonic1);
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
   });
-
 
   it('Test leadership giveup', async function() {
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -245,7 +277,6 @@ describe('Archipel chain test', function(){
     const statusGiveUp = await chain.giveUpLeadership(43, mnemonic2);
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
   });
-
 
   it('Test event listener at leader if other node in other group took leadership', async function (){
     const keys = await getKeysFromSeed(mnemonic1);
@@ -513,5 +544,4 @@ describe('Archipel chain test', function(){
 
     chain.api.tx.archipelModule.giveUpLeadership = saveGiveUpLeadership;
   });
-
 });

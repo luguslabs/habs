@@ -213,6 +213,12 @@ class Chain {
 
   // If node state permits to send transactions
   async canSendTransactions () {
+    // Check if connected to chain
+    if(!this.isConnected()) {
+      debug('canSendTransactions', `Node is not connected to archipel chain.`);
+      return false;
+    }
+
     // Get peers number
     let peersNumber = await this.getPeerNumber();
     debug('canSendTransactions', `Node has ${peersNumber} peers.`);
@@ -221,6 +227,7 @@ class Chain {
     let syncState = await this.getSyncState();
     debug('canSendTransactions', `Node is sync: ${syncState}`);
 
+    // We will check for peers number and sync state twice with 5 second interval
     if (peersNumber === 0 || syncState === true) {
       console.log(`No peers (${peersNumber}) or wrong sync state (${syncState}). We will retry in 5 seconds...`);
       debug('canSendTransactions', `Peers number is ${peersNumber} and Sync State is ${syncState}. We will retry in 5 seconds.`);
