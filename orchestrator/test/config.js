@@ -11,7 +11,7 @@ const testTimeout = 60000;
 
 // Env variables
 
-describe('Config test', function(){
+describe('Config test', function () {
     this.timeout(testTimeout);
 
     after(() => {
@@ -31,7 +31,7 @@ describe('Config test', function(){
         delete process.env.ARCHIPEL_ORCHESTRATION_ENABLE;
     });
   
-    it('Test config generation from minimal env variables', async function () {
+    it('Test config generation from minimal env variables', async () => {
         // Set env variables
         process.env.MNEMONIC = 'toto titi toto';
         process.env.NODES_WALLETS = '0x1,0x2,0x3';
@@ -57,7 +57,7 @@ describe('Config test', function(){
         assert.equal(JSON.stringify(generatedConfig), JSON.stringify(config), 'Check if configuration was generated correctly');
     });
 
-    it('Test config generation from full env variables', async function () {
+    it('Test config generation from full env variables', async () => {
         // Set env variables
         process.env.NODE_WS = 'ws://127.0.0.8/';
         process.env.ALIVE_TIME = '50';
@@ -91,7 +91,7 @@ describe('Config test', function(){
 
         assert.equal(JSON.stringify(generatedConfig), JSON.stringify(config), 'Check if configuration was generated correctly');
     });
-    it('Test config generation with wrong alive time and nodeGroupId', async function () {
+    it('Test config generation with wrong alive time and nodeGroupId', async () => {
         // Set env variables
         process.env.MNEMONIC = 'toto titi toto';
         process.env.NODES_WALLETS = '0x1,0x2,0x3';
@@ -112,7 +112,7 @@ describe('Config test', function(){
             assert.equal(error.toString(), 'Error: Node group id must be an integer', 'Check error trigger if node group id is not an integer');
         }
     });
-    it('Test hearbeat send and orchestration enabled if any value except false', async function () {
+    it('Test hearbeat send and orchestration enabled if any value except false', async () => {
         // Set env variables
         process.env.NODE_WS = 'ws://127.0.0.8/';
         process.env.ALIVE_TIME = '50';
@@ -145,7 +145,7 @@ describe('Config test', function(){
         assert.equal(JSON.stringify(generatedConfig), JSON.stringify(config), 'Check if configuration was generated correctly');
     });
 
-    it('Test load operator config from configuration file', async function () {
+    it('Test load operator config from configuration file', async () => {
         // Set env variables
         process.env.CONFIG_FILE = 'true';
         process.env.CONFIG_FILE_PATH = './test/mock-config.json';
@@ -172,7 +172,7 @@ describe('Config test', function(){
         assert.equal(JSON.stringify(generatedConfig), JSON.stringify(config), 'Check if configuration was generated correctly');
     });
 
-    it('Test wrong node config from configuration file', async function () {
+    it('Test wrong node config from configuration file', async () => {
         // Set env variables
         process.env.CONFIG_FILE = 'true';
         process.env.CONFIG_FILE_PATH = './test/mock-config.json';
@@ -186,7 +186,7 @@ describe('Config test', function(){
 
     });
 
-    it('Test if node id is not an integer', async function () {
+    it('Test if node id is not an integer', async () => {
         // Set env variables
         process.env.CONFIG_FILE = 'true';
         process.env.CONFIG_FILE_PATH = './test/mock-config.json';
@@ -199,7 +199,7 @@ describe('Config test', function(){
         }
     });
 
-    it('Test with wrong configuration file', async function () {
+    it('Test with wrong configuration file', async () => {
         // Set env variables
         process.env.CONFIG_FILE = 'true';
         process.env.CONFIG_FILE_PATH = './test/mock-config-empty.json';
@@ -211,7 +211,7 @@ describe('Config test', function(){
         }
     });
 
-    it('Test if no config file was set', async function () {
+    it('Test if no config file was set', async () => {
         // Set env variables
         process.env.CONFIG_FILE = 'true';
         delete process.env.CONFIG_FILE_PATH;

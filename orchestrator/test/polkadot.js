@@ -13,7 +13,7 @@ let docker;
 // Test configuration
 const testTimeout = 360000;
 
-describe('Polkadot test', function() {
+describe('Polkadot test', function () {
     this.timeout(testTimeout);
   
     before(async () => {

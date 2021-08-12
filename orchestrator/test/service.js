@@ -10,10 +10,10 @@ let service;
 // Test configuration
 const testTimeout = 360000;
 
-describe('Service test', function() {
+describe('Service test', function () {
     this.timeout(testTimeout);
   
-    before(async function() {
+    before(async () => {
         // Set env variables
         process.env.POLKADOT_NAME = 'validator-test';
         process.env.POLKADOT_PREFIX = 'validatortest-';
@@ -30,7 +30,7 @@ describe('Service test', function() {
         service = new Service('polkadot');
     });
 
-    after(async function() {
+    after(async () => {
         service.serviceCleanUp();
     });
 

@@ -8,7 +8,7 @@ const nodesWallets = '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm1
 const archipelName = 'test-archipel';
 const config = { nodesWallets: nodesWallets, archipelName: archipelName };
 
-describe('Heartbeats test', function(){
+describe('Heartbeats test', function () {
   this.timeout(testTimeout);
 
   it('Test heartbeats addition', async function () {
@@ -19,14 +19,14 @@ describe('Heartbeats test', function(){
     assert.equal(JSON.stringify(heartbeats.getHeartbeat(nodesWallets.split(',')[0])), JSON.stringify({ name: 'test-archipel-NODE-1', group: 42, nodeStatus:1, blockNumber: 1500 }), 'check if heartbeat was added correctly');
   });
 
-  it('Test anyone is alive with empty heartbeats', async function() {
+  it('Test anyone is alive with empty heartbeats', async () => {
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 
     assert.equal(heartbeats.anyOneAlive(nodesWallets.split(',')[0], 10, 1, 20), false, 'check if anyone is alive without adding any heartbeats');
   });
 
 
-  it('Test anyone is alive with one heartbeat from testing wallet', async function() {
+  it('Test anyone is alive with one heartbeat from testing wallet', async () => {
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 
     heartbeats.addHeartbeat(nodesWallets.split(',')[0], 42, 1, 10);
@@ -34,7 +34,7 @@ describe('Heartbeats test', function(){
     assert.equal(heartbeats.anyOneAlive(nodesWallets.split(',')[0], 10, 42, 20), false, 'check if anyone is alive with adding only heartbeat from my wallet');
   });
 
-  it('Test anyone is alive with two hearbeats from two different wallets', async function() {
+  it('Test anyone is alive with two hearbeats from two different wallets', async () => {
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 
     heartbeats.addHeartbeat(nodesWallets.split(',')[0], 42, 1, 10);
@@ -44,7 +44,7 @@ describe('Heartbeats test', function(){
     assert.equal(heartbeats.anyOneAlive(nodesWallets.split(',')[0], 10, 42, 20), false, 'check if anyone is alive if other wallet heartbeat is old');
   });
 
-  it('Test anyone is alive with heartbeat from other wallet in other group', async function() {
+  it('Test anyone is alive with heartbeat from other wallet in other group', async () => {
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 
     heartbeats.addHeartbeat(nodesWallets.split(',')[0], 42, 1, 10);

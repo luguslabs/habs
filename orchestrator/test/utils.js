@@ -23,7 +23,7 @@ const testTimeout = 60000;
 const mnemonic1 =
   'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud';
 
-describe('Utils test', function() {
+describe('Utils test', function () {
     this.timeout(testTimeout);
 
     it('Test get keys from seed', async () => {

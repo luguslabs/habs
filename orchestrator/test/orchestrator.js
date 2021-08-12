@@ -52,10 +52,10 @@ const execAsync = (cmd) =>
     });
   });
 
-describe('Orchestrator test', function() {
+describe('Orchestrator test', function () {
   this.timeout(testTimeout);
 
-  before(async function() {
+  before(async () => {
     // Set env variables
     process.env.POLKADOT_NAME = 'validator-test';
     process.env.POLKADOT_PREFIX = 'validatortest-';
@@ -95,7 +95,7 @@ describe('Orchestrator test', function() {
     orchestrator.service.serviceInstance.isServiceReadyToStart = () => true;
   });
 
-  after(async function() {
+  after(async () => {
     // Remove service containers
     await orchestrator.service.serviceCleanUp();
 
@@ -137,7 +137,7 @@ describe('Orchestrator test', function() {
     await orchestrator.service.serviceCleanUp();
   });
 
-  it('Test passive service start and cleanup', async function() {
+  it('Test passive service start and cleanup', async () => {
     // Starting passive service container
     await orchestrator.service.serviceStart('passive');
     

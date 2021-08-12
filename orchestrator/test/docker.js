@@ -14,14 +14,14 @@ const command = ['nginx-debug', '-g', 'daemon off;'];
 const testingImage = 'nginx:1.20';
 const testingVolume = 'test-volume-3';
 
-describe('Docker test', function(){
+describe('Docker test', function () {
   this.timeout(testTimeout);
-  before(async function() {
+  before(async () => {
     // Creating Docker instance
     docker = new Docker();
   });
 
-  after(async function() {
+  after(async () => {
     await docker.removeContainer(activeName);
     await docker.removeContainer(passiveName);
     await docker.removeImage(testingImage);
@@ -163,7 +163,7 @@ describe('Docker test', function(){
     await docker.removeContainer(activeName);
   });
 
-  it('Test docker image pull when starting container', async function() {
+  it('Test docker image pull when starting container', async () => {
 
     let container = await docker.getContainer(activeName);
     assert.equal(container, false, 'check if docker container doesnt exist');

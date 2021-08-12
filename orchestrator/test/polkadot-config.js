@@ -18,7 +18,7 @@ process.env.TESTING = 'true';
 // Test configuration
 const testTimeout = 360000;
 
-describe('Polkadot config test', function() {
+describe('Polkadot config test', function () {
     this.timeout(testTimeout);
 
     before(() => {

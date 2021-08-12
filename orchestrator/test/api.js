@@ -59,10 +59,10 @@ const execAsync = (cmd) =>
     });
   });
 
-describe('Orchestrator test', function() {
+describe('Orchestrator test', function () {
   this.timeout(testTimeout);
 
-  before(async function() {
+  before(async () => {
     // Set env variables
     process.env.POLKADOT_NAME = 'validator-test';
     process.env.POLKADOT_PREFIX = 'validatortest-';
@@ -107,7 +107,7 @@ describe('Orchestrator test', function() {
     server = initApiReturn.server;
   });
 
-  after(async function() {
+  after(async () => {
     // Remove service containers
     await orchestrator.service.serviceCleanUp();
 
@@ -169,7 +169,7 @@ describe('Orchestrator test', function() {
         service: 'polkadot',
         orchestrationEnabled: true,
         isServiceReadyToStart: true,
-        serviceMode: 'passive',
+        serviceMode: 'none',
         serviceContainer: 'none',
         heartbeatSendEnabledAdmin: true,
         heartbeatSendEnabled: true,
@@ -250,7 +250,6 @@ describe('Orchestrator test', function() {
     orchestrator.heartbeatSendEnabledAdmin = saveHeartbeatSendEnabledAdmin;
   });
 
-
   it('Test heartbeats enable functionality', async () => { 
     const saveHeartbeatSendEnabledAdmin = orchestrator.heartbeatSendEnabledAdmin;
     orchestrator.heartbeatSendEnabledAdmin = false;
@@ -316,7 +315,6 @@ describe('Orchestrator test', function() {
     // Remove service containers
     await orchestrator.service.serviceCleanUp();
   });
-
 
   it('Test orchestration enable functionality', async () => { 
     const saveOrchestrationEnabled = orchestrator.orchestrationEnabled;

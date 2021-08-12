@@ -24,10 +24,10 @@ const execAsync = cmd => new Promise((resolve, reject) => {
   });
 });
 
-describe('Archipel chain test', function(){
+describe('Archipel chain test', function () {
   this.timeout(testTimeout);
 
-  before(async function() {
+  before(async () => {
     // Launch test chain
     console.log('Launching test chain. Can take some time...');
     const commandToExec = 'cd ../deployer/test/chain/ && ./launch.sh';
@@ -49,7 +49,7 @@ describe('Archipel chain test', function(){
     const nodes = constructNodesList(nodesWallets, 'node1');
   });
 
-  after(async function() {
+  after(async () => {
     if (chain) {
       await chain.disconnect();
     }
@@ -59,7 +59,7 @@ describe('Archipel chain test', function(){
     await execAsync(commandToExec);
   });
 
-  it('Test if chain is working correctly', async function () {
+  it('Test if chain is working correctly', async () => {
     // Check chain connection
     chainConnected = await chain.isConnected();
     assert.equal(chainConnected, true, 'check if chain is connected');
@@ -125,7 +125,7 @@ describe('Archipel chain test', function(){
     chain.getSyncState = saveGetSyncState;
   });
 
-  it('Test heartbeat addition', async function() {
+  it('Test heartbeat addition', async () => {
     const keys = await getKeysFromSeed(mnemonic1);
     const noHeartbeatYet = await chain.getHeartbeat(keys.address.toString());
     assert.equal(parseInt(noHeartbeatYet.toString()), 0, 'check if hearbeat is empty before submission');
@@ -143,7 +143,7 @@ describe('Archipel chain test', function(){
     assert.equal(nodeGroup, 1, 'check node group');
   });
 
-  it('Test leader set', async function() {
+  it('Test leader set', async () => {
     const keys = await getKeysFromSeed(mnemonic1);
     const status = await chain.setLeader(keys.address, 43, mnemonic1);
     assert.equal(status, true, 'check if leader set transaction was executed');
@@ -155,7 +155,7 @@ describe('Archipel chain test', function(){
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
   });
 
-  it('Test LeadedGroup - no leader set', async function() {
+  it('Test LeadedGroup - no leader set', async () => {
     const groupIsNotLeaded = await chain.isLeadedGroup(42);
     assert.equal(groupIsNotLeaded, false, 'check is a group is not leaded at the begining');
 
@@ -170,7 +170,7 @@ describe('Archipel chain test', function(){
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
   });
 
-  it('Test leadership giveup', async function() {
+  it('Test leadership giveup', async () => {
     const keys1 = await getKeysFromSeed(mnemonic1);
 
     const status = await chain.setLeader(keys1.address, 43, mnemonic1);
@@ -195,7 +195,7 @@ describe('Archipel chain test', function(){
     assert.equal(isLeadedGroupFalse, false, 'check if after give up the group becomed not leaded');
   });
 
-  it('Test leader set - leader is already set', async function () {
+  it('Test leader set - leader is already set', async () => {
     const keys = await getKeysFromSeed(mnemonic1);
 
     const status1 = await chain.setLeader(keys.address, 43, mnemonic1);
@@ -215,7 +215,7 @@ describe('Archipel chain test', function(){
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
   });
 
-  it('Test event listener that updates heartbeats', async function () {
+  it('Test event listener that updates heartbeats', async () => {
 
     const heartbeats = new Heartbeats(nodesWallets, archipelName);
 
@@ -243,7 +243,7 @@ describe('Archipel chain test', function(){
     assert.equal(parseInt(heartbeats.getHeartbeat(keys2.address).nodeStatus), 2, 'check if heartbeat was added and nodeStatus was set correctly 2');
   });
 
-  it('Test event listener at leader if other node took leadership', async function (){
+  it('Test event listener at leader if other node took leadership', async () => {
     const keys = await getKeysFromSeed(mnemonic1);
     const keys2 = await getKeysFromSeed(mnemonic2);
 
@@ -278,7 +278,7 @@ describe('Archipel chain test', function(){
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
   });
 
-  it('Test event listener at leader if other node in other group took leadership', async function (){
+  it('Test event listener at leader if other node in other group took leadership', async () => {
     const keys = await getKeysFromSeed(mnemonic1);
     const keys2 = await getKeysFromSeed(mnemonic2);
 
@@ -316,7 +316,7 @@ describe('Archipel chain test', function(){
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
   });
 
-  it('Try send transaction if cant do it', async function () {
+  it('Try send transaction if cant do it', async () => {
     const saveCanSendTransactions = chain.canSendTransactions;
 
     chain.canSendTransactions = async () => false;
@@ -330,7 +330,7 @@ describe('Archipel chain test', function(){
     assert.equal(result2, true, 'Try to add hearbeat if chain can recieve transactions');
   });
 
-  it('Check when chain can send transactions', async function () {
+  it('Check when chain can send transactions', async () => {
     const saveGetPeerNumber = chain.getPeerNumber;
     const saveGetSyncState = chain.getSyncState;
 
@@ -358,7 +358,7 @@ describe('Archipel chain test', function(){
     assert.equal(result, true, 'Try to add hearbeat if chain can recieve transactions');
   });
 
-  it('Test chain transaction fails if not connected to chain', async function () {
+  it('Test chain transaction fails if not connected to chain', async () => {
     // Disconnecting from chain and trying to execute each transaction
     let disconnect = await chain.disconnect();
     assert.equal(disconnect, true, 'Check if disconnect returns true');
