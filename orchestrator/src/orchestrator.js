@@ -233,8 +233,7 @@ class Orchestrator {
     // First time Archipel boot
     if (isLeadedGroup === false) {
       console.log('Trying to take leadership...');
-      const becomeLeaderResult = await this.becomeLeader(nodeKey);
-      return becomeLeaderResult;
+      return await this.becomeLeader(nodeKey);
     }
 
     // If this node is current leader
@@ -247,9 +246,7 @@ class Orchestrator {
     debug('orchestrateService', `Current Leader is: ${currentLeader}`);
     console.log('Other node is leader...');
 
-    return await this.otherLeaderAction(
-      currentLeader
-    );
+    return await this.otherLeaderAction(currentLeader);
   }
 
   // Act if other node is leader
