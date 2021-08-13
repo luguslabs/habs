@@ -10,6 +10,10 @@ const {
 class Chain {
   constructor (nodeWs) {
     this.wsProvider = nodeWs;
+    this.lastBlockNumber = 0;
+
+    this.lastBlockAccumulator = 0;
+    this.lastBlockThreshold = 5;
   }
 
   // Connect to chain
@@ -33,6 +37,9 @@ class Chain {
       this.api.rpc.system.name(),
       this.api.rpc.system.version()
     ]);
+
+    // Get block number and set last known block number
+    this.lastBlockNumber = parseInt(await this.getBestNumber());
 
     console.log(`You are connected to chain ${chain} using ${nodeName} v${nodeVersion}`);
   }
@@ -211,11 +218,34 @@ class Chain {
     }
   }
 
+  // Check if chain is moving forward is not wait for threshold and send false when theshold reached
+  async chainMovingForward () {
+    const currentBlock = parseInt(await this.getBestNumber());
+    // If chain is not moving forward we will incremnet the accumulator
+    // If chain moved forward we will reset the accumulator
+    this.lastBlockAccumulator = this.lastBlockNumber === currentBlock ? this.lastBlockAccumulator + 1 : 0;
+
+    // If chain is not moving forward and accumulator reached the threshold the chain cannot recieve transactions
+    if (this.lastBlockNumber === currentBlock && this.lastBlockAccumulator >= this.lastBlockThreshold) {
+      debug('chainMovedForward', `The last block equal to current block ${this.lastBlockNumber}=${currentBlock}`);
+      return false;
+    }
+    // Update last block number with current block number
+    this.lastBlockNumber = currentBlock;
+    return true;
+  }
+
   // If node state permits to send transactions
   async canSendTransactions () {
     // Check if connected to chain
     if (!this.isConnected()) {
       debug('canSendTransactions', 'Node is not connected to archipel chain.');
+      return false;
+    }
+
+    // Check if the chain is moving forward
+    if(!await this.chainMovingForward()) {
+      debug('canSendTransactions', `The chain seems to not moving forward`);
       return false;
     }
 

@@ -4,6 +4,7 @@ const { assert } = require('chai');
 const { Chain } = require('../src/chain');
 const { getKeysFromSeed, constructNodesList } = require('../src/utils');
 const { Heartbeats } = require('../src/heartbeats');
+const { assertReturn } = require('@polkadot/util');
 
 // Test configuration
 let chain;
@@ -45,8 +46,8 @@ describe('Archipel chain test', function () {
     chain = new Chain(config.nodeWs);
     await chain.connect();
 
-    // Construct nodes list
-    const nodes = constructNodesList(nodesWallets, 'node1');
+    // We will grow up lastBlockThreshold for all transactions to pass in testing suite
+    chain.lastBlockThreshold = 500;
   });
 
   after(async () => {
@@ -92,13 +93,64 @@ describe('Archipel chain test', function () {
     await chain.connect();
   });
 
+  it('Test chain moving forward function', async () => {
+    const saveGetBestNumber = chain.getBestNumber;
+    const saveLastBlockThreshold = chain.lastBlockThreshold;
+    const saveLastBlockNumber = chain.lastBlockNumber;
+
+    chain.getBestNumber = async () => 1;
+    chain.lastBlockNumber = 1;
+    chain.lastBlockThreshold = 3;
+
+    let result = await chain.chainMovingForward();
+    assert.equal(result, true, 'Check if chain is moving forward 1');
+
+    result = await chain.chainMovingForward();
+    assert.equal(result, true, 'Check if chain is moving forward 2');
+
+    result = await chain.chainMovingForward();
+    assert.equal(result, false, 'Check if chain is moving forward 3');
+    assert.equal(chain.lastBlockAccumulator, 3, 'Check if last block accumulator threshold was reached');
+
+    chain.getBestNumber = async () => 2;
+
+    result = await chain.chainMovingForward();
+    assert.equal(result, true, 'Check if chain is moving forward after get number change 1');
+    assert.equal(chain.lastBlockNumber, 2, 'Check if last block number was changed after get number change');
+    assert.equal(chain.lastBlockAccumulator, 0, 'Check if last block accumulator was reset');
+
+    result = await chain.chainMovingForward();
+    assert.equal(result, true, 'Check if chain is moving forward after get number change 2');
+
+    result = await chain.chainMovingForward();
+    assert.equal(result, true, 'Check if chain is moving forward after get number change 3');
+
+    result = await chain.chainMovingForward();
+    assert.equal(result, false, 'Check if chain is moving forward after get number change 4');
+    assert.equal(chain.lastBlockAccumulator, 3, 'Check if last block accumulator threshold was reached 2');
+
+    chain.getBestNumber = async () => 250000000;
+
+    result = await chain.chainMovingForward();
+    assert.equal(result, true, 'Check if chain is moving forward after second get number change');
+    assert.equal(chain.lastBlockNumber, 250000000, 'Check if last block number was changed after second get number change');
+    assert.equal(chain.lastBlockAccumulator, 0, 'Check if last block accumulator was reset 2');
+
+    chain.getBestNumber = saveGetBestNumber;
+    chain.lastBlockThreshold = saveLastBlockThreshold;
+    chain.lastBlockNumber = saveLastBlockNumber;
+  });
+
   it('Test can send transaction function', async () => {
     const saveGetPeerNumber = chain.getPeerNumber;
     const saveGetSyncState = chain.getSyncState;
+    const saveChainMovingForward = chain.chainMovingForward;
 
     chain.getPeerNumber = async () => 0;
 
     chain.getSyncState = async () => true;
+
+    chain.chainMovingForward = async () => true;
 
     let result = await chain.canSendTransactions();
     assert.equal(result, false, 'Check if chain can send transactions while synching');
@@ -113,6 +165,13 @@ describe('Archipel chain test', function () {
     result = await chain.canSendTransactions();
     assert.equal(result, true, 'Check if chain can send transactions if peers number is != 0 and chain is not synching');
 
+    chain.chainMovingForward = async () => false;
+
+    result = await chain.canSendTransactions();
+    assert.equal(result, false, 'Check if chain can send transactions while chain is not moving forward');
+
+    chain.chainMovingForward = async () => true;
+
     // Disconnecting from chain and waiting for full disconnect
     await chain.disconnect();
     await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -123,6 +182,7 @@ describe('Archipel chain test', function () {
     await chain.connect();
     chain.getPeerNumber = saveGetPeerNumber;
     chain.getSyncState = saveGetSyncState;
+    chain.chainMovingForward = saveChainMovingForward;
   });
 
   it('Test heartbeat addition', async () => {
@@ -257,12 +317,13 @@ describe('Archipel chain test', function () {
 
     let serviceMode = 'active';
 
-    const service = {
+    const orchestrator = { 
+      mnemonic: mnemonic1, 
+      group: 43,
       serviceStart: (mode) => {
         serviceMode = mode;
       }
-    }
-    const orchestrator = { mnemonic: mnemonic1, service: service, group: 43 };
+    };
 
     chain.listenEvents(heartbeats, mnemonic1, orchestrator);
 
@@ -292,12 +353,13 @@ describe('Archipel chain test', function () {
 
     let serviceMode = 'active';
 
-    const service = {
+    const orchestrator = { 
+      mnemonic: mnemonic1, 
+      group: 43,
       serviceStart: (mode) => {
         serviceMode = mode;
       }
-    }
-    const orchestrator = { mnemonic: mnemonic1, service: service, group: 43 };
+    };
 
     chain.listenEvents(heartbeats, mnemonic1, orchestrator);
 
@@ -513,14 +575,14 @@ describe('Archipel chain test', function () {
         } 
       }
     };
-
+    
     // Simulate add heartbeat transaction drop
     const saveAddHeartbeat = chain.api.tx.archipelModule.addHeartbeat;
 
     chain.api.tx.archipelModule.addHeartbeat = transactionFinalizedWithoutEventsSimulation;
 
     let result = await chain.addHeartbeat('active', mnemonic1, 1);
-    assert.equal(result, false, 'Check if add hearbeat returns false cause no events recieved');
+    assert.equal(result, false, 'Check if add hearbeat returns false cause no events received');
 
     chain.api.tx.archipelModule.addHeartbeat = saveAddHeartbeat;
 
@@ -530,7 +592,7 @@ describe('Archipel chain test', function () {
     chain.api.tx.archipelModule.setLeader = transactionFinalizedWithoutEventsSimulation;
 
     result = await chain.setLeader(1, 1, mnemonic1);
-    assert.equal(result, false, 'Check if set leader returns false cause no events recieved');
+    assert.equal(result, false, 'Check if set leader returns false cause no events received');
 
     chain.api.tx.archipelModule.setLeader = saveSetLeader;
 
@@ -540,7 +602,7 @@ describe('Archipel chain test', function () {
     chain.api.tx.archipelModule.giveUpLeadership = transactionFinalizedWithoutEventsSimulation;
 
     result = await chain.giveUpLeadership(1, mnemonic1);
-    assert.equal(result, false, 'Check if giveup leadership returns false cause no events recieved');
+    assert.equal(result, false, 'Check if giveup leadership returns false cause no events received');
 
     chain.api.tx.archipelModule.giveUpLeadership = saveGiveUpLeadership;
   });
