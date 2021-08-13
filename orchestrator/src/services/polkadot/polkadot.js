@@ -42,7 +42,7 @@ class Polkadot {
     this.name = this.config.polkadotName;
   }
 
-  // Get last finalized block
+  // Get current block
   async getCurrentBlock (containerName) {
     // Constructing command to import key
     const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
