@@ -25,21 +25,6 @@ const mnemonic3 =
   'borrow initial guard hunt corn trust student opera now economy thumb argue';
 const nodesWallets = '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s'
 const archipelName = 'test-archipel';
-// Construct config
-const config = {
-  nodeWs: 'ws://127.0.0.1:9944',
-  heartbeatEnabled: true,
-  orchestrationEnabled: true,
-  mnemonic: mnemonic1,
-  nodeGroupId: 1,
-  nodesWallets: nodesWallets, 
-  archipelName: archipelName,
-  aliveTime: 12,
-  service: 'polkadot',
-  serviceMode: 'orchestrator',
-  nodesWallets: nodesWallets,
-  archipelName: archipelName
-};
 
 // Promisify exec
 const execAsync = (cmd) =>
@@ -54,6 +39,22 @@ const execAsync = (cmd) =>
 
 describe('Orchestrator test', function () {
   this.timeout(testTimeout);
+
+  // Construct config
+  const config = {
+    nodeWs: 'ws://127.0.0.1:9944',
+    heartbeatEnabled: true,
+    orchestrationEnabled: true,
+    mnemonic: mnemonic1,
+    nodeGroupId: 1,
+    nodesWallets: nodesWallets, 
+    archipelName: archipelName,
+    aliveTime: 12,
+    service: 'polkadot',
+    serviceMode: 'orchestrator',
+    nodesWallets: nodesWallets,
+    archipelName: archipelName
+  };
 
   before(async () => {
     // Set env variables
@@ -1024,7 +1025,7 @@ describe('Orchestrator test', function () {
     orchestrator.mnemonic = saveMnemonic;
   });
 
-  it('Test force passive services mode if hearbeats send are disabled', async function () {
+  it('Test force passive services mode if hearbeats send is disabled', async function () {
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
 
     // Adding some heartbeats
@@ -1334,7 +1335,7 @@ describe('Orchestrator test', function () {
   });
 
   it('Test get orchestrator info', async () => {
-    // Mock some functions to get previsible result
+    // Mock some functions to get predictable result
     const saveChainBestNumber = chain.getBestNumber;
     const saveGetPeerNumber = chain.getPeerNumber;
     const saveGetPeerId = chain.getPeerId;
@@ -1371,11 +1372,7 @@ describe('Orchestrator test', function () {
         bestNumber: '0x00000001',
         synchState: false,
         leader: '12D4',
-        service: 'polkadot',
         orchestrationEnabled: true,
-        isServiceReadyToStart: true,
-        serviceMode: 'none',
-        serviceContainer: 'none',
         heartbeatSendEnabledAdmin: true,
         heartbeatSendEnabled: true,
         heartbeats: [
@@ -1401,9 +1398,156 @@ describe('Orchestrator test', function () {
             blockNumber: '0x00000001'
           }
         ],
-        "sessionKeysString":undefined,
-        "checkSessionKeysOnNode":false,
-        "launchedContainer":"none"
+        service: 'polkadot',
+        isServiceReadyToStart: true,
+        serviceContainer: "none",
+        serviceMode: "none",
+        sessionKeysString: undefined,
+        checkSessionKeysOnNode: false,
+        launchedContainer: "none"
+    };
+
+    assert.equal(JSON.stringify(orchestratorInfo), JSON.stringify(bodyMustBe), 'Check if getOrchestratorInfo returns correct information');
+
+    // Test get service mode function
+    assert.equal(orchestrator.getServiceMode(), 'none', 'check if service mode get returns a correct result');
+
+    chain.getBestNumber = saveChainBestNumber;
+    chain.getPeerNumber = saveGetPeerNumber;
+    chain.getPeerId = saveGetPeerId;
+    chain.getLeader = saveGetLeader;
+    orchestrator.heartbeats = saveOrchestratorHeartbeats;
+    orchestrator.service.mode = saveServiceMode;
+  });
+});
+
+describe('Orchestrator no service test', function () {
+  this.timeout(testTimeout);
+  
+  // Construct config
+  const config = {
+    nodeRole: 'noservice',
+    nodeWs: 'ws://127.0.0.1:9944',
+    heartbeatEnabled: true,
+    orchestrationEnabled: true,
+    mnemonic: mnemonic1,
+    nodeGroupId: 1,
+    nodesWallets: nodesWallets, 
+    archipelName: archipelName,
+    aliveTime: 12,
+    nodesWallets: nodesWallets,
+    archipelName: archipelName
+  };
+
+  before(async () => {
+    // Launch test chain
+    console.log('Launching test chain. Can take some time...');
+    const startCommandToExec = 'cd ../deployer/test/chain/ && ./launch.sh';
+    await execAsync(startCommandToExec);
+    console.log('Test chain was launched...');
+
+    // Create Docker instance
+    docker = new Docker();
+
+    // Connect to Archipel Chain Node
+    chain = new Chain(config.nodeWs);
+    await chain.connect();
+
+    // Create heartbeats instance
+    heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+
+    // Create Orchestrator instance
+    orchestrator = new Orchestrator(
+      config,
+      chain,
+      heartbeats);
+  });
+
+  after(async () => {
+    // Disconnect from test chain
+    if (chain && await chain.isConnected()) {
+      await chain.disconnect();
+    }
+  
+    // Remove test chain
+    console.log('Removing test chain...');
+    const stopCommandToExec = 'cd ../deployer/test/chain && ./remove.sh';
+    await execAsync(stopCommandToExec);
+  });
+
+  it('Test if sevice bootstrap do nothing if no service', async function () {
+    await orchestrator.bootstrapOrchestrator();
+
+    let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+    let container = await docker.getContainer(containerName);
+    assert.equal(container, false, 'check if passive service container was not started');
+
+    containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+    container = await docker.getContainer(containerName);
+    assert.equal(container, false, 'check if actve service container was not started');
+  });
+
+  it('Test get orchestrator info no service', async () => {
+    // Mock some functions to get previsible result
+    const saveChainBestNumber = chain.getBestNumber;
+    const saveGetPeerNumber = chain.getPeerNumber;
+    const saveGetPeerId = chain.getPeerId;
+    const saveGetLeader = chain.getLeader;
+    chain.getBestNumber = async () => '0x00000001';
+    chain.getPeerNumber = async () => 2;
+    chain.getPeerId = async () => '12D3';
+    chain.getLeader = async () => '12D4';
+
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+    // Adding some heartbeats
+    const keys1 = await getKeysFromSeed(mnemonic1);
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const keys3 = await getKeysFromSeed(mnemonic3);
+
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, '0x00000001');
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, '0x00000001');
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, '0x00000001');
+
+    const saveOrchestratorHeartbeats = orchestrator.heartbeats;
+    orchestrator.heartbeats = heartbeats;
+
+    const orchestratorInfo = await orchestrator.getOrchestratorInfo();
+    
+    const bodyMustBe = {
+        orchestratorAddress: '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs',
+        archipelName: 'test-archipel',
+        isConnected: true,
+        peerId: '12D3',
+        peerNumber: 2,
+        bestNumber: '0x00000001',
+        synchState: false,
+        leader: '12D4',
+        orchestrationEnabled: true,
+        heartbeatSendEnabledAdmin: true,
+        heartbeatSendEnabled: true,
+        heartbeats: [
+          {
+            wallet: '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs',
+            name: 'test-archipel-NODE-1',
+            group: 1,
+            nodeStatus: 2,
+            blockNumber: '0x00000001'
+          },
+          {
+            wallet: '5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex',
+            name: 'test-archipel-NODE-2',
+            group: 1,
+            nodeStatus: 2,
+            blockNumber: '0x00000001'
+          },
+          {
+            wallet: '5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s',
+            name: 'test-archipel-NODE-3',
+            group: 1,
+            nodeStatus: 2,
+            blockNumber: '0x00000001'
+          }
+        ]
     };
 
     assert.equal(JSON.stringify(orchestratorInfo), JSON.stringify(bodyMustBe), 'Check if getOrchestratorInfo returns correct information');
@@ -1413,6 +1557,51 @@ describe('Orchestrator test', function () {
     chain.getPeerId = saveGetPeerId;
     chain.getLeader = saveGetLeader;
     orchestrator.heartbeats = saveOrchestratorHeartbeats;
-    orchestrator.service.mode = saveServiceMode;
+  });
+
+  it('Test service start and cleanup no service', async () => {
+    let result = await orchestrator.serviceStart('passive');
+    assert.equal(result, false, 'Check if service start returns false cause no service');
+
+    result = await orchestrator.serviceCleanUp();
+    assert.equal(result, false, 'Check if service cleanup returns false cause no service');
+  });
+
+  it('Test if orchestrator does nothing cause no service', async () => {
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+  
+    let isLeadedGroup = await chain.isLeadedGroup(1);
+    assert.equal(isLeadedGroup, false, 'check if the group is not leaded');
+  
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+  
+    const saveHeartbeats = orchestrator.heartbeats;
+    const saveMnemonic = orchestrator.mnemonic;
+
+    orchestrator.heartbeats = heartbeats;
+    orchestrator.mnemonic = mnemonic1;
+
+    await orchestrator.orchestrateService();
+
+    isLeadedGroup = await chain.isLeadedGroup(1);
+    assert.equal(isLeadedGroup, false, 'check if the group remains not leaded');
+  
+    let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
+    let container = await docker.getContainer(containerName);
+    assert.equal(container, false, 'check if active service node was not started');
+
+    containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+    container = await docker.getContainer(containerName);
+    assert.equal(container, false, 'check if passive service node was not started');
+  
+    orchestrator.heartbeats = saveHeartbeats;
+    orchestrator.mnemonic = saveMnemonic;
+  });
+
+  it('Test forceActivate function if no service', async () => {
+    let result = await orchestrator.forceActive();
+    assert.equal(result, false, 'check if force active returns false cause no service node and there is nothing to activate or launch');
   });
 });

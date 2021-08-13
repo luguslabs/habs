@@ -47,12 +47,14 @@ describe('Service test', function () {
             serviceMode = mode;
         }
 
+        const saveMode = service.mode;
         await service.serviceStart('active');
 
         assert.equal(service.mode, 'active', 'Check if mode was changed');
         assert.equal(serviceMode, 'active', 'Check if service instance start was called correctly');
 
         service.serviceInstance.start = saveServiceInstanceStart;
+        service.mode = saveMode;
     });
 
     it('Test service cleanup function', async function () {
@@ -98,7 +100,15 @@ describe('Service test', function () {
         const saveServiceInstanceGetInfo = service.serviceInstance.getInfo;
         service.serviceInstance.getInfo = async () => { return { test: 'test' } };
 
-        assert.equal(JSON.stringify(await service.getServiceInfo()), JSON.stringify({ test: 'test' }), 'Check if service info returns a good result');
+        const needToBe = {
+            service: "polkadot",
+            isServiceReadyToStart: false,
+            serviceContainer: "none",
+            serviceMode: "none",
+            test: 'test'
+        }
+
+        assert.equal(JSON.stringify(await service.getServiceInfo()), JSON.stringify(needToBe), 'Check if service info returns a good result');
 
         service.serviceInstance.getInfo = saveServiceInstanceGetInfo;
     });

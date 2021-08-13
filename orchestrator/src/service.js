@@ -37,7 +37,13 @@ class Service {
 
   // Get service instance information
   async getServiceInfo () {
-    return await this.serviceInstance.getInfo();
+    return {
+      service: this.serviceName,
+      isServiceReadyToStart: await this.serviceReady(),
+      serviceContainer: await this.serviceCheck(),
+      serviceMode: this.mode,
+      ...(await this.serviceInstance.getInfo())
+    };
   }
 }
 

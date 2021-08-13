@@ -131,7 +131,7 @@ class Polkadot {
 
       // Check if session key was set
       if (!this.config.polkadotSessionKeyToCheck) {
-        console.log('polkadotSessionKeyToCheck must be set to use checkSessionKeysOnNode functionality');
+        debug('polkadotSessionKeyToCheck must be set to use checkSessionKeysOnNode functionality');
         return false;
       }
 
@@ -188,6 +188,7 @@ class Polkadot {
 
   // Check if polkadot node is ready to operate
   async isServiceReadyToStart (mode) {
+    console.log('TEEEEESTT');
     try {
       // Which container we must check
       const containerName = mode === 'active' ? this.config.polkadotPrefix + 'polkadot-validator' : this.config.polkadotPrefix + 'polkadot-sync';

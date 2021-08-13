@@ -8,19 +8,21 @@ class Orchestrator {
     config,
     chain,
     heartbeats) {
-    // Create service instance
-    this.service = new Service(config.service);
+    this.nodeRole = config.nodeRole;
+
+    // Create service instance if node role is not no service
+    if (this.nodeRole !== 'noservice') {
+      this.service = new Service(config.service);
+      this.serviceMode = config.serviceMode;
+    }
 
     // No liveness data from leader count init
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
     this.chain = chain;
 
-    this.nodeRole = config.nodeRole;
-
     this.heartbeats = heartbeats;
     this.aliveTime = config.aliveTime;
-    this.serviceMode = config.serviceMode;
 
     this.mnemonic = config.mnemonic;
 
@@ -38,11 +40,11 @@ class Orchestrator {
 
   // Bootstrap service at boot
   async bootstrapOrchestrator () {
-    // If node is not operator there is nothing to bootstrap
-    // if (this.nodeRole !== 'operator') {
-    //  console.log('Nothing to bootstrap cause non operator');
-    //  return;
-    // }
+    // If node is a no service node there is nothing to bootstrap
+    if (this.nodeRole === 'noservice') {
+      console.log('Nothing to bootstrap cause no service node...');
+      return;
+    }
     // Starting service in default passive mode
     console.log('Starting service in passive mode...');
     const serviceStart = await this.serviceStart('passive');
@@ -53,6 +55,12 @@ class Orchestrator {
 
   // If active service mode is forced somewhere we will take leadership on chain and launch service in active mode
   async forceActive () {
+    // If node is no service node there is nothing to activate
+    if (this.nodeRole === 'noservice') {
+      console.log('Nothing to activate cause no service node...');
+      return false;
+    }
+
     console.log('Checking leadership on chain...');
     const key = await getKeysFromSeed(this.mnemonic);
     const nodeKey = key.address;
@@ -86,6 +94,12 @@ class Orchestrator {
   // Orchestrate service
   async orchestrateService () {
     console.log('Orchestrating service...');
+
+    // If node is no service node there is nothing to orchestrate
+    if (this.nodeRole === 'noservice') {
+      console.log('Nothing to orchestrate cause no service node...');
+      return;
+    }
 
     // Check if orchestration is enabled
     if (!this.orchestrationEnabled) {
@@ -326,11 +340,21 @@ class Orchestrator {
 
   // Service cleanup
   async serviceCleanUp () {
+    // If node is no service node there is nothing to cleanup
+    if (this.nodeRole === 'noservice') {
+      console.log('Nothing to cleanup cause no service node...');
+      return false;
+    }
     return await this.service.serviceCleanUp();
   }
 
   // Service start
   async serviceStart (mode) {
+    // If node is no service node there is nothing to start
+    if (this.nodeRole === 'noservice') {
+      console.log('Nothing to start cause no service node...');
+      return false;
+    }
     return await this.service.serviceStart(mode);
   }
 
@@ -339,9 +363,10 @@ class Orchestrator {
     return this.service.mode;
   }
 
-  // Get orchestrator info
+  // Get orchestrator info and stats
   async getOrchestratorInfo () {
-    return {
+    // Constructing orchestrator info
+    const orchestratorInfo = {
       orchestratorAddress: (await getKeysFromSeed(this.mnemonic)).address,
       archipelName: this.archipelName,
       isConnected: this.chain.isConnected(),
@@ -350,15 +375,21 @@ class Orchestrator {
       bestNumber: await this.chain.getBestNumber(),
       synchState: await this.chain.getSyncState(),
       leader: await this.chain.getLeader(this.group),
-      service: this.service.serviceName,
       orchestrationEnabled: this.orchestrationEnabled,
-      isServiceReadyToStart: await this.service.serviceReady(),
-      serviceMode: this.getServiceMode(),
-      serviceContainer: await this.service.serviceCheck(),
       heartbeatSendEnabledAdmin: this.heartbeatSendEnabledAdmin,
       heartbeatSendEnabled: this.heartbeatSendEnabled,
-      heartbeats: this.heartbeats.getAllHeartbeats(),
-      ...(await this.service.getServiceInfo())
+      heartbeats: this.heartbeats.getAllHeartbeats()
+    };
+
+    // If no service role just returning basic orchestrator info
+    if (this.nodeRole === 'noservice') {
+      return orchestratorInfo;
+    }
+
+    // If not adding service info
+    return {
+      ...orchestratorInfo,
+      ...await this.service.getServiceInfo()
     };
   }
 }
