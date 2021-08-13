@@ -91,7 +91,7 @@ describe('Polkadot test', function () {
         polkadot.importedKeys = [];
         await polkadot.cleanUp();
     });
-
+    // TODO: Make work this functionality
     it('Test checkSessionKeysOnNode function', async () => {
         await polkadot.start('active');
 
@@ -114,10 +114,6 @@ describe('Polkadot test', function () {
         let result = await polkadot.checkSessionKeysOnNode(containerName);
         assert.equal(result, false, 'check if session keys on node check fails with bad key');
 
-        delete polkadot.config.polkadotSessionKeyToCheck;
-        result = await polkadot.checkSessionKeysOnNode(containerName);
-        assert.equal(result, false, 'check if session keys on node check fails with empty session key to check');
-
         polkadot.config.polkadotSessionKeyToCheck = mustBeImportedKeys.reduce((string, element) => `${string}${element.substring(2)}`, '0x');
         console.log(polkadot.config.polkadotSessionKeyToCheck);
 
@@ -129,13 +125,58 @@ describe('Polkadot test', function () {
         await polkadot.start('passive');
         containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
 
+        const saveDockerExecuteSave = polkadot.docker.dockerExecute;
+
+        polkadot.docker.dockerExecute = async () => { throw Error('Error simulation') };
+
+        result = await polkadot.checkSessionKeysOnNode(containerName);
+        assert.equal(result, false, 'check if function returns false if error was thrown');
+
+        polkadot.docker.dockerExecute = async () => false;
+
+        result = await polkadot.checkSessionKeysOnNode(containerName);
+        assert.equal(result, false, 'check if function returns false if docker execute returns false');
+
+        polkadot.docker.dockerExecute = async () => { return "{ this: true }" };
+
+        result = await polkadot.checkSessionKeysOnNode(containerName);
+        assert.equal(result, true, 'check if function returns true if docker execute result contains true value');
+
         delete polkadot.config.polkadotSessionKeyToCheck;
         result = await polkadot.checkSessionKeysOnNode(containerName);
         assert.equal(result, false, 'check if session keys on node check fails with empty session key to check');
 
+        polkadot.docker.dockerExecute = saveDockerExecuteSave;
         polkadot.config.polkadotSessionKeyToCheck = savePolkadotSessionKeyToCheck;
         polkadot.importedKeys = [];
         await polkadot.cleanUp();
+    });
+
+    it('Test getLastFinalizedBlock function', async () => {
+        let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
+        // Mock system health get
+        const saveDockerExecute = polkadot.docker.dockerExecute;
+
+        let systemHealthGetResult = `{"jsonrpc":"2.0","result":{"currentBlock":2323},"id":1}`;
+        polkadot.docker.dockerExecute = () => systemHealthGetResult;
+
+        let result = await polkadot.getCurrentBlock(containerName);
+        assert.equal(result, 2323, 'Check if current block was successfully retrieved');
+
+        systemHealthGetResult = `{"jsonrpc":"2.0","result":{"error":"No block"},"id":1}`;
+        polkadot.docker.dockerExecute = () => systemHealthGetResult;
+
+        result = await polkadot.getCurrentBlock(containerName);
+        assert.equal(result, false, 'Check if request to get current block failed the function returns 0');
+
+        polkadot.docker.dockerExecute = () => false;
+
+        result = await polkadot.getCurrentBlock(containerName);
+        assert.equal(result, false, 'Check if docker execute failed the function returns 0');
+
+        console.log(`Current block value is ${result}`);
+
+        polkadot.docker.dockerExecute = saveDockerExecute;
     });
 
     it('Test checkKeyAdded function', async () => {
@@ -172,7 +213,14 @@ describe('Polkadot test', function () {
         result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[5], 'audi');
         assert.equal(result, true, 'Check if audi key was added correctly');
 
+        const saveDockerExecute = polkadot.docker.dockerExecute;
+        polkadot.docker.dockerExecute = async () => false;
+
+        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[5], 'audi');
+        assert.equal(result, false, 'Check if check key added returns false if docker execute returns false');
+
         polkadot.importedKeys = [];
+        polkadot.docker.dockerExecute = saveDockerExecute;
         await polkadot.cleanUp();
     });
 
@@ -248,6 +296,17 @@ describe('Polkadot test', function () {
 
         serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
         assert.equal(serviceReadyToStart, true, 'check if service is ready for passive service');
+
+        polkadot.docker.dockerExecute = () => false;
+
+        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
+        assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if docker execute failed');
+
+        systemHealthGetResult = `{"jsonrpc":"2.0"}`;
+        polkadot.docker.dockerExecute = () => systemHealthGetResult;
+
+        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
+        assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if no result field given by docker execute');
 
         polkadot.importedKeys = [];
         polkadot.docker.dockerExecute = saveDockerExecute;
@@ -658,7 +717,6 @@ describe('Polkadot test', function () {
         polkadot.importedKeys = [];
         await polkadot.cleanUp();
 
-
         // Launching in passive mode and checking
         await polkadot.start('passive');
 
@@ -743,12 +801,8 @@ describe('Polkadot test', function () {
         container = await docker.getContainer(syncContainerName);
         assert.equal(container, false, 'check if sync container was removed');
 
-        // Launching two cleanups without waiting to check double cleanup
-        const promise = polkadot.cleanUp();
-        await polkadot.cleanUp();
-
-        // Waiting for first cleanup to finish
-        await promise;
+        // Launching two cleanups in parralel to check double cleanup
+        await Promise.all([polkadot.cleanUp(), polkadot.cleanUp()]);
     });
 
     it('Test cleanup function fail', async () => {
@@ -813,7 +867,6 @@ describe('Polkadot test', function () {
     });
 
     it('Test get info function', async () => {
-
         const savePolkadotSessionKeyToCheck = polkadot.config.polkadotSessionKeyToCheck;
 
         delete polkadot.config.polkadotSessionKeyToCheck;

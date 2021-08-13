@@ -42,6 +42,34 @@ class Polkadot {
     this.name = this.config.polkadotName;
   }
 
+  // Get last finalized block
+  async getCurrentBlock (containerName) {
+    // Constructing command to import key
+    const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
+      `{
+        "jsonrpc":"2.0",
+        "id":1,
+        "method":"system_syncState",
+        "params": []
+    }`];
+
+    // Importing key by executing command in docker container
+    const result = await this.docker.dockerExecute(containerName, command);
+    debug('importKey', `Command result: "${result}"`);
+
+    // If docker execute failed we will return false
+    if (!result) {
+      return false;
+    }
+
+    const currentBlock = result.match(/"currentBlock":(\d+)/);
+    if (currentBlock && currentBlock.length > 1) {
+      return parseInt(currentBlock[1]);
+    }
+
+    return false;
+  }
+
   // Importing a key in keystore
   async importKey (containerName, mnemonic, crypto, type) {
     // Get public key hex from mnemonic
@@ -72,6 +100,11 @@ class Polkadot {
     // Importing key by executing command in docker container
     const result = await this.docker.dockerExecute(containerName, command);
     debug('importKey', `Command result: "${result}"`);
+
+    // If docker execute failed we will return false
+    if(!result) {
+      return false;
+    }
 
     // Checking command result
     if (!result.includes('"result":null')) {
@@ -109,6 +142,11 @@ class Polkadot {
     // Executing command in docker container
     const result = await this.docker.dockerExecute(containerName, command);
     debug('checkKeyAdded', `HasKey command result: "${result}"`);
+
+    // If docker execute failed we will return false
+    if(!result) {
+      return false;
+    }
 
     return result.includes('true');
   }
@@ -151,6 +189,11 @@ class Polkadot {
       const result = await this.docker.dockerExecute(containerName, command);
       debug('checkSessionKeyOnNode', `Author_hasSessionKeys result: "${result}"`);
 
+      // If docker execute failed we will return false
+      if(!result) {
+        return false;
+      }
+
       return result.includes('true');
     } catch (error) {
       debug('checkSessionKeysOnNode', error);
@@ -188,7 +231,6 @@ class Polkadot {
 
   // Check if polkadot node is ready to operate
   async isServiceReadyToStart (mode) {
-    console.log('TEEEEESTT');
     try {
       // Which container we must check
       const containerName = mode === 'active' ? this.config.polkadotPrefix + 'polkadot-validator' : this.config.polkadotPrefix + 'polkadot-sync';
@@ -217,6 +259,11 @@ class Polkadot {
       // Call system_health command in docker container
       const resultSystemHealth = await this.docker.dockerExecute(containerName, commandSystemHealth);
       debug('isServiceReadyToStart', `Command system_health result: "${resultSystemHealth}"`);
+
+      // If docker execute failed we will return false
+      if(!resultSystemHealth) {
+        return false;
+      }
 
       // Checking if system_health gives a result
       if (!resultSystemHealth.includes('"result":')) {
@@ -501,6 +548,7 @@ class Polkadot {
       return true;
     } catch (error) {
       debug('cleanUp', error);
+      this.cleaningUp = false;
       return false;
     }
   }
