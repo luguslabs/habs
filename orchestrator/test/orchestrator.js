@@ -1559,12 +1559,15 @@ describe('Orchestrator no service test', function () {
     orchestrator.heartbeats = saveOrchestratorHeartbeats;
   });
 
-  it('Test service start and cleanup no service', async () => {
+  it('Test service start, cleanup and getServiceMode when no service', async () => {
     let result = await orchestrator.serviceStart('passive');
     assert.equal(result, false, 'Check if service start returns false cause no service');
 
     result = await orchestrator.serviceCleanUp();
     assert.equal(result, false, 'Check if service cleanup returns false cause no service');
+
+    result = orchestrator.getServiceMode();
+    assert.equal(result, 'noservice', 'Check if get service mode returns no service if nodes role is no service');
   });
 
   it('Test if orchestrator does nothing cause no service', async () => {

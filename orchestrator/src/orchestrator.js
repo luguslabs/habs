@@ -360,6 +360,10 @@ class Orchestrator {
 
   // Get service mode
   getServiceMode () {
+    // If node is no service node we will return node service for service mode
+    if (this.nodeRole === 'noservice') {
+      return 'noservice';
+    }
     return this.service.mode;
   }
 
