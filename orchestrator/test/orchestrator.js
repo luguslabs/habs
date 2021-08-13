@@ -83,6 +83,9 @@ describe('Orchestrator test', function () {
     chain = new Chain(config.nodeWs);
     await chain.connect();
 
+    // We will grow up lastBlockThreshold for all transactions to pass in testing suite
+    chain.lastBlockThreshold = 500;
+
     // Create heartbeats instance
     heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 
