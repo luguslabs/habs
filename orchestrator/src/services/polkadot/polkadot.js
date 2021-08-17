@@ -40,6 +40,9 @@ class Polkadot {
 
     // Setting polkadot name
     this.name = this.config.polkadotName;
+
+    // Init last known block
+    this.lastKnownBlock = 0;
   }
 
   // Get current block
@@ -302,6 +305,15 @@ class Polkadot {
         debug('isServiceReadyToStart', 'Servie is not ready for cause not all keys where added to keystore.');
         return false;
       }
+
+      // Check if node recieves new blocks from chain
+      const currentBlock = await this.getCurrentBlock();
+      if (currentBlock && currentBlock <= this.lastKnownBlock) {
+        debug('isServiceReadyToStart', 'Seems that node is not recieving new blocks.');
+        return false;
+      }
+      // Updating last known block
+      this.lastKnownBlock = currentBlock ? currentBlock : 0;
 
       // If no return was triggered till now considering that service is ready
       return true;

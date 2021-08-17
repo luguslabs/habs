@@ -13,7 +13,7 @@ class Chain {
     this.lastBlockNumber = 0;
 
     this.lastBlockAccumulator = 0;
-    this.lastBlockThreshold = 10;
+    this.lastBlockThreshold = 30;
   }
 
   // Connect to chain
