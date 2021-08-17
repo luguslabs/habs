@@ -55,6 +55,11 @@ class Orchestrator {
     }
 
     // Fill heartbeats from chain at orchestrator start
+    await this.fillHeartbeatsFromChain();
+  }
+
+  // This function fills heartbeat values from chain for every wallet from node wallets
+  async fillHeartbeatsFromChain () {
     const walletList = this.nodesWallets.toString().split(',');
     for (const wallet of walletList) {
       const heartbeatBlock = await this.chain.getHeartbeat(wallet);
@@ -264,7 +269,7 @@ class Orchestrator {
     const leaderHeartbeat = this.heartbeats.getHeartbeat(currentLeader);
 
     // If no heartbeat received we will wait noLivenessThreshold
-    if (leaderHeartbeat) {
+    if (!leaderHeartbeat || (leaderHeartbeat && leaderHeartbeat.blockNumber === '0')) {
       // How much checks remains
       const checksNumber =
         this.noLivenessThreshold - this.noLivenessFromLeader;
