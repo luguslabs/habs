@@ -2,6 +2,7 @@ const debug = require('debug')('service');
 
 const { getKeysFromSeed } = require('./utils');
 const { Service } = require('./service');
+const { config } = require('dotenv');
 
 class Orchestrator {
   constructor (
@@ -36,6 +37,8 @@ class Orchestrator {
     // If service is not ready and is in active node counters
     this.noReadyCount = 0;
     this.noReadyThreshold = 30; // ~ 300 seconds
+
+    this.nodesWallets = config.nodesWallets;
   }
 
   // Bootstrap service at boot
@@ -50,6 +53,13 @@ class Orchestrator {
     const serviceStart = await this.serviceStart('passive');
     if (!serviceStart) {
       throw Error('Unable to start service in passive mode. Please check your configuration and docker daemon.');
+    }
+
+    // Fill heartbeats from chain at orchestrator start
+    const walletList = this.nodesWallets.toString().split(',');
+    for (let wallet of walletList) {
+      const heartbeatBlock = await this.chain.getHeartbeat(wallet);
+      this.heartbeats.addHeartbeat(wallet, 0, 0, heartbeatBlock.toString());
     }
   }
 

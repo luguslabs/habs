@@ -126,7 +126,67 @@ describe('Orchestrator test', function () {
     let container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
 
+    let hearbeatsNeedBe = [
+      {
+        wallet: '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs',
+        name: 'test-archipel-NODE-1',
+        group: 0,
+        nodeStatus: 0,
+        blockNumber: '0'
+      },
+      {
+        wallet: '5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex',
+        name: 'test-archipel-NODE-2',
+        group: 0,
+        nodeStatus: 0,
+        blockNumber: '0'
+      },
+      {
+        wallet: '5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s',
+        name: 'test-archipel-NODE-3',
+        group: 0,
+        nodeStatus: 0,
+        blockNumber: '0'
+      }
+    ];
+    assert.equal(JSON.stringify(orchestrator.heartbeats.getAllHeartbeats()), JSON.stringify(hearbeatsNeedBe), 'Check if heartbeats where correctly initialized');
+
     await orchestrator.serviceCleanUp();
+
+    // Adding heartbeats and bootstraping service
+    let result = await chain.addHeartbeat('active', mnemonic1, '1');
+    assert.equal(result, true, 'check if heartbeat add transaction was executed');
+    result = await chain.addHeartbeat('active', mnemonic2, '1');
+    assert.equal(result, true, 'check if heartbeat add transaction was executed');
+
+    await orchestrator.bootstrapOrchestrator();
+
+    const heartbeatBlock1 = await chain.getHeartbeat('5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs');
+    const heartbeatBlock2 = await chain.getHeartbeat('5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex');
+    hearbeatsNeedBe = [
+      {
+        wallet: '5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs',
+        name: 'test-archipel-NODE-1',
+        group: 0,
+        nodeStatus: 0,
+        blockNumber: heartbeatBlock1.toString()
+      },
+      {
+        wallet: '5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex',
+        name: 'test-archipel-NODE-2',
+        group: 0,
+        nodeStatus: 0,
+        blockNumber: heartbeatBlock2.toString()
+      },
+      {
+        wallet: '5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s',
+        name: 'test-archipel-NODE-3',
+        group: 0,
+        nodeStatus: 0,
+        blockNumber: '0'
+      }
+    ];
+    assert.equal(JSON.stringify(orchestrator.heartbeats.getAllHeartbeats()), JSON.stringify(hearbeatsNeedBe), 'Check if heartbeats where correctly initialized with some heartbeats added onchain');
 
     const saveOrchestratorServiceStart = orchestrator.serviceStart;
     orchestrator.serviceStart = async () => false;
