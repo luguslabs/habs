@@ -172,6 +172,28 @@ describe('Archipel chain test', function () {
 
     chain.chainMovingForward = async () => true;
 
+    // Test if gap between best number and best number finalized
+    const saveGetBestBlock = chain.getBestNumber;
+    const saveGetBestFinalizedBlock = chain.getBestNumberFinalized;
+
+    result = await chain.canSendTransactions();
+    assert.equal(result, true, 'Check if chain can send transactions');
+
+    chain.getBestNumber = async () => 10000;
+    chain.getBestNumberFinalized = async () => 9000;
+
+    result = await chain.canSendTransactions();
+    assert.equal(result, false, 'Check if chain can not send transactions cause big gap between finalized and best blocks');
+
+    chain.getBestNumber = async () => 10000;
+    chain.getBestNumberFinalized = async () => 9999;
+
+    result = await chain.canSendTransactions();
+    assert.equal(result, true, 'Check if chain can send transactions if gap is small');
+
+    chain.getBestNumber = saveGetBestBlock;
+    chain.getBestNumberFinalized = saveGetBestFinalizedBlock;
+
     // Disconnecting from chain and waiting for full disconnect
     await chain.disconnect();
     await new Promise((resolve) => setTimeout(resolve, 5000));

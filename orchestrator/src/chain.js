@@ -13,7 +13,9 @@ class Chain {
     this.lastBlockNumber = 0;
 
     this.lastBlockAccumulator = 0;
-    this.lastBlockThreshold = 30;
+    this.lastBlockThreshold = 10;
+
+    this.finalizedGap = 10;
   }
 
   // Connect to chain
@@ -54,6 +56,7 @@ class Chain {
         // If change leader event received
         if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewLeader') {
           debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
+          debug('listenEvents', JSON.stringify(event));
           // If anyone other took leadership
           if (event.data[0].toString() !== keys.address.toString() && event.data[1].toString() === orchestrator.group.toString()) {
             orchestrator.serviceStart('passive');
@@ -62,6 +65,7 @@ class Chain {
         // Add heartbeat if NewHeartbeat event was received
         if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewHeartbeat') {
           debug('listenEvents', `Received NewHeartbeat event from ${event.data[0].toString()}`);
+          debug('listenEvents', JSON.stringify(event));
           heartbeats.addHeartbeat(event.data[0].toString(), event.data[1].toString(), event.data[2].toString(), event.data[3].toString());
         }
       });
@@ -96,6 +100,7 @@ class Chain {
           .send(({ events = [], status }) => {
           // Debug show transaction status
             debug('addHeartbeat', transactionGetStatus(status));
+            debug('addHeartbeat', `Transaction status ${JSON.stringify(status)}`);
             if (status.isFinalized) {
               events.forEach(async ({ event: { data, method, section } }) => {
                 if (section.toString() === 'archipelModule' && method.toString() === 'NewHeartbeat') {
@@ -145,6 +150,7 @@ class Chain {
           .send(({ events = [], status }) => {
             // Debug show transaction status
             debug('setLeader', transactionGetStatus(status));
+            debug('setLeader', `Transaction status ${JSON.stringify(status)}`);
             if (status.isFinalized) {
               events.forEach(async ({ event: { data, method, section } }) => {
                 if (section.toString() === 'archipelModule' && method.toString() === 'NewLeader') {
@@ -195,6 +201,7 @@ class Chain {
           .send(({ events = [], status }) => {
             // Debug show transaction status
             debug('giveUpLeadership', transactionGetStatus(status));
+            debug('giveUpLeadership', `Transaction status ${JSON.stringify(status)}`);
             if (status.isFinalized) {
               events.forEach(async ({ event: { data, method, section } }) => {
                 if (section.toString() === 'archipelModule' && method.toString() === 'GiveUpLeader') {
@@ -246,6 +253,14 @@ class Chain {
     // Check if the chain is moving forward
     if (!await this.chainMovingForward()) {
       debug('canSendTransactions', 'The chain seems to not moving forward');
+      return false;
+    }
+
+    // Check if gap between best block and best finalized block is not big
+    const bestNumber = await this.getBestNumber();
+    const bestNumberFinalized = await this.getBestNumberFinalized();
+    if (bestNumber - bestNumberFinalized >= this.finalizedGap) {
+      debug('canSendTransactions', `The gap between finalized and best block is very big (best bumber ${bestNumber} and best number finalized ${bestNumberFinalized}).`);
       return false;
     }
 
@@ -327,6 +342,16 @@ class Chain {
       return await this.api.derive.chain.bestNumber();
     } catch (error) {
       debug('getBestNumber', error);
+      return 0;
+    }
+  }
+
+  // Get bestNumberFinalized Chain
+  async getBestNumberFinalized () {
+    try {
+      return await this.api.derive.chain.bestNumberFinalized();
+    } catch (error) {
+      debug('getBestNumberFinalized', error);
       return 0;
     }
   }

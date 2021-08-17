@@ -264,7 +264,7 @@ class Orchestrator {
     const leaderHeartbeat = this.heartbeats.getHeartbeat(currentLeader);
 
     // If no heartbeat received we will wait noLivenessThreshold
-    if (leaderHeartbeat === undefined) {
+    if (leaderHeartbeat) {
       // How much checks remains
       const checksNumber =
         this.noLivenessThreshold - this.noLivenessFromLeader;

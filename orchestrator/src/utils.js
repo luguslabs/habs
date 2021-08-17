@@ -118,6 +118,9 @@ const transactionGetStatus = (status) => {
   if (status.isFuture) return 'Transaction is future.';
   if (status.isFinalized) return 'Transaction is finalized.';
   if (status.isBroadcast) return 'Transaction is broadcast.';
+  if (status.isInBlock) return 'Transaction is included in block.';
+  if (status.isRetracted) return 'Transaction is retracted.';
+  if (status.isFinalityTimeout) return 'Transaction is finality timeout.';
   return 'Unknown transaction state.';
 };
 

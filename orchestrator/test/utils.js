@@ -135,6 +135,9 @@ describe('Utils test', function () {
         assert.equal(transactionGetStatus({isFuture: true}), 'Transaction is future.', 'Check transaction get status on future transaction');
         assert.equal(transactionGetStatus({isFinalized: true}), 'Transaction is finalized.', 'Check transaction get status on finalized transaction');
         assert.equal(transactionGetStatus({isBroadcast: true}), 'Transaction is broadcast.', 'Check transaction get status on broadcast transaction');
+        assert.equal(transactionGetStatus({isInBlock: true}), 'Transaction is included in block.', 'Check transaction get status when included in block');
+        assert.equal(transactionGetStatus({isRetracted: true}), 'Transaction is retracted.', 'Check if transaction get status when retracted');
+        assert.equal(transactionGetStatus({isFinalityTimeout: true}), 'Transaction is finality timeout.', 'Check if transaction get status when finality timeout');
         assert.equal(transactionGetStatus({toto: true}), 'Unknown transaction state.', 'Check transaction get status on unknown transaction');
     });
 
