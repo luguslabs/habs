@@ -2,7 +2,6 @@ const debug = require('debug')('service');
 
 const { getKeysFromSeed } = require('./utils');
 const { Service } = require('./service');
-const { config } = require('dotenv');
 
 class Orchestrator {
   constructor (
@@ -57,7 +56,7 @@ class Orchestrator {
 
     // Fill heartbeats from chain at orchestrator start
     const walletList = this.nodesWallets.toString().split(',');
-    for (let wallet of walletList) {
+    for (const wallet of walletList) {
       const heartbeatBlock = await this.chain.getHeartbeat(wallet);
       this.heartbeats.addHeartbeat(wallet, 0, 0, heartbeatBlock.toString());
     }

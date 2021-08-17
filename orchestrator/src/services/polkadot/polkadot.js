@@ -105,7 +105,7 @@ class Polkadot {
     debug('importKey', `Command result: "${result}"`);
 
     // If docker execute failed we will return false
-    if(!result) {
+    if (!result) {
       return false;
     }
 
@@ -147,7 +147,7 @@ class Polkadot {
     debug('checkKeyAdded', `HasKey command result: "${result}"`);
 
     // If docker execute failed we will return false
-    if(!result) {
+    if (!result) {
       return false;
     }
 
@@ -193,7 +193,7 @@ class Polkadot {
       debug('checkSessionKeyOnNode', `Author_hasSessionKeys result: "${result}"`);
 
       // If docker execute failed we will return false
-      if(!result) {
+      if (!result) {
         return false;
       }
 
@@ -264,7 +264,7 @@ class Polkadot {
       debug('isServiceReadyToStart', `Command system_health result: "${resultSystemHealth}"`);
 
       // If docker execute failed we will return false
-      if(!resultSystemHealth) {
+      if (!resultSystemHealth) {
         return false;
       }
 
@@ -313,7 +313,7 @@ class Polkadot {
         return false;
       }
       // Updating last known block
-      this.lastKnownBlock = currentBlock ? currentBlock : 0;
+      this.lastKnownBlock = currentBlock || 0;
 
       // If no return was triggered till now considering that service is ready
       return true;

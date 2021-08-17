@@ -244,8 +244,8 @@ class Chain {
     }
 
     // Check if the chain is moving forward
-    if(!await this.chainMovingForward()) {
-      debug('canSendTransactions', `The chain seems to not moving forward`);
+    if (!await this.chainMovingForward()) {
+      debug('canSendTransactions', 'The chain seems to not moving forward');
       return false;
     }
 
