@@ -34,6 +34,14 @@ describe('Heartbeats test', function () {
     assert.equal(heartbeats.anyOneAlive(nodesWallets.split(',')[0], 10, 42, 20), false, 'check if anyone is alive with adding only heartbeat from my wallet');
   });
 
+  it('Test anyone is alive with one heartbeat from other wallet and no heartbeat from testing wallet', async () => {
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+
+    heartbeats.addHeartbeat(nodesWallets.split(',')[1], 42, 1, 10);
+
+    assert.equal(heartbeats.anyOneAlive(nodesWallets.split(',')[0], 10, 42, 20), false, 'check if anyone is alive with adding only heartbeat from other wallet');
+  });
+
   it('Test anyone is alive with two hearbeats from two different wallets', async () => {
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 

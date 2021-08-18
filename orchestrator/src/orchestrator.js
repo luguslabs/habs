@@ -171,7 +171,7 @@ class Orchestrator {
     console.log('Checking is anyone in federation is alive...');
     if (!this.heartbeats.anyOneAlive(nodeKey, this.aliveTime, this.group, bestNumber)) {
       console.log(
-        "Seems that no one is alive. Enforcing 'passive' service mode..."
+        "Seems that no one is alive or current node doesn't send heartbeats. Enforcing 'passive' service mode..."
       );
       await this.serviceStart('passive');
       return;

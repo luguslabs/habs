@@ -91,7 +91,7 @@ describe('Polkadot test', function () {
         polkadot.importedKeys = [];
         await polkadot.cleanUp();
     });
-    // TODO: Make work this functionality
+
     it('Test checkSessionKeysOnNode function', async () => {
         await polkadot.start('active');
 

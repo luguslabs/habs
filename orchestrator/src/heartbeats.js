@@ -29,21 +29,28 @@ class Heartbeats {
   // Check if anyone is alive
   anyOneAlive (excludeNode, aliveTime, group, bestNumber) {
     debug('anyOneAlive', `excludeNode ${excludeNode} aliveTime ${aliveTime} group ${group} bestNumber ${bestNumber}.`);
+    // Create variables to store liveness results
+    let otherNodeAlive = false;
+    let currentNodeAlive = false;
+
     // Search in heartbeats map
     for (const [key, value] of this.heartbeats.entries()) {
-      // Exclude a wallet from search
-      // Anyone alive except us
-      if (key !== excludeNode) {
-        debug('anyOneAlive', `heartbeat found. key:${key}, group:${value.group}, blockNumber:${value.blockNumber}.`);
-        // Check if someone was alive less blocks then aliveTime ago
-        const lastSeenAgo = bestNumber - value.blockNumber;
-        if (value.blockNumber !== 0 && lastSeenAgo < aliveTime) {
-          debug('anyOneAlive', `${key} is alive.`);
-          return true;
+      debug('anyOneAlive', `heartbeat found. key:${key}, group:${value.group}, blockNumber:${value.blockNumber}.`);
+      // Check if someone was alive less blocks then aliveTime ago
+      const lastSeenAgo = bestNumber - value.blockNumber;
+      if (value.blockNumber !== 0 && lastSeenAgo < aliveTime) {
+        debug('anyOneAlive', `${key} is alive.`);
+        // Fill other node or current node liveness
+        if(key !== excludeNode){
+          otherNodeAlive = true;
+        } else {
+          currentNodeAlive = true;
         }
       }
     }
-    return false;
+
+    // One other node and current node must be alive
+    return otherNodeAlive && currentNodeAlive;
   }
 
   // Get all heartbeats from heartbeat map
