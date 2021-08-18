@@ -120,6 +120,10 @@ describe('Orchestrator test', function () {
   });
 
   it('Test service bootstrap before orchestration', async function () {
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+      
     await orchestrator.bootstrapOrchestrator();
 
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
@@ -132,21 +136,21 @@ describe('Orchestrator test', function () {
         name: 'test-archipel-NODE-1',
         group: 0,
         nodeStatus: 0,
-        blockNumber: '0'
+        blockNumber: 0
       },
       {
         wallet: '5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex',
         name: 'test-archipel-NODE-2',
         group: 0,
         nodeStatus: 0,
-        blockNumber: '0'
+        blockNumber: 0
       },
       {
         wallet: '5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s',
         name: 'test-archipel-NODE-3',
         group: 0,
         nodeStatus: 0,
-        blockNumber: '0'
+        blockNumber: 0
       }
     ];
     assert.equal(JSON.stringify(orchestrator.heartbeats.getAllHeartbeats()), JSON.stringify(hearbeatsNeedBe), 'Check if heartbeats where correctly initialized');
@@ -169,25 +173,26 @@ describe('Orchestrator test', function () {
         name: 'test-archipel-NODE-1',
         group: 0,
         nodeStatus: 0,
-        blockNumber: heartbeatBlock1.toString()
+        blockNumber: heartbeatBlock1
       },
       {
         wallet: '5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex',
         name: 'test-archipel-NODE-2',
         group: 0,
         nodeStatus: 0,
-        blockNumber: heartbeatBlock2.toString()
+        blockNumber: heartbeatBlock2
       },
       {
         wallet: '5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s',
         name: 'test-archipel-NODE-3',
         group: 0,
         nodeStatus: 0,
-        blockNumber: '0'
+        blockNumber: 0
       }
     ];
     assert.equal(JSON.stringify(orchestrator.heartbeats.getAllHeartbeats()), JSON.stringify(hearbeatsNeedBe), 'Check if heartbeats where correctly initialized with some heartbeats added onchain');
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     const saveOrchestratorServiceStart = orchestrator.serviceStart;
     orchestrator.serviceStart = async () => false;
 
@@ -479,7 +484,12 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if no one is alive the service remains is passive mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
@@ -487,6 +497,8 @@ describe('Orchestrator test', function () {
     
     const saveHeartbeats = orchestrator.heartbeats;
     orchestrator.heartbeats = heartbeats;
+
+    await orchestrator.bootstrapOrchestrator();
 
     await orchestrator.orchestrateService();
   
@@ -500,26 +512,34 @@ describe('Orchestrator test', function () {
     await orchestrator.serviceCleanUp();
 
     orchestrator.heartbeats = saveHeartbeats;
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
   });
 
   it('Check if service is not ready to start the service remains in passive mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroupFalse, false, 'check if the group is not leaded');
-  
-    const keys2 = await getKeysFromSeed(mnemonic2);
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-  
+    
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
 
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic1;
     orchestrator.service.serviceInstance.isServiceReadyToStart = () => false;
+
+    await orchestrator.bootstrapOrchestrator();
   
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+
     await orchestrator.orchestrateService();
   
     const isLeadedGroupFalse2 = await chain.isLeadedGroup(1);
@@ -535,22 +555,30 @@ describe('Orchestrator test', function () {
 
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
   });
 
   it('Test if chain can not receive transactions the service remains in passive mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+    
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroupFalse, false, 'check if the group is not leaded');
-  
+    
+    orchestrator.heartbeats = heartbeats;
+    orchestrator.mnemonic = mnemonic1;
+
+    await orchestrator.bootstrapOrchestrator();
+
     const keys2 = await getKeysFromSeed(mnemonic2);
     const blockNumber = await chain.getBestNumber();
     heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-  
-    orchestrator.heartbeats = heartbeats;
-    orchestrator.mnemonic = mnemonic1;
-  
+    
     const canSendTransactionsSave = orchestrator.chain.canSendTransactions;
   
     orchestrator.chain.canSendTransactions = () => false;
@@ -566,19 +594,21 @@ describe('Orchestrator test', function () {
     
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.chain.canSendTransactions = canSendTransactionsSave;
   });
 
   it('Test if no leader and someone is alive take leadership and start service in active mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroupFalse, false, 'check if the group is not leaded');
-  
-    const keys2 = await getKeysFromSeed(mnemonic2);
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
   
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
@@ -586,13 +616,18 @@ describe('Orchestrator test', function () {
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic1;
 
-    const keys1 = await getKeysFromSeed(mnemonic1);
+    await orchestrator.bootstrapOrchestrator();
 
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+  
     await orchestrator.orchestrateService();
 
     const isLeadedGroupTrue = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroupTrue, true, 'check if the group becomes leaded');
   
+    const keys1 = await getKeysFromSeed(mnemonic1);
     const leader = await chain.getLeader(1);
     assert.equal(leader.toString(), keys1.address, 'check if leader was correctly set on chain');
   
@@ -605,20 +640,22 @@ describe('Orchestrator test', function () {
     assert.equal(status, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Test if leadership take transaction was executed and orchestrator must start active service but really leadership was no taken on chain', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroupFalse, false, 'check if the group is not leaded');
-  
-    const keys2 = await getKeysFromSeed(mnemonic2);
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
   
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
@@ -626,8 +663,12 @@ describe('Orchestrator test', function () {
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic1;
 
-    const keys1 = await getKeysFromSeed(mnemonic1);
+    await orchestrator.bootstrapOrchestrator();
 
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+  
     // We will simulate leadershipManagement function
     const saveLeadershipManagement = orchestrator.leadershipManagement;
     orchestrator.leadershipManagement = async () => true;
@@ -644,27 +685,35 @@ describe('Orchestrator test', function () {
     console.log('Cleanup...');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.leadershipManagement = saveLeadershipManagement;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Test if no leader and someone is alive but in another group get leadership on your group and start service in active mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroupFalse, false, 'check if the group is not leaded');
-  
-    const keys2 = await getKeysFromSeed(mnemonic2);
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys2.address.toString(), 2, 2, blockNumber);
   
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
 
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic1;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys2.address.toString(), 2, 2, blockNumber);
   
     await orchestrator.orchestrateService();
   
@@ -684,12 +733,18 @@ describe('Orchestrator test', function () {
     assert.equal(status, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Test if I am leader and someone is alive the service remains in active mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -698,14 +753,17 @@ describe('Orchestrator test', function () {
     const isLeadedGroupFalse = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroupFalse, false, 'check if the group is not leaded');
   
-    let blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-  
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
 
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic1;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    let blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+  
     await orchestrator.orchestrateService();
   
     const isLeadedGroupTrue = await chain.isLeadedGroup(1);
@@ -737,12 +795,18 @@ describe('Orchestrator test', function () {
     assert.equal(status, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('If other node is leader and nobody is alive no leadership change and service remains in passive mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -757,6 +821,8 @@ describe('Orchestrator test', function () {
 
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic2;
+
+    await orchestrator.bootstrapOrchestrator();
   
     await orchestrator.orchestrateService();
   
@@ -772,12 +838,18 @@ describe('Orchestrator test', function () {
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Test if other node is leader, is offline and someone other is alive try to get leadership and launch service in active mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -790,9 +862,6 @@ describe('Orchestrator test', function () {
     const leader = await chain.getLeader(1);
     assert.equal(leader.toString(), keys1.address, 'check if leader was set correctly');
   
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 1, blockNumber);
-
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
     const saveNoLivenessThreshold = orchestrator.noLivenessThreshold;
@@ -800,6 +869,11 @@ describe('Orchestrator test', function () {
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic2;
     orchestrator.noLivenessThreshold = 0;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 1, blockNumber);
   
     await orchestrator.orchestrateService();
   
@@ -815,13 +889,19 @@ describe('Orchestrator test', function () {
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
     orchestrator.noLivenessThreshold = saveNoLivenessThreshold;
   });
 
   it('If other node is leader, is offline and nobody other is alive do not get leadership and service remains in passive mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys2 = await getKeysFromSeed(mnemonic2);
@@ -835,9 +915,6 @@ describe('Orchestrator test', function () {
   
     const blockNumber = await chain.getBestNumber();
     assert.equal(blockNumber > 2, true, 'check if blocknumber is more than 2');
-
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber - 2);
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber - 2);
   
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
@@ -848,6 +925,11 @@ describe('Orchestrator test', function () {
     orchestrator.mnemonic = mnemonic1;
     orchestrator.aliveTime = 1;
     orchestrator.noLivenessThreshold = 0;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber - 2);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber - 2);
   
     await orchestrator.orchestrateService();
     
@@ -863,6 +945,7 @@ describe('Orchestrator test', function () {
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
     orchestrator.aliveTime = saveAliveTime;
@@ -870,7 +953,12 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader, is offline and someone other is alive test threshold', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -882,9 +970,6 @@ describe('Orchestrator test', function () {
     const leader = await chain.getLeader(1);
     assert.equal(leader.toString(), keys2.address, 'check if leader was set correctly');
   
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
-
     const saveNoLivenessThreshold = orchestrator.noLivenessThreshold;
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
@@ -892,6 +977,11 @@ describe('Orchestrator test', function () {
     orchestrator.noLivenessThreshold = 3;
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic1;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
   
     await orchestrator.orchestrateService();
     
@@ -934,13 +1024,18 @@ describe('Orchestrator test', function () {
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.noLivenessThreshold = saveNoLivenessThreshold;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Test if other node is leader and is alive. Staying in passive mode...', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
 
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
@@ -954,12 +1049,15 @@ describe('Orchestrator test', function () {
 
     // Adding heartbeats
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
   
     const saveHeartbeats = orchestrator.heartbeats;
     orchestrator.heartbeats = heartbeats;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
 
     await orchestrator.orchestrateService();
     
@@ -975,11 +1073,17 @@ describe('Orchestrator test', function () {
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
   });
 
   it('Test serviceReadinessManagement', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
   
     const keys1 = await getKeysFromSeed(mnemonic1);
@@ -993,11 +1097,6 @@ describe('Orchestrator test', function () {
   
     assert.equal(orchestrator.heartbeatSendEnabled, true, 'check if chain send heartbeats is enabled');
   
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
-
     const saveNoReadyThreshold = orchestrator.noReadyThreshold;
     const saveAliveTime = orchestrator.aliveTime;
     const saveNoLivenessThreshold = orchestrator.noLivenessThreshold;
@@ -1009,6 +1108,13 @@ describe('Orchestrator test', function () {
     orchestrator.noLivenessThreshold = 5;
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic1;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
   
     await orchestrator.orchestrateService();
   
@@ -1081,6 +1187,7 @@ describe('Orchestrator test', function () {
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.noReadyThreshold = saveNoReadyThreshold;
     orchestrator.aliveTime = saveAliveTime;
     orchestrator.noLivenessThreshold = saveNoLivenessThreshold;
@@ -1089,6 +1196,12 @@ describe('Orchestrator test', function () {
   });
 
   it('Test force passive services mode if hearbeats send is disabled', async function () {
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
 
     // Adding some heartbeats
@@ -1097,11 +1210,6 @@ describe('Orchestrator test', function () {
     const keys1 = await getKeysFromSeed(mnemonic1);
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
-  
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
   
     // Starting active service container
     await orchestrator.serviceStart('active');
@@ -1115,6 +1223,13 @@ describe('Orchestrator test', function () {
 
     orchestrator.heartbeats = heartbeats;
     orchestrator.heartbeatSendEnabledAdmin = false;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
 
     await orchestrator.orchestrateService();
 
@@ -1135,16 +1250,17 @@ describe('Orchestrator test', function () {
     container = await docker.getContainer(containerName);
     assert.equal(container.description.State.Running, true, 'check if service container remains in passive mode');
     
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeatsInstrance;
     orchestrator.heartbeatSendEnabledAdmin = saveHeartbeatSendEnabledAdmin;
   });
 
   it('Other node is leader and his hearbeat was long time ago', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
 
-    let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-    let container = await docker.getContainer(containerName);
-    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
 
     let isLeadedGroupTrue = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroupTrue, false, 'check if the group is not leaded');
@@ -1163,11 +1279,6 @@ describe('Orchestrator test', function () {
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
   
-    let blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
-
     const saveHeartbeats = orchestrator.heartbeats;
     const saveAliveTime = orchestrator.aliveTime;
     const saveMnemonic = orchestrator.mnemonic;
@@ -1175,6 +1286,13 @@ describe('Orchestrator test', function () {
     orchestrator.mnemonic = mnemonic2;
     orchestrator.heartbeats = heartbeats;
     orchestrator.aliveTime = 1;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    let blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
 
     // Wait for 10 seconds to make minimum 2 blocks 
     await new Promise((resolve) => setTimeout(resolve, 12000));
@@ -1199,17 +1317,18 @@ describe('Orchestrator test', function () {
     assert.equal(statusGiveUp, true, 'check if give up leadership transaction was executed');
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.aliveTime = saveAliveTime;
     orchestrator.mnemonic = saveMnemonic;
   });
 
   it('Try to orchestrate when orchestration is disabled', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
 
-    let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-    let container = await docker.getContainer(containerName);
-    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
 
     let isLeadedGroup = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroup, false, 'check if the group is not leaded');
@@ -1221,11 +1340,6 @@ describe('Orchestrator test', function () {
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
   
-    let blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
-
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
     const saveorchestrationEnabled = orchestrator.orchestrationEnabled;
@@ -1234,6 +1348,13 @@ describe('Orchestrator test', function () {
     orchestrator.heartbeats = heartbeats;
     orchestrator.orchestrationEnabled = false;
 
+    await orchestrator.bootstrapOrchestrator();
+
+    let blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
+
     await orchestrator.orchestrateService();
 
     isLeadedGroup = await chain.isLeadedGroup(1);
@@ -1245,17 +1366,18 @@ describe('Orchestrator test', function () {
 
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
     orchestrator.orchestrationEnabled = saveorchestrationEnabled;
   });
 
   it('Set leadership failed on chain', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
 
-    let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-    let container = await docker.getContainer(containerName);
-    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
 
     let isLeadedGroup = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroup, false, 'check if the group is not leaded');
@@ -1267,11 +1389,6 @@ describe('Orchestrator test', function () {
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
   
-    let blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
-
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
     const saveChainSetLeader = orchestrator.chain.setLeader;
@@ -1280,6 +1397,13 @@ describe('Orchestrator test', function () {
     orchestrator.heartbeats = heartbeats;
     orchestrator.chain.setLeader = () => false;
 
+    await orchestrator.bootstrapOrchestrator();
+
+    let blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
+
     await orchestrator.orchestrateService();
 
     isLeadedGroup = await chain.isLeadedGroup(1);
@@ -1291,17 +1415,18 @@ describe('Orchestrator test', function () {
 
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
     orchestrator.chain.setLeader = saveChainSetLeader;
   });
 
   it('Test orchestration with bad service mode', async function () {
-    await orchestrator.serviceStart('passive');
+    await orchestrator.serviceCleanUp();
 
-    let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-    let container = await docker.getContainer(containerName);
-    assert.equal(container.description.State.Running, true, 'check if passive service container was started correctly');
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
 
     let isLeadedGroup = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroup, false, 'check if the group is not leaded');
@@ -1313,11 +1438,6 @@ describe('Orchestrator test', function () {
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
   
-    let blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
-
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
     const saveServiceMode = orchestrator.serviceMode;
@@ -1325,6 +1445,14 @@ describe('Orchestrator test', function () {
     orchestrator.serviceMode = 'inexistant-service-mode';
     orchestrator.mnemonic = mnemonic1;
     orchestrator.heartbeats = heartbeats;
+
+    await orchestrator.bootstrapOrchestrator();
+
+    let blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
+
     try {
       await orchestrator.orchestrateService();
     } catch (error) {
@@ -1340,12 +1468,19 @@ describe('Orchestrator test', function () {
 
     await orchestrator.serviceCleanUp();
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     orchestrator.heartbeats = saveHeartbeats;
     orchestrator.mnemonic = saveMnemonic;
     orchestrator.serviceMode = saveServiceMode; 
   });
 
   it('Test orchestrator with polkadot service and config file', async function () {
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     // Set env variables
     process.env.CONFIG_FILE = 'true';
     process.env.CONFIG_FILE_PATH = './test/mock-config.json';
@@ -1364,26 +1499,26 @@ describe('Orchestrator test', function () {
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
 
+    // Create Orchestrator instance
+    const orchestratorNew = new Orchestrator(
+      config,
+      chain,
+      heartbeats);
+
+    // Mock isServiceReadyToStart method of service
+    orchestratorNew.service.serviceInstance.isServiceReadyToStart = () => true;
+
+    let isLeadedGroupTrue = await chain.isLeadedGroup(1);
+    assert.equal(isLeadedGroupTrue, false, 'check if the group is not leaded');
+
+    await orchestratorNew.bootstrapOrchestrator();
+
     let blockNumber = await chain.getBestNumber();
     heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, blockNumber);
     heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
     heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, blockNumber);
 
-    // Create Orchestrator instance
-    const orchestrator = new Orchestrator(
-      config,
-      chain,
-      heartbeats);
-    // Start service before orchestration
-    await orchestrator.bootstrapOrchestrator();
-
-    // Mock isServiceReadyToStart method of service
-    orchestrator.service.serviceInstance.isServiceReadyToStart = () => true;
-
-    let isLeadedGroupTrue = await chain.isLeadedGroup(1);
-    assert.equal(isLeadedGroupTrue, false, 'check if the group is not leaded');
-
-    await orchestrator.orchestrateService();
+    await orchestratorNew.orchestrateService();
 
     isLeadedGroup = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroup, true, 'check if the group becomes leaded');
@@ -1394,18 +1529,27 @@ describe('Orchestrator test', function () {
     delete process.env.CONFIG_FILE;
     delete process.env.CONFIG_FILE_PATH;
     delete process.env.NODE_ID;
-    await orchestrator.serviceCleanUp();
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
+    await orchestratorNew.serviceCleanUp();
   });
 
   it('Test get orchestrator info', async () => {
+    await orchestrator.serviceCleanUp();
+
+    const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
+
+    orchestrator.chain.getHeartbeat = async () => 0;
+
     // Mock some functions to get predictable result
     const saveChainBestNumber = chain.getBestNumber;
+    const saveChainBestNumberFinalized = chain.getBestNumberFinalized;
     const saveGetPeerNumber = chain.getPeerNumber;
     const saveGetPeerId = chain.getPeerId;
     const saveGetLeader = chain.getLeader;
     const saveServiceMode = orchestrator.service.mode;
 
-    chain.getBestNumber = async () => '0x00000001';
+    chain.getBestNumber = async () => 1;
+    chain.getBestNumberFinalized = async () => 1;
     chain.getPeerNumber = async () => 2;
     chain.getPeerId = async () => '12D3';
     chain.getLeader = async () => '12D4';
@@ -1417,9 +1561,9 @@ describe('Orchestrator test', function () {
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
 
-    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, '0x00000001');
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, '0x00000001');
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, '0x00000001');
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, 1);
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, 1);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, 1);
 
     const saveOrchestratorHeartbeats = orchestrator.heartbeats;
     orchestrator.heartbeats = heartbeats;
@@ -1432,7 +1576,8 @@ describe('Orchestrator test', function () {
         isConnected: true,
         peerId: '12D3',
         peerNumber: 2,
-        bestNumber: '0x00000001',
+        bestNumber: 1,
+        bestNumberFinalized: 1,
         synchState: false,
         leader: '12D4',
         orchestrationEnabled: true,
@@ -1444,21 +1589,21 @@ describe('Orchestrator test', function () {
             name: 'test-archipel-NODE-1',
             group: 1,
             nodeStatus: 2,
-            blockNumber: '0x00000001'
+            blockNumber: 1
           },
           {
             wallet: '5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex',
             name: 'test-archipel-NODE-2',
             group: 1,
             nodeStatus: 2,
-            blockNumber: '0x00000001'
+            blockNumber: 1
           },
           {
             wallet: '5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s',
             name: 'test-archipel-NODE-3',
             group: 1,
             nodeStatus: 2,
-            blockNumber: '0x00000001'
+            blockNumber: 1
           }
         ],
         service: 'polkadot',
@@ -1475,7 +1620,9 @@ describe('Orchestrator test', function () {
     // Test get service mode function
     assert.equal(orchestrator.getServiceMode(), 'none', 'check if service mode get returns a correct result');
 
+    orchestrator.chain.getHeartbeat = saveChainGetHeartbeat;
     chain.getBestNumber = saveChainBestNumber;
+    chain.getBestNumberFinalized = saveChainBestNumberFinalized;
     chain.getPeerNumber = saveGetPeerNumber;
     chain.getPeerId = saveGetPeerId;
     chain.getLeader = saveGetLeader;
@@ -1553,10 +1700,12 @@ describe('Orchestrator no service test', function () {
   it('Test get orchestrator info no service', async () => {
     // Mock some functions to get previsible result
     const saveChainBestNumber = chain.getBestNumber;
+    const saveChainBestNumberFinalized = chain.getBestNumberFinalized;
     const saveGetPeerNumber = chain.getPeerNumber;
     const saveGetPeerId = chain.getPeerId;
     const saveGetLeader = chain.getLeader;
-    chain.getBestNumber = async () => '0x00000001';
+    chain.getBestNumber = async () => 1;
+    chain.getBestNumberFinalized = async () => 1;
     chain.getPeerNumber = async () => 2;
     chain.getPeerId = async () => '12D3';
     chain.getLeader = async () => '12D4';
@@ -1567,9 +1716,9 @@ describe('Orchestrator no service test', function () {
     const keys2 = await getKeysFromSeed(mnemonic2);
     const keys3 = await getKeysFromSeed(mnemonic3);
 
-    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, '0x00000001');
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, '0x00000001');
-    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, '0x00000001');
+    heartbeats.addHeartbeat(keys1.address.toString(), 1, 2, 1);
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, 1);
+    heartbeats.addHeartbeat(keys3.address.toString(), 1, 2, 1);
 
     const saveOrchestratorHeartbeats = orchestrator.heartbeats;
     orchestrator.heartbeats = heartbeats;
@@ -1582,7 +1731,8 @@ describe('Orchestrator no service test', function () {
         isConnected: true,
         peerId: '12D3',
         peerNumber: 2,
-        bestNumber: '0x00000001',
+        bestNumber: 1,
+        bestNumberFinalized: 1,
         synchState: false,
         leader: '12D4',
         orchestrationEnabled: true,
@@ -1594,21 +1744,21 @@ describe('Orchestrator no service test', function () {
             name: 'test-archipel-NODE-1',
             group: 1,
             nodeStatus: 2,
-            blockNumber: '0x00000001'
+            blockNumber: 1
           },
           {
             wallet: '5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex',
             name: 'test-archipel-NODE-2',
             group: 1,
             nodeStatus: 2,
-            blockNumber: '0x00000001'
+            blockNumber: 1
           },
           {
             wallet: '5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s',
             name: 'test-archipel-NODE-3',
             group: 1,
             nodeStatus: 2,
-            blockNumber: '0x00000001'
+            blockNumber: 1
           }
         ]
     };
@@ -1616,6 +1766,7 @@ describe('Orchestrator no service test', function () {
     assert.equal(JSON.stringify(orchestratorInfo), JSON.stringify(bodyMustBe), 'Check if getOrchestratorInfo returns correct information');
 
     chain.getBestNumber = saveChainBestNumber;
+    chain.getBestNumberFinalized = saveChainBestNumberFinalized;
     chain.getPeerNumber = saveGetPeerNumber;
     chain.getPeerId = saveGetPeerId;
     chain.getLeader = saveGetLeader;
@@ -1639,16 +1790,18 @@ describe('Orchestrator no service test', function () {
     let isLeadedGroup = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroup, false, 'check if the group is not leaded');
   
-    const keys2 = await getKeysFromSeed(mnemonic2);
-    const blockNumber = await chain.getBestNumber();
-    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
-  
     const saveHeartbeats = orchestrator.heartbeats;
     const saveMnemonic = orchestrator.mnemonic;
 
     orchestrator.heartbeats = heartbeats;
     orchestrator.mnemonic = mnemonic1;
 
+    await orchestrator.bootstrapOrchestrator();
+
+    const keys2 = await getKeysFromSeed(mnemonic2);
+    const blockNumber = await chain.getBestNumber();
+    heartbeats.addHeartbeat(keys2.address.toString(), 1, 2, blockNumber);
+  
     await orchestrator.orchestrateService();
 
     isLeadedGroup = await chain.isLeadedGroup(1);

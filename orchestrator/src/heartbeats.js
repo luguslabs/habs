@@ -22,7 +22,7 @@ class Heartbeats {
         name,
         group,
         nodeStatus,
-        blockNumber
+        blockNumber: parseInt(blockNumber)
       });
   }
 
@@ -37,7 +37,7 @@ class Heartbeats {
         debug('anyOneAlive', `heartbeat found. key:${key}, group:${value.group}, blockNumber:${value.blockNumber}.`);
         // Check if someone was alive less blocks then aliveTime ago
         const lastSeenAgo = bestNumber - value.blockNumber;
-        if (lastSeenAgo < aliveTime) {
+        if (value.blockNumber !== 0 && lastSeenAgo < aliveTime) {
           debug('anyOneAlive', `${key} is alive.`);
           return true;
         }

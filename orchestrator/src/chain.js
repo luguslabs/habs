@@ -41,7 +41,7 @@ class Chain {
     ]);
 
     // Get block number and set last known block number
-    this.lastBlockNumber = parseInt(await this.getBestNumber());
+    this.lastBlockNumber = await this.getBestNumber();
 
     console.log(`You are connected to chain ${chain} using ${nodeName} v${nodeVersion}`);
   }
@@ -227,7 +227,7 @@ class Chain {
 
   // Check if chain is moving forward is not wait for threshold and send false when theshold reached
   async chainMovingForward () {
-    const currentBlock = parseInt(await this.getBestNumber());
+    const currentBlock = await this.getBestNumber();
     // If chain is not moving forward we will incremnet the accumulator
     // If chain moved forward we will reset the accumulator
     this.lastBlockAccumulator = this.lastBlockNumber === currentBlock ? this.lastBlockAccumulator + 1 : 0;
@@ -289,7 +289,7 @@ class Chain {
   // Get current leader from Runtime
   async getLeader (groupId) {
     try {
-      return await this.api.query.archipelModule.leaders(groupId);
+      return (await this.api.query.archipelModule.leaders(groupId)).toString();
     } catch (error) {
       debug('getLeader', error);
       return false;
@@ -299,7 +299,7 @@ class Chain {
   // Get leadedGroup status from Runtime
   async isLeadedGroup (groupId) {
     try {
-      return JSON.parse(await this.api.query.archipelModule.leadedGroup(groupId));
+      return (await this.api.query.archipelModule.leadedGroup(groupId)).toString() === 'true';
     } catch (error) {
       debug('isLeadedGroup', error);
       return false;
@@ -309,37 +309,37 @@ class Chain {
   // Get heartbeat from Runtime
   async getHeartbeat (key) {
     try {
-      return await this.api.query.archipelModule.heartbeats(key);
+      return parseInt((await this.api.query.archipelModule.heartbeats(key)).toString());
     } catch (error) {
       debug('getHeartbeat', error);
-      return false;
+      return 0;
     }
   }
 
   // Get Node Status from Runtime
   async getNodeStatus (key) {
     try {
-      return parseInt(await this.api.query.archipelModule.nodesStatus(key));
+      return parseInt((await this.api.query.archipelModule.nodesStatus(key)).toString());
     } catch (error) {
       debug('getNodeStatus', error);
-      return false;
+      return 0;
     }
   }
 
   // Get Node Group from Runtime
   async getNodeGroup (key) {
     try {
-      return parseInt(await this.api.query.archipelModule.groups(key));
+      return parseInt((await this.api.query.archipelModule.groups(key)).toString());
     } catch (error) {
       debug('getNodeGroup', error);
-      return false;
+      return 0;
     }
   }
 
   // Get bestNumber Chain
   async getBestNumber () {
     try {
-      return await this.api.derive.chain.bestNumber();
+      return parseInt((await this.api.derive.chain.bestNumber()).toString());
     } catch (error) {
       debug('getBestNumber', error);
       return 0;
@@ -349,7 +349,7 @@ class Chain {
   // Get bestNumberFinalized Chain
   async getBestNumberFinalized () {
     try {
-      return await this.api.derive.chain.bestNumberFinalized();
+      return parseInt((await this.api.derive.chain.bestNumberFinalized()).toString());
     } catch (error) {
       debug('getBestNumberFinalized', error);
       return 0;
@@ -381,8 +381,7 @@ class Chain {
   // Get peer id from chain
   async getPeerId () {
     try {
-      const localPeerId = await this.api.rpc.system.localPeerId();
-      return localPeerId.toString();
+      return (await this.api.rpc.system.localPeerId()).toString();
     } catch (error) {
       debug('getPeerId', error);
       return false;
@@ -391,7 +390,7 @@ class Chain {
 
   // Check if connected to node
   isConnected () {
-    return this.provider.isConnected.toString() !== 'false';
+    return this.provider.isConnected.toString() === 'true';
   }
 
   // Disconnect from chain

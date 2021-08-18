@@ -53,6 +53,15 @@ describe('Heartbeats test', function () {
     assert.equal(heartbeats.anyOneAlive(nodesWallets.split(',')[0], 10, 42, 15), true, 'check if anyone is alive with heartbeat from other wallet in other group');
   });
 
+  it('Test anyone is alive with heartbeat from other wallet in other group with zero block number', async () => {
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
+
+    heartbeats.addHeartbeat(nodesWallets.split(',')[0], 42, 1, 0);
+    heartbeats.addHeartbeat(nodesWallets.split(',')[1], 43, 2, 0);
+
+    assert.equal(heartbeats.anyOneAlive(nodesWallets.split(',')[0], 100, 42, 20), false, 'check if anyone is alive returns false cause zero block number');
+  });
+
   it('check get all heartbeats function', async function () {
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 

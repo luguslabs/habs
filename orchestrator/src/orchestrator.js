@@ -63,7 +63,7 @@ class Orchestrator {
     const walletList = this.nodesWallets.toString().split(',');
     for (const wallet of walletList) {
       const heartbeatBlock = await this.chain.getHeartbeat(wallet);
-      this.heartbeats.addHeartbeat(wallet, 0, 0, heartbeatBlock.toString());
+      this.heartbeats.addHeartbeat(wallet, 0, 0, heartbeatBlock);
     }
   }
 
@@ -269,7 +269,7 @@ class Orchestrator {
     const leaderHeartbeat = this.heartbeats.getHeartbeat(currentLeader);
 
     // If no heartbeat received we will wait noLivenessThreshold
-    if (!leaderHeartbeat || (leaderHeartbeat && leaderHeartbeat.blockNumber === '0')) {
+    if (!leaderHeartbeat || (leaderHeartbeat && leaderHeartbeat.blockNumber === 0)) {
       // How much checks remains
       const checksNumber =
         this.noLivenessThreshold - this.noLivenessFromLeader;
@@ -388,6 +388,7 @@ class Orchestrator {
       peerId: await this.chain.getPeerId(),
       peerNumber: await this.chain.getPeerNumber(),
       bestNumber: await this.chain.getBestNumber(),
+      bestNumberFinalized: await this.chain.getBestNumberFinalized(),
       synchState: await this.chain.getSyncState(),
       leader: await this.chain.getLeader(this.group),
       orchestrationEnabled: this.orchestrationEnabled,

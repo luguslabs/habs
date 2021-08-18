@@ -210,13 +210,13 @@ describe('Archipel chain test', function () {
   it('Test heartbeat addition', async () => {
     const keys = await getKeysFromSeed(mnemonic1);
     const noHeartbeatYet = await chain.getHeartbeat(keys.address.toString());
-    assert.equal(parseInt(noHeartbeatYet.toString()), 0, 'check if hearbeat is empty before submission');
+    assert.equal(noHeartbeatYet, 0, 'check if hearbeat is empty before submission');
 
     const result = await chain.addHeartbeat('active', mnemonic1, '1');
     assert.equal(result, true, 'check if heartbeat add transaction was executed');
 
     const heartbeat = await chain.getHeartbeat(keys.address.toString());
-    assert.isAbove(parseInt(heartbeat.toString()), 0, 'check if heartbeat was added');
+    assert.isAbove(heartbeat, 0, 'check if heartbeat was added');
 
     const nodeStatus = await chain.getNodeStatus(keys.address.toString());
     assert.equal(nodeStatus, 1, 'cheack node status');
@@ -446,13 +446,16 @@ describe('Archipel chain test', function () {
     // Disconnecting from chain and trying to execute each transaction
     let disconnect = await chain.disconnect();
     assert.equal(disconnect, true, 'Check if disconnect returns true');
+    // Waiting 5 seconds
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     const keys = await getKeysFromSeed(mnemonic1);
 
-    assert.equal(await chain.getHeartbeat(keys.address), false, 'Trying to get heartbeat while not connected to chain');
-    assert.equal(await chain.getNodeStatus(keys.address), false, 'Trying to get node status while not connected to chain');
-    assert.equal(await chain.getNodeGroup(keys.address), false, 'Trying to get node group while not connected to chain');
+    assert.equal(await chain.getHeartbeat(keys.address), 0, 'Trying to get heartbeat while not connected to chain');
+    assert.equal(await chain.getNodeStatus(keys.address), 0, 'Trying to get node status while not connected to chain');
+    assert.equal(await chain.getNodeGroup(keys.address), 0, 'Trying to get node group while not connected to chain');
     assert.equal(await chain.getBestNumber(), 0, 'Trying to getbest number while not connected to chain');
+    assert.equal(await chain.getBestNumberFinalized(), 0, 'Trying to getbestfinalized number while not connected to chain');
     assert.equal(await chain.getPeerNumber(), 0, 'Trying to get peer number while not connected to chain')
     assert.equal(await chain.getSyncState(), 0, 'Trying to get sync state while not connected to chain');
     assert.equal(await chain.getPeerId(), false, 'Trying to get peer id while not connected to chain');
