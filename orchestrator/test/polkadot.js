@@ -37,9 +37,11 @@ describe('Polkadot test', function () {
         await polkadot.cleanUp();
     });
 
-    it('Polkadot test bootstrap', async () => {
+    it.only('Polkadot test bootstrap', async () => {
         const savePolkadotNodeKeyFile = polkadot.config.polkadotNodeKeyFile;
+        const savePolkadotUnixUserId = polkadot.config.polkadotUnixUserId;
         polkadot.config.polkadotNodeKeyFile = 'test-polkadot-file';
+        delete polkadot.config.polkadotUnixUserId;
 
         fs.writeFileSync(`/tmp/${polkadot.config.polkadotNodeKeyFile}`, 'mock key file');
         assert.equal(fs.existsSync(`/tmp/${polkadot.config.polkadotNodeKeyFile}`), true, 'Check if file was successfully created')
@@ -67,6 +69,7 @@ describe('Polkadot test', function () {
 
         assert.equal(fs.existsSync(`/tmp/service/keys`), false, 'Check if /tmp/service/keys was not created');
 
+        polkadot.config.polkadotUnixUserId = savePolkadotUnixUserId;
         polkadot.config.polkadotNodeKeyFile = savePolkadotNodeKeyFile;
     });
 

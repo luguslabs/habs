@@ -51,7 +51,7 @@ class Polkadot {
     // If polkadot is configured to use a custom keyfile
     if (this.config.polkadotNodeKeyFile && fs.existsSync(configDirectory) && fs.existsSync(serviceDataDirectory)) {
       console.log(`Copying polkadot node key file (${this.config.polkadotNodeKeyFile}) from ${configDirectory} to ${serviceDataDirectory}...`);
-      copyAFile(configDirectory, `${serviceDataDirectory}/keys/`, this.config.polkadotNodeKeyFile);
+      copyAFile(configDirectory, `${serviceDataDirectory}/keys`, this.config.polkadotNodeKeyFile, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
     }
   }
 

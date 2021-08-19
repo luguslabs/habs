@@ -125,7 +125,7 @@ const transactionGetStatus = (status) => {
 };
 
 // Copy a file from one directory to another and set permissions
-const copyAFile = (sourceDir, targetDir, fileName) => {
+const copyAFile = (sourceDir, targetDir, fileName, userId, groupId, startFrom = 1) => {
   // Check if from and to dirs where set
   if (!sourceDir || !targetDir || !fileName) throw Error('Source, target dirs and file to copy must be set');
   // Check if full path was specified
@@ -139,22 +139,19 @@ const copyAFile = (sourceDir, targetDir, fileName) => {
   fs.copySync(`${sourceDir}/${fileName}`, `${targetDir}/${fileName}`);
 
   // Set permissions
-  /*
   if (userId && groupId) {
     // Set every folder to path permissions
-    targetDir.split('/').slice(2).reduce((path, element) => {
-      if (path !== '/tmp') {
-        console.log(path);
+    targetDir.split('/').slice(1).reduce((path, element, index) => {
+      if (path !== '' && index >= startFrom) {
         fs.chownSync(path, userId, groupId);
       }
       return path + '/' + element;
-    }, '/tmp');
+    }, '');
     // Set full path permissions
     fs.chownSync(targetDir, userId, groupId);
     // Set node keyfile permissions
     fs.chownSync(`${targetDir}/${fileName}`, userId, groupId);
   }
-  */
 };
 
 module.exports = {

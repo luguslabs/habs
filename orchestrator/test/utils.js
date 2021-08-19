@@ -175,10 +175,23 @@ describe('Utils test', function () {
         const userId = 1001;
         const groupId = 1001;
 
+        // Check with set permissions
         fs.writeFileSync(`/tmp/${mockKeyFile}`, 'mock key file');
         assert.equal(fs.existsSync(`/tmp/${mockKeyFile}`), true, 'Check if file was successfully created')
 
-        copyAFile('/tmp','/tmp/service/keys', mockKeyFile, userId, groupId);
+        copyAFile('/tmp','/tmp/service/keys', mockKeyFile, userId, groupId, 2);
+
+        assert.equal(fs.existsSync(`/tmp/service/keys`), true, 'Check if /tmp/service/keys was successfully created');
+        assert.equal(fs.existsSync(`/tmp/service/keys/${mockKeyFile}`), true, `Check if ${mockKeyFile} was copied to /tmp/service/keys`);
+
+        fs.rmdirSync(`/tmp/service`, { recursive: true });
+        fs.unlinkSync(`/tmp/${mockKeyFile}`);
+
+        // Check without set permissions
+        fs.writeFileSync(`/tmp/${mockKeyFile}`, 'mock key file');
+        assert.equal(fs.existsSync(`/tmp/${mockKeyFile}`), true, 'Check if file was successfully created')
+
+        copyAFile('/tmp','/tmp/service/keys', mockKeyFile);
 
         assert.equal(fs.existsSync(`/tmp/service/keys`), true, 'Check if /tmp/service/keys was successfully created');
         assert.equal(fs.existsSync(`/tmp/service/keys/${mockKeyFile}`), true, `Check if ${mockKeyFile} was copied to /tmp/service/keys`);
