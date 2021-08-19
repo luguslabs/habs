@@ -47,7 +47,7 @@ class Polkadot {
   }
 
   // Bootstrap service before start
-  async bootstrap(configDirectory, serviceDataDirectory) {
+  async bootstrap (configDirectory, serviceDataDirectory) {
     // If polkadot is configured to use a custom keyfile
     if (this.config.polkadotNodeKeyFile && fs.existsSync(configDirectory) && fs.existsSync(serviceDataDirectory)) {
       console.log(`Copying polkadot node key file (${this.config.polkadotNodeKeyFile}) from ${configDirectory} to ${serviceDataDirectory}...`);

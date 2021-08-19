@@ -15,7 +15,7 @@ class Service {
   }
 
   // Bootstrap service
-  async serviceBootstrap(configDirectory, serviceDataDirectory) {
+  async serviceBootstrap (configDirectory, serviceDataDirectory) {
     return await this.serviceInstance.bootstrap(configDirectory, serviceDataDirectory);
   }
 
