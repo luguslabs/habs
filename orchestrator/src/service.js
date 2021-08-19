@@ -14,6 +14,11 @@ class Service {
     this.mode = 'none';
   }
 
+  // Bootstrap service
+  async serviceBootstrap(configDirectory, serviceDataDirectory) {
+    return await this.serviceInstance.bootstrap(configDirectory, serviceDataDirectory);
+  }
+
   // Start service
   async serviceStart (mode) {
     this.mode = mode;

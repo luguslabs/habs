@@ -40,6 +40,23 @@ describe('Service test', function () {
         assert.equal(service.serviceInstance instanceof Polkadot, true, 'Check if polkadot instance was created and set correctly');
     });
 
+    it('Test service bootstrap', async function () {
+        let configDirTest = '';
+        let dataDirTest = '';
+        const saveServiceInstanceBootstrap = service.serviceInstance.bootstrap;
+        service.serviceInstance.bootstrap = async (configDirectory, serviceDataDirectory) => {
+            configDirTest = configDirectory;
+            dataDirTest = serviceDataDirectory;
+        }
+
+        await service.serviceBootstrap('configdir','servicedatadir');
+
+        assert.equal(configDirTest, 'configdir', 'Check if instance bootstrap function was called and config dir was set correctly');
+        assert.equal(dataDirTest, 'servicedatadir', 'Check if instance bootstrap function was called and service dir was set correctly');
+
+        service.serviceInstance.bootstrap = saveServiceInstanceBootstrap;
+    });
+
     it('Test service start', async function () {
         let serviceMode = 'passive';
         const saveServiceInstanceStart = service.serviceInstance.start;

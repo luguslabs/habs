@@ -68,7 +68,7 @@ describe('Polkadot config test', function () {
             polkadotTelemetryUrl: undefined,
             polkadotNodeKeyFile: undefined,
             polkadotAdditionalOptions: process.env.POLKADOT_ADDITIONAL_OPTIONS,
-            databasePath: '/polkadot/.local/share/polkadot/chains',
+            databasePath: '/data',
             polkadotSessionKeyToCheck: undefined,
             polkadotSimulateSynch: false,
             testing: process.env.TESTING === 'true',
@@ -118,7 +118,7 @@ describe('Polkadot config test', function () {
             polkadotValidatorName: undefined,
             polkadotTelemetryUrl: undefined,
             polkadotAdditionalOptions: undefined,
-            databasePath: '/polkadot/.local/share/polkadot/chains',
+            databasePath: '/data',
             polkadotSessionKeyToCheck: undefined,
             polkadotSimulateSynch: true,
             testing: false

@@ -38,6 +38,9 @@ class Orchestrator {
     this.noReadyThreshold = 30; // ~ 300 seconds
 
     this.nodesWallets = config.nodesWallets;
+
+    this.serviceDataDirectory = config.serviceDataDirectory;
+    this.serviceConfigDirectory = config.serviceConfigDirectory;
   }
 
   // Bootstrap service at boot
@@ -47,6 +50,11 @@ class Orchestrator {
       console.log('Nothing to bootstrap cause no service node...');
       return;
     }
+
+    // Bootstrap service
+    console.log('Bootstraping service...');
+    await this.service.serviceBootstrap(this.serviceConfigDirectory, this.serviceDataDirectory);
+
     // Starting service in default passive mode
     console.log('Starting service in passive mode...');
     const serviceStart = await this.serviceStart('passive');

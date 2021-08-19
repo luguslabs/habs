@@ -39,6 +39,8 @@ const constructConfiguration = () => {
   if (config.nodeRole !== 'noservice') {
     config.service = config.service ? config.service : process.env.SERVICES || 'polkadot';
     config.serviceMode = process.env.ARCHIPEL_SERVICE_MODE || 'orchestrator';
+    config.serviceDataDirectory = process.env.SERVICE_DATA_DIRECTORY || '/service';
+    config.serviceConfigDirectory = process.env.SERVICE_CONFIG_DIRECTORY || '/config';
   }
 
   // Parsing integers

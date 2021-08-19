@@ -15,7 +15,8 @@ const {
     formatOptionCmds,
     constructNodesList,
     fromModeToNodeStatus,
-    transactionGetStatus
+    transactionGetStatus,
+    copyAFile
 } = require('../src/utils');
 
 // Test configuration
@@ -167,5 +168,50 @@ describe('Utils test', function () {
                 process.kill(process.pid, SIGNAL);
             });
         });
-    });    
+    });
+
+    it('Test copyPolkadotNodeKeyFile function', async () => {
+        const mockKeyFile = 'mock-key-file';
+        const userId = 1001;
+        const groupId = 1001;
+
+        fs.writeFileSync(`/tmp/${mockKeyFile}`, 'mock key file');
+        assert.equal(fs.existsSync(`/tmp/${mockKeyFile}`), true, 'Check if file was successfully created')
+
+        copyAFile('/tmp','/tmp/service/keys', mockKeyFile, userId, groupId);
+
+        assert.equal(fs.existsSync(`/tmp/service/keys`), true, 'Check if /tmp/service/keys was successfully created');
+        assert.equal(fs.existsSync(`/tmp/service/keys/${mockKeyFile}`), true, `Check if ${mockKeyFile} was copied to /tmp/service/keys`);
+
+        fs.rmdirSync(`/tmp/service`, { recursive: true });
+        fs.unlinkSync(`/tmp/${mockKeyFile}`);
+    });
+
+    it('Test copyPolkadotNodeKeyFile function fails', async () => {
+        try{
+            copyAFile();
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Source, target dirs and file to copy must be set', 'Check if copy fails when no arguments were given');
+        }
+        try{
+            copyAFile('/fromdir');
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Source, target dirs and file to copy must be set', 'Check if copy fails when only from dir is given');
+        }
+        try{
+            copyAFile('/fromdir', '/todir');
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Source, target dirs and file to copy must be set', 'Check if copy fails when to dir is no absolute path');
+        }
+        try{
+            copyAFile('fromdir','/todir', 'file1');
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Please specify absolute path for source and target dirs', 'Check if copy fails when from dir is no absolute path');
+        }
+        try{
+            copyAFile('/fromdir', 'todir', 'file2');
+        } catch (error) {
+            assert.equal(error.toString(), 'Error: Please specify absolute path for source and target dirs', 'Check if copy fails when to dir is no absolute path');
+        }
+    });
 });

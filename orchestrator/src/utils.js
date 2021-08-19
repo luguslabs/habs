@@ -124,6 +124,39 @@ const transactionGetStatus = (status) => {
   return 'Unknown transaction state.';
 };
 
+// Copy a file from one directory to another and set permissions
+const copyAFile = (sourceDir, targetDir, fileName) => {
+  // Check if from and to dirs where set
+  if (!sourceDir || !targetDir || !fileName) throw Error('Source, target dirs and file to copy must be set');
+  // Check if full path was specified
+  if (sourceDir[0] !== '/' || targetDir[0] !== '/') throw Error('Please specify absolute path for source and target dirs');
+
+  // Create target directory
+  fs.ensureDirSync(targetDir, 0o2755);
+
+  // Copy file
+  console.log(`Copying ${fileName} from ${sourceDir}/ to ${targetDir}/...`);
+  fs.copySync(`${sourceDir}/${fileName}`, `${targetDir}/${fileName}`);
+
+  // Set permissions
+  /*
+  if (userId && groupId) {
+    // Set every folder to path permissions
+    targetDir.split('/').slice(2).reduce((path, element) => {
+      if (path !== '/tmp') {
+        console.log(path);
+        fs.chownSync(path, userId, groupId);
+      }
+      return path + '/' + element;
+    }, '/tmp');
+    // Set full path permissions
+    fs.chownSync(targetDir, userId, groupId);
+    // Set node keyfile permissions
+    fs.chownSync(`${targetDir}/${fileName}`, userId, groupId);
+  }
+  */
+};
+
 module.exports = {
   getKeysFromSeed,
   streamToString,
@@ -135,5 +168,6 @@ module.exports = {
   formatOptionCmds,
   constructNodesList,
   fromModeToNodeStatus,
-  transactionGetStatus
+  transactionGetStatus,
+  copyAFile
 };

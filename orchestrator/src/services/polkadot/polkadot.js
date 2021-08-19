@@ -7,7 +7,8 @@ const {
   getKeysFromSeed,
   isEmptyString,
   formatOptionList,
-  formatOptionCmds
+  formatOptionCmds,
+  copyAFile
 } = require('../../utils');
 const { Docker } = require('../../docker');
 const { constructConfiguration } = require('./config');
@@ -43,6 +44,15 @@ class Polkadot {
 
     // Init last known block
     this.lastKnownBlock = 0;
+  }
+
+  // Bootstrap service before start
+  async bootstrap(configDirectory, serviceDataDirectory) {
+    // If polkadot is configured to use a custom keyfile
+    if (this.config.polkadotNodeKeyFile && fs.existsSync(configDirectory) && fs.existsSync(serviceDataDirectory)) {
+      console.log(`Copying polkadot node key file (${this.config.polkadotNodeKeyFile}) from ${configDirectory} to ${serviceDataDirectory}...`);
+      copyAFile(configDirectory, `${serviceDataDirectory}/keys/`, this.config.polkadotNodeKeyFile);
+    }
   }
 
   // Get current block
@@ -356,8 +366,7 @@ class Polkadot {
     // If polkadotNodeKeyFile variable is set
     // And service directory exists use node key file
     if (!isEmptyString(this.config.polkadotNodeKeyFile)) {
-      this.copyPolkadotNodeKeyFile('/config', '/polkadot/keys');
-      this.commonPolkadotOptions.push('--node-key-file=/polkadot/keys/' + this.config.polkadotNodeKeyFile);
+      this.commonPolkadotOptions.push(`--node-key-file=${this.config.databasePath}/keys/` + this.config.polkadotNodeKeyFile);
     }
 
     // Adding reserved nodes
@@ -505,7 +514,7 @@ class Polkadot {
         this.config.polkadotPrefix + 'polkadot-sync',
         this.config.polkadotImage,
         ['--name', `${this.name}`, ...this.commonPolkadotOptions, '--validator'],
-        '/polkadot',
+        this.config.databasePath,
         this.polkadotVolume,
         this.networkMode
       );
@@ -526,7 +535,7 @@ class Polkadot {
         this.config.polkadotPrefix + 'polkadot-sync',
         this.config.polkadotImage,
         ['--name', `${this.name}-${mode}`, ...this.commonPolkadotOptions],
-        '/polkadot',
+        this.config.databasePath,
         this.polkadotVolume,
         this.networkMode
       );
@@ -563,29 +572,6 @@ class Polkadot {
       this.cleaningUp = false;
       return false;
     }
-  }
-
-  // Copy keys files to volume
-  copyPolkadotNodeKeyFile (fromDir, toDir) {
-    // Check if from and to dirs where set
-    if (!fromDir || !toDir) throw Error('Must set to and from dirs');
-    // Check if full path was specified
-    if (toDir[0] !== '/' || fromDir[0] !== '/') throw Error('Please specify absolute path');
-
-    // Create toDir directory
-    const options = {
-      mode: 0o2755
-    };
-    fs.ensureDirSync(toDir, options);
-
-    // Copy polkadot node key file
-    console.log(`Copying ${this.config.polkadotNodeKeyFile} from ${fromDir}/ to ${toDir}/...`);
-    fs.copySync(`${fromDir}/${this.config.polkadotNodeKeyFile}`, `${toDir}/${this.config.polkadotNodeKeyFile}`);
-
-    // Fix permissions
-    // TODO: Test cause seems not to work
-    // fs.chownSync(toDir, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
-    // fs.chownSync(`${toDir}/${this.config.polkadotNodeKeyFile}`, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
   }
 }
 

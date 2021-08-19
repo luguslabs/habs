@@ -41,7 +41,7 @@ class Heartbeats {
       if (value.blockNumber !== 0 && lastSeenAgo < aliveTime) {
         debug('anyOneAlive', `${key} is alive.`);
         // Fill other node or current node liveness
-        if(key !== excludeNode){
+        if (key !== excludeNode) {
           otherNodeAlive = true;
         } else {
           currentNodeAlive = true;

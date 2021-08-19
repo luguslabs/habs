@@ -48,7 +48,9 @@ describe('Config test', function () {
             heartbeatEnabled: true,
             orchestrationEnabled: true,
             service: 'polkadot',
-            serviceMode: 'orchestrator'
+            serviceMode: 'orchestrator',
+            serviceDataDirectory: '/service',
+            serviceConfigDirectory: '/config'
         };
 
         // Constructing configuration
@@ -83,7 +85,9 @@ describe('Config test', function () {
             heartbeatEnabled: false,
             orchestrationEnabled: false,
             service: 'polkashot',
-            serviceMode: 'passive'
+            serviceMode: 'passive',
+            serviceDataDirectory: '/service',
+            serviceConfigDirectory: '/config'
         };
 
         // Constructing configuration
@@ -171,7 +175,9 @@ describe('Config test', function () {
             heartbeatEnabled: true,
             orchestrationEnabled: true,
             service: 'polkashot',
-            serviceMode: 'passive'
+            serviceMode: 'passive',
+            serviceDataDirectory: '/service',
+            serviceConfigDirectory: '/config'
         };
 
         const generatedConfig = constructConfiguration();
@@ -201,7 +207,9 @@ describe('Config test', function () {
             aliveTime: 50,
             heartbeatEnabled: true,
             orchestrationEnabled: true,
-            serviceMode: 'passive'
+            serviceMode: 'passive',
+            serviceDataDirectory: '/service',
+            serviceConfigDirectory: '/config'
         };
         
         const generatedConfig = constructConfiguration();
@@ -285,7 +293,5 @@ describe('Config test', function () {
         } catch (error) {
             assert.equal(error.toString(), `Error: ENOENT: no such file or directory, open '/config/config.json'`, 'Check if error was raised if cant read some properties from config file');
         }
-
     });
 });
-
