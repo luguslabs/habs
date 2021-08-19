@@ -43,9 +43,9 @@ const constructConfiguration = () => {
 
   // Optional environment variables
   config.polkadotValidatorName = process.env.POLKADOT_VALIDATOR_NAME;
-  config.polkadotReservedNodes = process.env.POLKADOT_RESERVED_NODES;
+  config.polkadotReservedNodes = config.polkadotReservedNodes ? config.polkadotReservedNodes : process.env.POLKADOT_RESERVED_NODES;
   config.polkadotTelemetryUrl = process.env.POLKADOT_TELEMETRY_URL;
-  config.polkadotNodeKeyFile = process.env.POLKADOT_NODE_KEY_FILE;
+  config.polkadotNodeKeyFile = config.polkadotNodeKeyFile ? config.polkadotNodeKeyFile : process.env.POLKADOT_NODE_KEY_FILE;
   config.polkadotAdditionalOptions = process.env.POLKADOT_ADDITIONAL_OPTIONS;
   config.databasePath = process.env.POLKADOT_DATABASE_PATH || '/data';
   config.polkadotSessionKeyToCheck = process.env.POLKADOT_SESSION_KEY_TO_CHECK;

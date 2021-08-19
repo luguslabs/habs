@@ -155,8 +155,6 @@ describe('Orchestrator test', function () {
     ];
     assert.equal(JSON.stringify(orchestrator.heartbeats.getAllHeartbeats()), JSON.stringify(hearbeatsNeedBe), 'Check if heartbeats where correctly initialized');
 
-    await orchestrator.serviceCleanUp();
-
     // Adding heartbeats and bootstraping service
     let result = await chain.addHeartbeat('active', mnemonic1, '1');
     assert.equal(result, true, 'check if heartbeat add transaction was executed');
@@ -484,8 +482,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if no one is alive the service remains is passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -516,8 +512,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Check if service is not ready to start the service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -561,8 +555,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if chain can not receive transactions the service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -603,8 +595,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if no leader and someone and current node are alive take leadership and start service in active mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -651,8 +641,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if leadership take transaction was executed and orchestrator must start active service but really leadership was no taken on chain', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -699,8 +687,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if no leader and someone and current node are alive but in another group get leadership on your group and start service in active mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -747,8 +733,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if I am leader and someone and current node are alive the service remains in active mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -802,8 +786,6 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader and nobody is alive no leadership change and service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -845,8 +827,6 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader and only current node is is alive no leadership change and service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -892,8 +872,6 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader and only other node is is alive no leadership change and service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -939,8 +917,6 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader and leader and other node is is alive no leadership change and service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -987,8 +963,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if other node is leader, is offline and someone other and current node are alive try to get leadership and launch service in active mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1040,8 +1014,6 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader, is offline and nobody is alive do not get leadership and service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1099,8 +1071,6 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader, is offline and only current node is alive do not get leadership and service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1158,8 +1128,6 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader, is offline and only other node is alive do not get leadership and service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1217,8 +1185,6 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader is alive and no node is alive do not get leadership and service remains in passive mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1276,8 +1242,6 @@ describe('Orchestrator test', function () {
   });
 
   it('If other node is leader, is offline and someone other and current node are alive test threshold', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1355,8 +1319,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test if other node is leader and is alive. Staying in passive mode...', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1404,8 +1366,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test serviceReadinessManagement', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1523,8 +1483,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test force passive services mode if hearbeats send is disabled', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1583,8 +1541,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Other node is leader and his hearbeat was long time ago', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1651,8 +1607,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Try to orchestrate when orchestration is disabled', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1700,8 +1654,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Set leadership failed on chain', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1749,8 +1701,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test orchestration with bad service mode', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;
@@ -1802,8 +1752,6 @@ describe('Orchestrator test', function () {
   });
 
   it('Test orchestrator with polkadot service and config file', async function () {
-    await orchestrator.serviceCleanUp();
-
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
     orchestrator.chain.getHeartbeat = async () => 0;

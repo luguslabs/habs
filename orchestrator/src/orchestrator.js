@@ -51,6 +51,10 @@ class Orchestrator {
       return;
     }
 
+    // Cleanup all old container
+    console.log('Cleaning up old service containers...');
+    await this.serviceCleanUp();
+
     // Bootstrap service
     console.log('Bootstraping service...');
     await this.service.serviceBootstrap(this.serviceConfigDirectory, this.serviceDataDirectory);

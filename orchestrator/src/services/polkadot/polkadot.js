@@ -434,7 +434,7 @@ class Polkadot {
     }
 
     console.log('Service is already started.');
-    return true;
+    return false;
   };
 
   // Start passive or active service container
@@ -442,13 +442,13 @@ class Polkadot {
     // Check if active service container is already running
     if (type === 'active' && await this.docker.isContainerRunning(activeName)) {
       console.log(`Service is already running in ${type} mode...`);
-      return true;
+      return false;
     }
 
     // Check if passive service container is already running
     if (type === 'passive' && await this.docker.isContainerRunning(passiveName)) {
       console.log(`Service is already running in ${type} mode...`);
-      return true;
+      return false;
     }
 
     // Creating volume
@@ -556,7 +556,7 @@ class Polkadot {
       // Checking if cleaning up process was already started
       if (!this.cleaningUp) {
         this.cleaningUp = true;
-        console.log('Cleaning containers before exit...');
+        console.log('Cleaning up containers...');
         await this.docker.removeContainer(this.config.polkadotPrefix + 'polkadot-sync');
         await this.docker.removeContainer(this.config.polkadotPrefix + 'polkadot-validator');
       } else {
