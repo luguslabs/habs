@@ -497,14 +497,12 @@ class Polkadot {
 
     // Start service in active mode
     if (mode === 'active') {
-      // TODO: Avoid name change for 1000 validator program check on KUSAMA network
-      // if (!isEmptyString(this.config.polkadotAdditionalOptions) && this.config.polkadotAdditionalOptions.includes('kusama')) {
-      //  this.name = this.config.polkadotName.slice(0, -2);
-      // }
+      // Active node name
+      let activeNodeName = `${this.name}-${mode}`;
 
-      // Force validator name
+      // Force active node name if polkadotValidatorName variable is set
       if (!isEmptyString(this.config.polkadotValidatorName)) {
-        this.name = this.config.polkadotValidatorName;
+        activeNodeName = this.config.polkadotValidatorName;
       }
 
       // Start active service container
@@ -513,7 +511,7 @@ class Polkadot {
         this.config.polkadotPrefix + 'polkadot-validator',
         this.config.polkadotPrefix + 'polkadot-sync',
         this.config.polkadotImage,
-        ['--name', `${this.name}`, ...this.commonPolkadotOptions, '--validator'],
+        ['--name', activeNodeName, ...this.commonPolkadotOptions, '--validator'],
         this.config.databasePath,
         this.polkadotVolume,
         this.networkMode

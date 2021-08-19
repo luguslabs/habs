@@ -734,11 +734,12 @@ describe('Polkadot test', function () {
 
         // Launching in active mode with polkadot validator name and checking
         const savePolkadotValidatorName = polkadot.config.polkadotValidatorName;
+
         polkadot.config.polkadotValidatorName = 'archipel-test-validator';
+
         // Launching service and testing
         await polkadot.start('active');
-        assert.equal(polkadot.name, polkadot.config.polkadotValidatorName, 'Check if name was correctly set if polkadot validator name is set in config');
-        
+
         containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
         container = await docker.getContainer(containerName);
         assert.equal(container, false, 'check if passive service container is not running');
