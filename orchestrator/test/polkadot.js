@@ -37,7 +37,7 @@ describe('Polkadot test', function () {
         await polkadot.cleanUp();
     });
 
-    it.only('Polkadot test bootstrap', async () => {
+    it('Polkadot test bootstrap', async () => {
         const savePolkadotNodeKeyFile = polkadot.config.polkadotNodeKeyFile;
         const savePolkadotUnixUserId = polkadot.config.polkadotUnixUserId;
         polkadot.config.polkadotNodeKeyFile = 'test-polkadot-file';
