@@ -620,7 +620,7 @@ describe('Polkadot test', function () {
         assert.equal(container.description.State.Running, true, 'check if validator container was launched');
 
         prepareAndStart = await polkadot.prepareAndStart(containerData, validatorContainerName, syncContainerName);
-        assert.equal(prepareAndStart, true, 'Checking if prepare and start returns true if container is already started');
+        assert.equal(prepareAndStart, false, 'Checking if prepare and start returns false if container is already started');
 
         // Stopping docker container and see if it will be restarted
         await docker.stopContainer(validatorContainerName);
@@ -688,7 +688,7 @@ describe('Polkadot test', function () {
         assert.equal(container, false, 'check if sync container is not launched');
 
         startServiceContainer = await polkadot.startServiceContainer("active", validatorContainerName, syncContainerName, polkadot.config.polkadotImage, mustBeArgs, polkadot.config.databasePath, 'test-service-volume', 'host');
-        assert.equal(startServiceContainer, true, 'See if start service container returns true if active container was already launched');
+        assert.equal(startServiceContainer, false, 'See if start service container returns false if active container was already launched');
 
         container = await docker.getContainer(validatorContainerName);
         assert.equal(container.description.State.Running, true, 'check if validator container remains launched');
@@ -707,7 +707,7 @@ describe('Polkadot test', function () {
         assert.equal(container, false, 'check if validator container is not launched');
 
         startServiceContainer = await polkadot.startServiceContainer("passive", validatorContainerName, syncContainerName, polkadot.config.polkadotImage, mustBeArgs, polkadot.config.databasePath, 'test-service-volume', 'host');
-        assert.equal(startServiceContainer, true, 'See if start service container returns true if passive container was already launched');
+        assert.equal(startServiceContainer, false, 'See if start service container returns false if passive container was already launched');
 
         container = await docker.getContainer(syncContainerName);
         assert.equal(container.description.State.Running, true, 'check if passive container remains launched');
