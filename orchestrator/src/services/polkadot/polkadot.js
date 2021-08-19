@@ -425,7 +425,7 @@ class Polkadot {
     }
 
     console.log('Service is already started.');
-    return false;
+    return true;
   };
 
   // Start passive or active service container
@@ -433,13 +433,13 @@ class Polkadot {
     // Check if active service container is already running
     if (type === 'active' && await this.docker.isContainerRunning(activeName)) {
       console.log(`Service is already running in ${type} mode...`);
-      return false;
+      return true;
     }
 
     // Check if passive service container is already running
     if (type === 'passive' && await this.docker.isContainerRunning(passiveName)) {
       console.log(`Service is already running in ${type} mode...`);
-      return false;
+      return true;
     }
 
     // Creating volume
