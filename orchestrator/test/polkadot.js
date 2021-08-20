@@ -142,44 +142,51 @@ describe('Polkadot test', function () {
         ];
         assert.equal(JSON.stringify(polkadot.importedKeys), JSON.stringify(mustBeImportedKeys), 'check if keys where imported correctly');
 
-        let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
-
         const savePolkadotSessionKeyToCheck = polkadot.config.polkadotSessionKeyToCheck;
 
         polkadot.config.polkadotSessionKeyToCheck = mustBeImportedKeys[0];
-        let result = await polkadot.checkSessionKeysOnNode(containerName);
+        let result = await polkadot.checkSessionKeysOnNode('active');
         assert.equal(result, false, 'check if session keys on node check fails with bad key');
 
-        polkadot.config.polkadotSessionKeyToCheck = mustBeImportedKeys.reduce((string, element) => `${string}${element.substring(2)}`, '0x');
-        console.log(polkadot.config.polkadotSessionKeyToCheck);
+        /*
+        // Can't check for now cause to do this test chain must be synchronized
+        const keysForSessionKeyString = [
+            '0xa588f6cd3f7a970a9ebf2b5a7c10dc4e5c8cd3b5fc5dbd29955538d8d2b045d8',
+            '0x8ee8898041d849ac9e8d9967a98555f54f7664376c5df55e1429f0d8545d6002',
+            '0xe86d86b9e0f53ded99ac69a92cd66c2ccc224b63ec278afa1c6432619a764c2a',
+            '0xf8e2f01f36176af753773aaf83685858b7a5314108ab5283601f73dc8c0b726a',
+            '0x9ad38069449ccbe42ad74dc8db390b4fc1adce5f1e8e59504dfee5ae6eb8a20e'
+        ];
 
-        // TODO: MAKE THE TRUE TEST WORK
-        //result = await polkadot.checkSessionKeysOnNode(containerName);
-        //assert.equal(result, true, 'check if session keys on node check returns true');
+        polkadot.config.polkadotSessionKeyToCheck = keysForSessionKeyString.reduce((string, element) => `${string}${element.substring(2)}`, '0x');
+        console.log(polkadot.config.polkadotSessionKeyToCheck);
+        // Check correct session keys on node
+        result = await polkadot.checkSessionKeysOnNode('active');
+        assert.equal(result, true, 'check if session keys on node check returns true');
+        */
 
         // Make the same check for passive polkadot
         await polkadot.start('passive');
-        containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
 
         const saveDockerExecuteSave = polkadot.docker.dockerExecute;
 
         polkadot.docker.dockerExecute = async () => { throw Error('Error simulation') };
 
-        result = await polkadot.checkSessionKeysOnNode(containerName);
+        result = await polkadot.checkSessionKeysOnNode('passive');
         assert.equal(result, false, 'check if function returns false if error was thrown');
 
         polkadot.docker.dockerExecute = async () => false;
 
-        result = await polkadot.checkSessionKeysOnNode(containerName);
+        result = await polkadot.checkSessionKeysOnNode('passive');
         assert.equal(result, false, 'check if function returns false if docker execute returns false');
 
         polkadot.docker.dockerExecute = async () => { return "{ this: true }" };
 
-        result = await polkadot.checkSessionKeysOnNode(containerName);
+        result = await polkadot.checkSessionKeysOnNode('passive');
         assert.equal(result, true, 'check if function returns true if docker execute result contains true value');
 
         delete polkadot.config.polkadotSessionKeyToCheck;
-        result = await polkadot.checkSessionKeysOnNode(containerName);
+        result = await polkadot.checkSessionKeysOnNode('passive');
         assert.equal(result, false, 'check if session keys on node check fails with empty session key to check');
 
         polkadot.docker.dockerExecute = saveDockerExecuteSave;
@@ -405,7 +412,6 @@ describe('Polkadot test', function () {
     });
 
     it('Test prepare service function', async () => {
-
         const saveCommonPolkadotOpts = polkadot.commonPolkadotOptions;
         const saveNetworkMode = polkadot.networkMode;
         const savePolkadotVolume = polkadot.polkadotVolume;
@@ -589,7 +595,6 @@ describe('Polkadot test', function () {
         polkadot.polkadotVolume = savePolkadotVolume;
         polkadot.prepared = savePrepared;
         polkadot.copyPolkadotNodeKeyFile = saveCopyPolkadotNodeKeyFile;
-
     });
 
     it('Test prepare and start function', async () => {
