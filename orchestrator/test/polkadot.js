@@ -34,6 +34,9 @@ describe('Polkadot test', function () {
     });
 
     after(async () => {
+        // Cleaning up and removing volumes
+        await docker.removeVolume('test-service-volume');
+        await docker.removeVolume(`${process.env.POLKADOT_PREFIX}polkadot-volume`);
         await polkadot.cleanUp();
     });
 
