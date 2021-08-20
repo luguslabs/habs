@@ -34,6 +34,7 @@ describe('Polkadot config test', function () {
         process.env.POLKADOT_KEY_AUDI = 'oak tail stomach fluid trade aunt fire fringe mercy roast style garlic';
         process.env.POLKADOT_ADDITIONAL_OPTIONS = '--chain kusama --db-cache 512';
         process.env.TESTING = 'true';
+        process.env.POLKADOT_ARCHIVE_NODE = 'false';
     });
 
     after(() => {
@@ -45,6 +46,7 @@ describe('Polkadot config test', function () {
         delete process.env.POLKADOT_ADDITIONAL_OPTIONS;
         delete process.env.TESTING;
         delete process.env.POLKADOT_IMAGE;
+        delete process.env.POLKADOT_ARCHIVE_NODE;
     });
 
     it('Check polkadot construct configuration from env vars', async () => {
@@ -71,7 +73,8 @@ describe('Polkadot config test', function () {
             databasePath: '/data',
             polkadotSessionKeyToCheck: undefined,
             polkadotSimulateSynch: false,
-            testing: process.env.TESTING === 'true',
+            polkadotArchiveNode: false,
+            testing: true,
         };
 
         assert.equal(JSON.stringify(config), JSON.stringify(configMustBe), 'Check if configuration was constructed correctly');
@@ -95,6 +98,9 @@ describe('Polkadot config test', function () {
 
         const savePolkadotImage = process.env.POLKADOT_IMAGE;
         delete process.env.POLKADOT_IMAGE;
+
+        const savePolkadotArchiveNOde = process.env.POLKADOT_ARCHIVE_NODE;
+        delete process.env.POLKADOT_ARCHIVE_NODE;
 
         const config = constructConfiguration();
 
@@ -121,6 +127,7 @@ describe('Polkadot config test', function () {
             databasePath: '/data',
             polkadotSessionKeyToCheck: undefined,
             polkadotSimulateSynch: true,
+            polkadotArchiveNode: true,
             testing: false
         };
 
@@ -132,6 +139,7 @@ describe('Polkadot config test', function () {
         process.env.POLKADOT_IMAGE = savePolkadotImage;
         process.env.NODE_ID = '1';
         process.env.POLKADOT_SIMULATE_SYNCH = 'true';
+        process.env.POLKADOT_ARCHIVE_NODE = savePolkadotArchiveNOde;
     });
 
     it('Check polkadot construct configuration from config file fails', async () => {

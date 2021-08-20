@@ -50,10 +50,12 @@ const constructConfiguration = () => {
   config.databasePath = process.env.POLKADOT_DATABASE_PATH || '/data';
   config.polkadotSessionKeyToCheck = process.env.POLKADOT_SESSION_KEY_TO_CHECK;
 
-  config.polkadotSimulateSynch = process.env.POLKADOT_SIMULATE_SYNCH || false;
+  config.polkadotSimulateSynch = process.env.POLKADOT_SIMULATE_SYNCH || 'false';
   config.polkadotSimulateSynch = (config.polkadotSimulateSynch && config.polkadotSimulateSynch.includes('true'));
+  config.polkadotArchiveNode = process.env.POLKADOT_ARCHIVE_NODE || 'true';
+  config.polkadotArchiveNode = (config.polkadotArchiveNode && config.polkadotArchiveNode.includes('true'));
 
-  config.testing = process.env.TESTING || false;
+  config.testing = process.env.TESTING || 'false';
   config.testing = (config.testing && config.testing.includes('true'));
 
   return config;

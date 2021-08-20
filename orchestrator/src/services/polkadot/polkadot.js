@@ -351,12 +351,16 @@ class Polkadot {
       '--prometheus-external',
       '--prometheus-port',
       '9615',
-      '--pruning=archive',
       '--rpc-cors',
       'http://localhost',
       '--rpc-port',
       this.config.polkadotRpcPort.toString()
     ];
+
+    // Setting pruning if archive node
+    if (this.config.polkadotArchiveNode) {
+      this.commonPolkadotOptions.push('--pruning=archive');
+    }
 
     // Adding additional Polkadot Option Commands
     if (!isEmptyString(this.config.polkadotAdditionalOptions)) {

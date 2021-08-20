@@ -424,11 +424,11 @@ describe('Polkadot test', function () {
             '--prometheus-external',
             '--prometheus-port',
             '9615',
-            '--pruning=archive',
             '--rpc-cors',
             'http://localhost',
             '--rpc-port',
             '9993',
+            '--pruning=archive',
             '--chain',
             'kusama',
             '--db-cache',
@@ -448,11 +448,11 @@ describe('Polkadot test', function () {
             '--prometheus-external',
             '--prometheus-port',
             '9615',
-            '--pruning=archive',
             '--rpc-cors',
             'http://localhost',
             '--rpc-port',
-            '9993'
+            '9993',
+            '--pruning=archive'
         ];
 
         assert.equal(JSON.stringify(polkadot.commonPolkadotOptions), JSON.stringify(commonPolkadotOptionsNeedToBe), 'check if common options where set');
@@ -470,11 +470,11 @@ describe('Polkadot test', function () {
             '--prometheus-external',
             '--prometheus-port',
             '9615',
-            '--pruning=archive',
             '--rpc-cors',
             'http://localhost',
             '--rpc-port',
             '9993',
+            '--pruning=archive',
             '--chain',
             'kusama',
             '--db-cache',
@@ -492,30 +492,40 @@ describe('Polkadot test', function () {
         await polkadot.prepareService();
 
         commonPolkadotOptionsNeedToBe = [
-            '--prometheus-external', '--prometheus-port',
-            '9615',                  '--pruning=archive',
-            '--rpc-cors',            'http://localhost',
-            '--rpc-port',            '9993',
-            '--chain',               'kusama',
-            '--db-cache',            '512',
-            '--reserved-nodes',      '127.0.0.1',
-            '--reserved-nodes',      '127.0.0.2',
-            '--reserved-nodes',      '127.0.0.3'
+            '--prometheus-external', 
+            '--prometheus-port',
+            '9615',                  
+            '--rpc-cors',            
+            'http://localhost',
+            '--rpc-port',            
+            '9993',
+            '--pruning=archive',
+            '--chain',               
+            'kusama',
+            '--db-cache',            
+            '512',
+            '--reserved-nodes',      
+            '127.0.0.1',
+            '--reserved-nodes',      
+            '127.0.0.2',
+            '--reserved-nodes',      
+            '127.0.0.3'
         ];
 
         assert.equal(JSON.stringify(polkadot.commonPolkadotOptions), JSON.stringify(commonPolkadotOptionsNeedToBe), 'check if common options where set correctly for reserved nodes'); 
         polkadot.config.polkadotReservedNodes = saveReservedNodes;
 
         // Test polkadot telemetry url
-        // No telemetry
+        // No telemetry and not archive node
         const saveTelemetrlyUrl = polkadot.config.polkadotTelemetryUrl;
+        const savePolkadotArchiveNode = polkadot.config.polkadotArchiveNode;
+        polkadot.config.polkadotArchiveNode = false;
         polkadot.config.polkadotTelemetryUrl = '--no-telemetry';
         await polkadot.prepareService();
         commonPolkadotOptionsNeedToBe = [
             '--prometheus-external',
             '--prometheus-port',
             '9615',
-            '--pruning=archive',
             '--rpc-cors',
             'http://localhost',
             '--rpc-port',
@@ -535,7 +545,6 @@ describe('Polkadot test', function () {
             '--prometheus-external',
             '--prometheus-port',
             '9615',
-            '--pruning=archive',
             '--rpc-cors',
             'http://localhost',
             '--rpc-port',
@@ -549,7 +558,7 @@ describe('Polkadot test', function () {
         ];
         assert.equal(JSON.stringify(polkadot.commonPolkadotOptions), JSON.stringify(commonPolkadotOptionsNeedToBe), 'check if common options where set correctly for telemerty url set'); 
         polkadot.config.polkadotTelemetryUrl = saveTelemetrlyUrl;
-
+        polkadot.config.polkadotArchiveNode = savePolkadotArchiveNode;
         // Config testing test
         const saveConfigTesting = polkadot.config.testing;
         polkadot.config.testing = false;
@@ -591,11 +600,11 @@ describe('Polkadot test', function () {
             '--prometheus-external',
             '--prometheus-port',
             '9615',
-            '--pruning=archive',
             '--rpc-cors',
             'http://localhost',
             '--rpc-port',
             '9993',
+            '--pruning=archive',
             '--chain',
             'kusama',
             '--db-cache',
@@ -758,11 +767,11 @@ describe('Polkadot test', function () {
             '--prometheus-external',
             '--prometheus-port',
             '9615',
-            '--pruning=archive',
             '--rpc-cors',
             'http://localhost',
             '--rpc-port',
             '9993',
+            '--pruning=archive',
             '--chain',
             'kusama',
             '--db-cache',
@@ -797,11 +806,11 @@ describe('Polkadot test', function () {
             '--prometheus-external',
             '--prometheus-port',
             '9615',
-            '--pruning=archive',
             '--rpc-cors',
             'http://localhost',
             '--rpc-port',
             '9993',
+            '--pruning=archive',
             '--chain',
             'kusama',
             '--db-cache',
