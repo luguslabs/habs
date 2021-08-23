@@ -115,7 +115,10 @@ describe('Orchestrator test', function () {
   
     // Remove created volumes
     const volumeRemoved = await docker.removeVolume('validatortest-polkadot-volume');
-    console.log('Docker volume removed => ' + volumeRemoved);
+    console.log('Docker volume 1 removed => ' + volumeRemoved);
+
+    volumeRemoved = await docker.removeVolume('validatortest-polkadot-volume2');
+    console.log('Docker volume 2 removed => ' + volumeRemoved);
   
   });
 
