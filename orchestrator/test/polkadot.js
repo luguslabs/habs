@@ -4,8 +4,6 @@ const os = require('os');
 const fs = require('fs-extra')
 const { Docker } = require('../src/docker');
 const { Polkadot } = require('../src/services/polkadot/polkadot');
-const { getKeysFromSeed } = require('../src/utils');
-const { compactStripLength } = require('@polkadot/util');
 
 // Variables
 let polkadot;
@@ -201,33 +199,6 @@ describe('Polkadot test', function () {
         await polkadot.cleanUp();
     });
 
-    it('Test getLastFinalizedBlock function', async () => {
-        let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-        // Mock system health get
-        const saveDockerExecute = polkadot.docker.dockerExecute;
-
-        let systemHealthGetResult = `{"jsonrpc":"2.0","result":{"currentBlock":2323},"id":1}`;
-        polkadot.docker.dockerExecute = () => systemHealthGetResult;
-
-        let result = await polkadot.getCurrentBlock(containerName);
-        assert.equal(result, 2323, 'Check if current block was successfully retrieved');
-
-        systemHealthGetResult = `{"jsonrpc":"2.0","result":{"error":"No block"},"id":1}`;
-        polkadot.docker.dockerExecute = () => systemHealthGetResult;
-
-        result = await polkadot.getCurrentBlock(containerName);
-        assert.equal(result, false, 'Check if request to get current block failed the function returns 0');
-
-        polkadot.docker.dockerExecute = () => false;
-
-        result = await polkadot.getCurrentBlock(containerName);
-        assert.equal(result, false, 'Check if docker execute failed the function returns 0');
-
-        console.log(`Current block value is ${result}`);
-
-        polkadot.docker.dockerExecute = saveDockerExecute;
-    });
-
     it('Test checkKeyAdded function', async () => {
         await polkadot.start('passive');
     
@@ -343,42 +314,24 @@ describe('Polkadot test', function () {
         const saveGetCurrentBlock = polkadot.getCurrentBlock;
         await polkadot.start('passive');
 
-        polkadot.getCurrentBlock = async () => 1000000;
-
         serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
         assert.equal(serviceReadyToStart, true, 'check if service is ready for passive service');
-        assert.equal(polkadot.lastKnownBlock, 1000000, 'check if last known block is set correctly');
 
         polkadot.docker.dockerExecute = () => false;
-        polkadot.getCurrentBlock = async () => 1000001;
-
         serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
         assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if docker execute failed');
 
         systemHealthGetResult = `{"jsonrpc":"2.0"}`;
         polkadot.docker.dockerExecute = () => systemHealthGetResult;
 
-        polkadot.getCurrentBlock = async () => 1000003;
         serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
         assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if no result field given by docker execute');
 
         systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":20,"shouldHavePeers":true},"id":1}`;
         polkadot.docker.dockerExecute = () => systemHealthGetResult;
 
-        polkadot.getCurrentBlock = async () => 1000004;
         serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
         assert.equal(serviceReadyToStart, true, 'check if service is ready returns true cause all checks passed');
-
-        polkadot.getCurrentBlock = async () => 1000004;
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
-        assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if chain is not moving forward 1');
-
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
-        assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if chain is not moving forward 2');
-
-        polkadot.getCurrentBlock = async () => 1000005;
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
-        assert.equal(serviceReadyToStart, true, 'check if service is ready returns true cause chain moved forward');
 
         polkadot.importedKeys = [];
         polkadot.getCurrentBlock = saveGetCurrentBlock;

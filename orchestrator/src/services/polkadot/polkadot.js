@@ -42,9 +42,6 @@ class Polkadot {
 
     // Setting polkadot name
     this.name = this.config.polkadotName;
-
-    // Init last known block
-    this.lastKnownBlock = 0;
   }
 
   // Bootstrap service before start
@@ -54,34 +51,6 @@ class Polkadot {
       console.log(`Copying polkadot node key file (${this.config.polkadotNodeKeyFile}) from ${configDirectory} to ${serviceDataDirectory}...`);
       copyAFile(configDirectory, `${serviceDataDirectory}/keys`, this.config.polkadotNodeKeyFile, this.config.polkadotUnixUserId, this.config.polkadotUnixGroupId);
     }
-  }
-
-  // Get current block
-  async getCurrentBlock (containerName) {
-    // Constructing command to import key
-    const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-      `{
-        "jsonrpc":"2.0",
-        "id":1,
-        "method":"system_syncState",
-        "params": []
-    }`];
-
-    // Importing key by executing command in docker container
-    const result = await this.docker.dockerExecute(containerName, command);
-    debug('importKey', `Command result: "${result}"`);
-
-    // If docker execute failed we will return false
-    if (!result) {
-      return false;
-    }
-
-    const currentBlock = result.match(/"currentBlock":(\d+)/);
-    if (currentBlock && currentBlock.length > 1) {
-      return parseInt(currentBlock[1]);
-    }
-
-    return false;
   }
 
   // Importing a key in keystore
@@ -317,15 +286,6 @@ class Polkadot {
         return false;
       }
 
-      // Check if node recieves new blocks from chain
-      const currentBlock = await this.getCurrentBlock();
-      if (currentBlock && currentBlock <= this.lastKnownBlock) {
-        debug('isServiceReadyToStart', 'Seems that node is not recieving new blocks.');
-        return false;
-      }
-      // Updating last known block
-      this.lastKnownBlock = currentBlock || 0;
-
       // If no return was triggered till now considering that service is ready
       return true;
     } catch (error) {
@@ -474,7 +434,7 @@ class Polkadot {
 
     // Creating second volume to fix orphelin volumes
     await this.docker.createVolume(mountSource2);
-    
+
     // Constructing mount data
     const mounts = [];
     mounts.push({
@@ -490,7 +450,6 @@ class Polkadot {
       Type: 'volume',
       ReadOnly: false
     });
-
 
     // Constructing container data
     const containerData = {
