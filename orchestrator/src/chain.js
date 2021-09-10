@@ -1,4 +1,5 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
+const { setIntervalAsync, clearIntervalAsync } = require('set-interval-async/fixed');
 const debug = require('debug')('chain');
 
 const {
@@ -8,20 +9,78 @@ const {
 } = require('./utils');
 
 class Chain {
-  constructor (nodeWs) {
+  constructor (nodeWs, heartbeats, nodeGroup, mnemonic, heartbeatAddInterval, chainInfoUpdateInterval) {
     this.wsProvider = nodeWs;
-    this.lastBlockNumber = 0;
+    this.heartbeats = heartbeats;
+    this.nodeGroup = nodeGroup;
+    this.mnemonic = mnemonic;
+
+    this.heartbeatAddInterval = heartbeatAddInterval;
+    this.chainInfoUpdateInterval = chainInfoUpdateInterval;
 
     this.lastBlockAccumulator = 0;
     this.lastBlockThreshold = 10;
 
     this.finalizedGap = 10;
+
+    this.currentLeaderValue = '';
+    this.isLeadedGroupValue = false;
+    this.canSendTransactionsValue = false;
+    this.bestBlockNumber = 0;
+
+    this.lastUpdateTime = parseInt(Date.now());
+
+    this.heartbeatTimer = false;
+    this.chainInfoTimer = false;
+  }
+
+  // Bootstrap chain
+  async bootstrap (orchestrator) {
+    // Connecting to chain
+    await this.connect();
+
+    // Fill heartbeats from chain
+    await this.fillHeartbeatsFromChain();
+
+    // Fill default chain data
+    await this.update();
+
+    // Create chain event listener
+    this.listenEvents(this.mnemonic, orchestrator);
+
+    // Add heartbeats every heartbeatAddInterval
+    this.heartbeatTimer = setIntervalAsync(async () => {
+      try {
+        // Checking if heartbeats send is enabled
+        console.log('Checking if heartbeats send is enabled...');
+        if (!orchestrator.heartbeatSendEnabled || !orchestrator.heartbeatSendEnabledAdmin) {
+          console.log('Heartbeat send is disabled...');
+          return;
+        }
+        await this.addHeartbeat(orchestrator.getServiceMode(), this.mnemonic, this.nodeGroup);
+      } catch (error) {
+        console.error(error);
+      }
+    }, this.heartbeatAddInterval);
+
+    // Updating chain info every chainInfoUpdateInterval
+    this.chainInfoTimer = setIntervalAsync(async () => {
+      try {
+        console.log('Updating chain info...');
+        await this.update();
+      } catch (error) {
+        console.error(error);
+      }
+    }, this.chainInfoUpdateInterval);
+
+    console.log('Chain was successfully bootstrapped...');
   }
 
   // Connect to chain
   async connect () {
     // Creating Websocket Provider
     const provider = new WsProvider(this.wsProvider);
+
     // Creating API
     this.api = await ApiPromise.create({
       provider,
@@ -33,6 +92,7 @@ class Chain {
       }
     });
     this.provider = provider;
+
     // Retrieve the chain & node information information via rpc calls
     const [chain, nodeName, nodeVersion] = await Promise.all([
       this.api.rpc.system.chain(),
@@ -40,15 +100,39 @@ class Chain {
       this.api.rpc.system.version()
     ]);
 
-    // Get block number and set last known block number
-    this.lastBlockNumber = await this.getBestNumber();
-
     console.log(`You are connected to chain ${chain} using ${nodeName} v${nodeVersion}`);
   }
 
+  // Update chain data
+  async update() {
+    // Fill current leader value
+    this.currentLeaderValue = await this.getLeader();
+
+    // Fill is leaded group
+    this.isLeadedGroupValue = await this.isLeadedGroup();
+
+    // Fill can send transaction value
+    this.canSendTransactionsValue = await this.canSendTransactions();
+
+    // Get block number and set last known block number
+    this.bestBlockNumber = await this.getBestNumber();
+
+    // Updating last update time
+    this.lastUpdateTime = parseInt(Date.now());
+  }
+
+  // This function fills heartbeat values from chain for every wallet from node wallets
+  async fillHeartbeatsFromChain () {
+    const walletList = this.heartbeats.nodesWallets.toString().split(',');
+    for (const wallet of walletList) {
+      const heartbeatBlock = await this.getHeartbeat(wallet);
+      this.heartbeats.addHeartbeat(wallet, 0, 0, heartbeatBlock);
+    }
+  }
+
   // Listen events
-  async listenEvents (heartbeats, mnemonic, orchestrator) {
-    const keys = await getKeysFromSeed(mnemonic);
+  async listenEvents (orchestrator) {
+    const keys = await getKeysFromSeed(this.mnemonic);
     // Subscribe to events
     await this.api.query.system.events((events) => {
       // Loop through events
@@ -58,7 +142,9 @@ class Chain {
           debug('listenEvents', `Received new leader event from ${event.data[0].toString()}`);
           debug('listenEvents', JSON.stringify(event));
           // If anyone other took leadership
-          if (event.data[0].toString() !== keys.address.toString() && event.data[1].toString() === orchestrator.group.toString()) {
+          if (event.data[0].toString() !== keys.address.toString() && event.data[1].toString() === this.nodeGroup.toString()) {
+            // We will immediately update chain info and launch service in passive mode
+            this.update();
             orchestrator.serviceStart('passive');
           }
         }
@@ -66,34 +152,34 @@ class Chain {
         if (event.section.toString() === 'archipelModule' && event.method.toString() === 'NewHeartbeat') {
           debug('listenEvents', `Received NewHeartbeat event from ${event.data[0].toString()}`);
           debug('listenEvents', JSON.stringify(event));
-          heartbeats.addHeartbeat(event.data[0].toString(), event.data[1].toString(), event.data[2].toString(), event.data[3].toString());
+          this.heartbeats.addHeartbeat(event.data[0].toString(), event.data[1].toString(), event.data[2].toString(), event.data[3].toString());
         }
       });
     });
   }
 
   // Send heartbeat
-  async addHeartbeat (mode, mnemonic, nodeGroupId) {
+  async addHeartbeat (mode) {
     // If node state permits to send transactions
     const sendTransaction = await this.canSendTransactions();
     // If node has any peers and is not in synchronizing chain
     if (sendTransaction) {
       debug('addHeartbeat', 'Archipel node has some peers and is synchronized so adding heartbeats...');
       // Get keys from mnemonic
-      const keys = await getKeysFromSeed(mnemonic);
+      const keys = await getKeysFromSeed(this.mnemonic);
       // Get node status from mode
       const nodeStatus = await fromModeToNodeStatus(mode);
       // Get account nonce
       const accountNonce = await this.api.query.system.account(keys.address);
       const nonce = accountNonce.nonce;
 
-      debug('addHeartbeat', `Nonce: ${nonce} groupId ${nodeGroupId} mode ${mode} nodeStatus ${nodeStatus}`);
+      debug('addHeartbeat', `Nonce: ${nonce} groupId ${this.nodeGroup} mode ${mode} nodeStatus ${nodeStatus}`);
 
       // create, sign and send transaction
       return new Promise((resolve, reject) => {
         this.api.tx.archipelModule
         // Create transaction
-          .addHeartbeat(nodeGroupId, nodeStatus)
+          .addHeartbeat(this.nodeGroup, nodeStatus)
         // Sign transaction
           .sign(keys, { nonce })
         // Send transaction
@@ -125,13 +211,13 @@ class Chain {
   }
 
   // Set leader
-  async setLeader (oldLeader, groupId, mnemonic) {
+  async setLeader (oldLeader) {
     // If node state permits to send transactions
     const sendTransaction = await this.canSendTransactions();
     // If node has any peers and is not in synchronizing chain
     if (sendTransaction) {
       // Get keys from mnemonic
-      const keys = await getKeysFromSeed(mnemonic);
+      const keys = await getKeysFromSeed(this.mnemonic);
 
       // Get account nonce
       const accountNonce = await this.api.query.system.account(keys.address);
@@ -143,7 +229,7 @@ class Chain {
         // create, sign and send transaction
         this.api.tx.archipelModule
           // create transaction
-          .setLeader(oldLeader, groupId)
+          .setLeader(oldLeader, this.nodeGroup)
           // Sign and transaction
           .sign(keys, { nonce })
           // Send transaction
@@ -157,6 +243,8 @@ class Chain {
                   // Show transaction data for Debug
                   debug('setLeader', 'Transaction was successfully sent and generated an event.');
                   debug('setLeader', `JSON Data: [${JSON.parse(data.toString())}]`);
+                  // If transaction is successfull we will update chain info immediately
+                  this.update();
                   resolve(true);
                 }
               });
@@ -175,13 +263,13 @@ class Chain {
   }
 
   // Give Up Leadership
-  async giveUpLeadership (groupId, mnemonic) {
+  async giveUpLeadership () {
     // If node state permits to send transactions
     const sendTransaction = await this.canSendTransactions();
     // If node has any peers and is not in synchronizing chain
     if (sendTransaction) {
       // Get keys from mnemonic
-      const keys = await getKeysFromSeed(mnemonic);
+      const keys = await getKeysFromSeed(this.mnemonic);
 
       // Get account nonce
       const accountNonce = await this.api.query.system.account(keys.address);
@@ -194,7 +282,7 @@ class Chain {
         // create, sign and send transaction
         this.api.tx.archipelModule
           // create transaction
-          .giveUpLeadership(groupId)
+          .giveUpLeadership(this.nodeGroup)
           // Sign and transaction
           .sign(keys, { nonce })
           // Send transaction
@@ -208,6 +296,8 @@ class Chain {
                   // Show transaction data for Debug
                   debug('giveUpLeadership', 'Transaction was successfully sent and generated an event.');
                   debug('giveUpLeadership', `JSON Data: [${JSON.parse(data.toString())}]`);
+                  // If transaction is successfull we will update chain info immediately
+                  this.update();
                   resolve(true);
                 }
               });
@@ -230,15 +320,15 @@ class Chain {
     const currentBlock = await this.getBestNumber();
     // If chain is not moving forward we will incremnet the accumulator
     // If chain moved forward we will reset the accumulator
-    this.lastBlockAccumulator = this.lastBlockNumber === currentBlock ? this.lastBlockAccumulator + 1 : 0;
+    this.lastBlockAccumulator = this.bestBlockNumber === currentBlock ? this.lastBlockAccumulator + 1 : 0;
 
     // If chain is not moving forward and accumulator reached the threshold the chain cannot recieve transactions
-    if (this.lastBlockNumber === currentBlock && this.lastBlockAccumulator >= this.lastBlockThreshold) {
-      debug('chainMovedForward', `The last block equal to current block ${this.lastBlockNumber}=${currentBlock}`);
+    if (this.bestBlockNumber === currentBlock && this.lastBlockAccumulator >= this.lastBlockThreshold) {
+      debug('chainMovedForward', `The last block equal to current block ${this.bestBlockNumber}=${currentBlock}`);
       return false;
     }
     // Update last block number with current block number
-    this.lastBlockNumber = currentBlock;
+    this.bestBlockNumber = currentBlock;
     return true;
   }
 
@@ -287,9 +377,9 @@ class Chain {
   }
 
   // Get current leader from Runtime
-  async getLeader (groupId) {
+  async getLeader () {
     try {
-      return (await this.api.query.archipelModule.leaders(groupId)).toString();
+      return (await this.api.query.archipelModule.leaders(this.nodeGroup)).toString();
     } catch (error) {
       debug('getLeader', error);
       return false;
@@ -297,9 +387,9 @@ class Chain {
   }
 
   // Get leadedGroup status from Runtime
-  async isLeadedGroup (groupId) {
+  async isLeadedGroup () {
     try {
-      return (await this.api.query.archipelModule.leadedGroup(groupId)).toString() === 'true';
+      return (await this.api.query.archipelModule.leadedGroup(this.nodeGroup)).toString() === 'true';
     } catch (error) {
       debug('isLeadedGroup', error);
       return false;
@@ -402,6 +492,22 @@ class Chain {
       debug('disconnect', error);
       return false;
     }
+  }
+
+  // Shutdown chain
+  async shutdown () {
+    // Stopping heartbeat send
+    if (this.heartbeatTimer) {
+      await clearIntervalAsync(this.heartbeatTimer);
+    }
+    // Stopping chain info update
+    if (this.chainInfoTimer) {
+      await clearIntervalAsync(this.chainInfoTimer);
+    }
+    console.log('Waiting for 5 seconds to be sure that all intevals are finished...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    // Disconnecting from chain
+    await this.disconnect();
   }
 }
 

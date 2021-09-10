@@ -7,7 +7,8 @@ class Orchestrator {
   constructor (
     config,
     chain,
-    heartbeats) {
+    heartbeats,
+    orchestrationInterval) {
     this.nodeRole = config.nodeRole;
 
     // Create service instance if node role is not no service
@@ -20,6 +21,9 @@ class Orchestrator {
     this.noLivenessFromLeader = 0;
     this.noLivenessThreshold = 5;
     this.chain = chain;
+    this.chainUpdateThreshold = 10000;
+
+    this.orchestrationInterval = orchestrationInterval;
 
     this.heartbeats = heartbeats;
     this.aliveTime = config.aliveTime;
@@ -66,17 +70,15 @@ class Orchestrator {
       throw Error('Unable to start service in passive mode. Please check your configuration and docker daemon.');
     }
 
-    // Fill heartbeats from chain at orchestrator start
-    await this.fillHeartbeatsFromChain();
-  }
-
-  // This function fills heartbeat values from chain for every wallet from node wallets
-  async fillHeartbeatsFromChain () {
-    const walletList = this.nodesWallets.toString().split(',');
-    for (const wallet of walletList) {
-      const heartbeatBlock = await this.chain.getHeartbeat(wallet);
-      this.heartbeats.addHeartbeat(wallet, 0, 0, heartbeatBlock);
-    }
+    // Orchestrate every orchestrationInterval
+    setIntervalAsync(async () => {
+      try {
+        // Orchestrating service
+        await this.orchestrateService();
+      } catch (error) {
+        console.error(error);
+      }
+    }, orchestrationInterval);
   }
 
   // If active service mode is forced somewhere we will take leadership on chain and launch service in active mode
@@ -90,7 +92,7 @@ class Orchestrator {
     console.log('Checking leadership on chain...');
     const key = await getKeysFromSeed(this.mnemonic);
     const nodeKey = key.address;
-    let currentLeader = await this.chain.getLeader(this.group);
+    let currentLeader = this.chain.currentLeaderValue;
 
     // If node is already leader on chain
     if (currentLeader.toString() === nodeKey) {
@@ -101,13 +103,13 @@ class Orchestrator {
 
     // Trying to take leadership
     console.log('Taking leadership...');
-    const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
+    const isLeadedGroup = this.chain.isLeadedGroupValue;
     currentLeader = isLeadedGroup ? currentLeader : nodeKey;
     const becomeLeaderResult = await this.becomeLeader(currentLeader);
     if (becomeLeaderResult) {
       console.log('Leadership was taken successfully...');
       // Checking current leader and starting in active mode
-      currentLeader = await this.chain.getLeader(this.group);
+      currentLeader = this.chain.currentLeaderValue;
       if (currentLeader.toString() === nodeKey) {
         await this.serviceStart('active');
         return true;
@@ -159,9 +161,19 @@ class Orchestrator {
 
   // This method contains main orchestration logic
   async orchestrateOperatorService () {
+    // Check if chain data is fresh
+    console.log('Checking if Archipel chain data is fresh...');
+    const currentTime = parseInt(Date.now());
+    const chainLastUpdatedTime = this.chain.lastUpdateTime;
+    if (chainLastUpdatedTime + this.chainUpdateThreshold < currentTime) {
+      console.log("Chain data is very old can't decide enforcing passive service mode...");
+      await this.serviceStart('passive');
+      return;
+    }
+
     // If node state permits to send transactions
     console.log('Checking if Archipel chain node can receive transactions...');
-    const sendTransaction = await this.chain.canSendTransactions();
+    const sendTransaction = this.chain.canSendTransactionsValue;
     if (!sendTransaction) {
       console.log(
         "Archipel chain node can't receive transactions. Enforcing 'passive' service mode..."
@@ -176,7 +188,7 @@ class Orchestrator {
     debug('orchestrateService', `Current Node Key: ${nodeKey}`);
 
     // Get current best block number
-    const bestNumber = await this.chain.getBestNumber();
+    const bestNumber = this.chain.bestBlockNumber;
     debug('orchestrateService', `bestNumber: ${bestNumber}`);
 
     // Check if anyone is alive
@@ -205,9 +217,9 @@ class Orchestrator {
       return;
     }
 
-    // Manage the node leadership and if not leader enforcing passive service mode
+    // Manage the node leadership
     console.log('Checking node leadership...');
-    const leadership = await this.leadershipManagement(nodeKey);
+    const leadership = this.leadershipManagement(nodeKey);
     if (!leadership) {
       console.log(
         "The current node is not leader. Enforcing 'passive' service mode..."
@@ -216,67 +228,54 @@ class Orchestrator {
       return;
     }
 
-    // We will recheck if after all checks the current node is leader
-    // If so we will launch service in active mode
-    const currentLeader = await this.chain.getLeader(this.group);
-
+    // We will force chain info update before make final decision
+    // If the node is leader we will start service in active mode
+    await this.chain.update();
+    const currentLeader = this.chain.currentLeaderValue;
     if (currentLeader.toString() === nodeKey) {
       console.log('All checks passed and current node is leader. Launching service in active mode...');
       await this.serviceStart('active');
+      return;
     }
-  }
 
-  // Take leader place
-  async becomeLeader (nodeKey) {
-    const setLeader = await this.chain.setLeader(nodeKey, this.group, this.mnemonic);
-    if (setLeader) {
-      console.log('The leadership was taken successfully...');
-      console.log(
-        'Waiting 10 seconds to be sure that every node received leader update...'
-      );
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-
-      return true;
-    } else {
-      console.log(
-        'Failed to take leadership. Possibly other node already took leadership...'
-      );
-      return false;
-    }
+    // If current node is not leader we will enforce the passive service mode
+    console.log('The current node is not leader. Enforcing \'passive\' service mode...');
+    await this.serviceStart('passive');
   }
 
   // Manage leadership
   // Returns true if node is leader or was able to take leadership
-  async leadershipManagement (nodeKey) {
+  leadershipManagement (nodeKey) {
     // Get current leader from chain
-    let currentLeader = await this.chain.getLeader(this.group);
-    const isLeadedGroup = await this.chain.isLeadedGroup(this.group);
+    let currentLeader = this.chain.currentLeaderValue.toString();
+    const isLeadedGroup = this.chain.isLeadedGroupValue;
 
     debug('orchestrateService', `Is Group ${this.group} a leaded group: ${isLeadedGroup}.`);
-    currentLeader = currentLeader.toString();
-
-    // If current leader is empty
-    // First time Archipel boot
-    if (isLeadedGroup === false) {
-      console.log('Trying to take leadership...');
-      return await this.becomeLeader(nodeKey);
-    }
 
     // If this node is current leader
     if (currentLeader === nodeKey) {
       console.log('Current node is leader...');
       return true;
     }
+    
+    // If current leader is empty
+    // First time Archipel boot
+    if (isLeadedGroup === false) {
+      console.log('Trying to take leadership. We will check on the next orchestration if leadership was taken successfully..');
+      this.chain.setLeader(nodeKey, this.group, this.mnemonic);
+      return false;
+    }
 
     // Other node is leader
     debug('orchestrateService', `Current Leader is: ${currentLeader}`);
     console.log('Other node is leader...');
 
-    return await this.otherLeaderAction(currentLeader);
+    this.otherLeaderAction(currentLeader);
+    return false;
   }
 
   // Act if other node is leader
-  async otherLeaderAction (currentLeader) {
+  otherLeaderAction (currentLeader) {
     // Get leader heartbeats known
     const leaderHeartbeat = this.heartbeats.getHeartbeat(currentLeader);
 
@@ -293,30 +292,28 @@ class Orchestrator {
         );
         // Incrementing noLivenessFromLeader counter
         this.noLivenessFromLeader++;
-        return false;
         // No leaderHeart received for noLivenessThreshold times. Leader is offline.
       } else {
         console.log(
           `Can't check leader ${currentLeader} liveness for ${this.noLivenessThreshold} times. Trying to become new leader...`
         );
         this.noLivenessFromLeader = 0;
-        return await this.becomeLeader(currentLeader);
+        this.chain.setLeader(nodeKey, this.group, this.mnemonic);
       }
-    }
-
-    const bestNumber = await this.chain.getBestNumber();
-    debug('orchestrateService', `bestNumber: ${bestNumber}`);
-    const lastSeenAgo = bestNumber - leaderHeartbeat.blockNumber;
-
-    // Checking if leader can be considered alive
-    if (lastSeenAgo > this.aliveTime) {
-      console.log(
-        `Leader ${currentLeader} is down. Trying to become new leader...`
-      );
-      return await this.becomeLeader(currentLeader);
     } else {
-      console.log(`Leader ${currentLeader} is alive...`);
-      return false;
+      const bestNumber = this.chain.bestBlockNumber;
+      debug('orchestrateService', `bestNumber: ${bestNumber}`);
+      const lastSeenAgo = bestNumber - leaderHeartbeat.blockNumber;
+
+      // Checking if leader can be considered alive
+      if (lastSeenAgo > this.aliveTime) {
+        console.log(
+          `Leader ${currentLeader} is down. Trying to become new leader...`
+        );
+        this.chain.setLeader(nodeKey, this.group, this.mnemonic);
+      } else {
+        console.log(`Leader ${currentLeader} is alive...`);
+      }
     }
   }
 
@@ -399,10 +396,10 @@ class Orchestrator {
       isConnected: this.chain.isConnected(),
       peerId: await this.chain.getPeerId(),
       peerNumber: await this.chain.getPeerNumber(),
-      bestNumber: await this.chain.getBestNumber(),
+      bestNumber: this.chain.bestBlockNumber,
       bestNumberFinalized: await this.chain.getBestNumberFinalized(),
       synchState: await this.chain.getSyncState(),
-      leader: await this.chain.getLeader(this.group),
+      leader: this.chain.currentLeaderValue,
       orchestrationEnabled: this.orchestrationEnabled,
       heartbeatSendEnabledAdmin: this.heartbeatSendEnabledAdmin,
       heartbeatSendEnabled: this.heartbeatSendEnabled,

@@ -14,50 +14,28 @@ async function main () {
     // Create configuration
     const config = constructConfiguration();
 
-    // Connect to Polkadot API
-    console.log('Connecting to Archipel Chain node...');
-    const chain = new Chain(config.nodeWs);
-    await chain.connect();
-
     // Create Heartbeats instance
     const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 
+    // Connect to Polkadot API
+    console.log('Connecting to Archipel Chain node...');
+    const heartbeatAddInterval = 10000;
+    const chainInfoUpdateInterval = 10000;
+    const chain = new Chain(config.nodeWs, heartbeats, config.nodeGroupId, config.mnemonic, heartbeatAddInterval, chainInfoUpdateInterval);
+
     // Create Orchestrator instance
+    const orchestrationInterval = 10000;
     const orchestrator = new Orchestrator(
       config,
       chain,
-      heartbeats);
+      heartbeats,
+      orchestrationInterval);
 
     // Bootstrap orchestration before orchestration
     await orchestrator.bootstrapOrchestrator();
 
-    // Create chain event listener
-    chain.listenEvents(heartbeats, config.mnemonic, orchestrator);
-
-    // Add heartbeats every 10 seconds
-    setIntervalAsync(async () => {
-      try {
-        // Checking if heartbeats send is enabled
-        console.log('Checking if heartbeats send is enabled...');
-        if (!orchestrator.heartbeatSendEnabled || !orchestrator.heartbeatSendEnabledAdmin) {
-          console.log('Heartbeat send is disabled...');
-          return;
-        }
-        await chain.addHeartbeat(orchestrator.getServiceMode(), config.mnemonic, config.nodeGroupId);
-      } catch (error) {
-        console.error(error);
-      }
-    }, 10000);
-
-    // Orchestrate every 10 seconds
-    setIntervalAsync(async () => {
-      try {
-        // Orchestrating service
-        await orchestrator.orchestrateService();
-      } catch (error) {
-        console.error(error);
-      }
-    }, 10000);
+    // Bootstrap chain
+    await chain.bootstrap(orchestrator);
 
     // Attach service cleanup to exit signals
     catchExitSignals(orchestrator.serviceCleanUp.bind(orchestrator));

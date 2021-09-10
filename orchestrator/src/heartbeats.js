@@ -6,6 +6,7 @@ const {
 class Heartbeats {
   constructor (nodesWallets, archipelName) {
     this.heartbeats = new Map();
+    this.nodesWallets = nodesWallets;
     this.nodes = constructNodesList(nodesWallets, archipelName);
   }
 
