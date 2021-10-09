@@ -5,6 +5,7 @@ const {
 const dotenv = require('dotenv');
 const os = require('os');
 const fs = require('fs-extra');
+const axios = require('axios');
 
 const {
   getKeysFromSeed,
@@ -212,21 +213,29 @@ class Polkadot {
 
       debug('importAKey', `Importing ${type} ${publicKey} to ${containerName}...`);
 
+      const instanceAxios = axios.create({
+        headers: {'Content-Type': 'application/json;charset=utf-8'}
+      });
+
       // Constructing command to import key
-      const command = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-                      `{
-                        "jsonrpc":"2.0",
-                        "id":1,
-                        "method":"author_insertKey",
-                        "params": [
-                          "${type}",
-                          "${mnemonic}",
-                          "${publicKey}"
-                        ]
-      }`];
+      const parameters = `{
+        "jsonrpc":"2.0",
+        "id":1,
+        "method":"author_insertKey",
+        "params": [
+          "${type}",
+          "${mnemonic}",
+          "${publicKey}"
+        ]
+      }`;
+
+      const resultPost =  await instanceAxios.post('http://127.0.0.1:'+config.polkadotRpcPort, parameters);
+      let result = null;
+      if(resultPost && resultPost.data){
+        result = JSON.stringify(resultPost.data);
+      }
 
       // Importing key by executing command in docker container
-      const result = await this.docker.dockerExecute(containerName, command);
       debug('importAKey', `Command result: "${result}"`);
 
       // Checking result
@@ -273,19 +282,26 @@ class Polkadot {
     try {
       console.log('check Session Key valid On Node for session key value :');
       console.log(sessionKey);
-      // Constructing command check session key
-      const command = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-    `{
-      "jsonrpc":"2.0",
-      "id":1,
-      "method":"author_hasSessionKeys",
-      "params": [
-        "${sessionKey}"
-      ]
-    }`];
-      // Importing key by executing command in docker container
-      const result = await this.docker.dockerExecute(containerName, command);
-      console.log(`Command hasSessionKeys result: "${result}"`);
+      const parameters = `{
+        "jsonrpc":"2.0",
+        "id":1,
+        "method":"author_hasSessionKeys",
+        "params": [
+          "${sessionKey}"
+        ]
+      }`;
+
+      const instanceAxios = axios.create({
+        headers: {'Content-Type': 'application/json;charset=utf-8'}
+      });
+      const result =  await instanceAxios.post('http://127.0.0.1:'+config.polkadotRpcPort, parameters);
+      console.log(`Command hasSessionKeys result:`);
+      if(result && result.data){
+        console.log(result.data);
+      }
+      else{
+        console.log('no result. Error: Can\'t check session key');
+      }
     } catch (error) {
       debug('checkSessionKeyOnNode', error);
       console.error('Error: Can\'t check session key');
