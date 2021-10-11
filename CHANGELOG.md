@@ -4,6 +4,10 @@
 
 <!--New features/improvements/fixes go here-->
 
+## [v2.2.4](https://github.com/luguslabs/archipel/releases/tag/v2.2.4)
+
+[#282](https://github.com/luguslabs/archipel/issues/282) : Curl removed in polkadot 0.9.11 fix
+
 ## [v2.2.3](https://github.com/luguslabs/archipel/releases/tag/v2.2.3)
 
 [#274](https://github.com/luguslabs/archipel/issues/274) : remove hard coded --execution flag
