@@ -365,17 +365,25 @@ class Polkadot {
         return true;
       }
 
-      // Construct command to check system_health
-      const commandSystemHealth = ['curl', 'http://localhost:' + config.polkadotRpcPort, '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-                       `{
-                        "jsonrpc":"2.0",
-                        "id":1,
-                        "method":"system_health"
-      }`];
+      const parameters = `{
+        "jsonrpc":"2.0",
+        "id":1,
+        "method":"system_health"
+      }`;
 
-      // Call system_health command in docker container
-      const resultSystemHealth = await this.docker.dockerExecute(containerName, commandSystemHealth);
-      debug('isServiceReadyToStart', `Command system_health result: "${resultSystemHealth}"`);
+      const instanceAxios = axios.create({
+        headers: {'Content-Type': 'application/json;charset=utf-8'}
+      });
+      const resultPost =  await instanceAxios.post('http://127.0.0.1:'+config.polkadotRpcPort, parameters);
+
+      let resultSystemHealth = '';
+      if(resultPost && resultPost.data){
+        resultSystemHealth = JSON.stringify(resultPost.data);
+        debug('isServiceReadyToStart', `Command system_health result: "${resultSystemHealth}"`);
+      }
+      else{
+        debug('isServiceReadyToStart', `Command system_health ko: "${resultPost}"`);
+      }
 
       // Checking if system_health gives a result
       if (!resultSystemHealth.includes('"result":')) {
