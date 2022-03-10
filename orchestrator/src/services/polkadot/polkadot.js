@@ -2,6 +2,7 @@ const os = require('os');
 const fs = require('fs-extra');
 const { u8aToHex } = require('@polkadot/util');
 const debug = require('debug')('polkadot');
+const axios = require('axios');
 
 const {
   getKeysFromSeed,
@@ -54,7 +55,7 @@ class Polkadot {
   }
 
   // Importing a key in keystore
-  async importKey (containerName, mnemonic, crypto, type) {
+  async importKey (mnemonic, crypto, type) {
     // Get public key hex from mnemonic
     const keys = await getKeysFromSeed(mnemonic, crypto);
     const publicKey = u8aToHex(keys.publicKey);
@@ -64,44 +65,62 @@ class Polkadot {
       debug('importKey', `Key ${publicKey} was already imported to keystore...`);
       return false;
     }
+    console.log(`Importing ... ${type} ${publicKey}`);
+    debug('importKey', `Importing ${type} ${publicKey} ...`);
 
-    debug('importKey', `Importing ${type} ${publicKey} to ${containerName}...`);
+    const instanceAxios = axios.create({
+      headers: { 'Content-Type': 'application/json;charset=utf-8' }
+    });
+    
+    const parameters = `{
+      "jsonrpc":"2.0",
+      "id":1,
+      "method":"author_insertKey",
+      "params": [
+        "${type}",
+        "${mnemonic}",
+        "${publicKey}"
+      ]
+    }`;
 
-    // Constructing command to import key
-    const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-                    `{
-                      "jsonrpc":"2.0",
-                      "id":1,
-                      "method":"author_insertKey",
-                      "params": [
-                        "${type}",
-                        "${mnemonic}",
-                        "${publicKey}"
-                      ]
-    }`];
+    debug('importKey', 'call author_insertKey');
+    console.log('instanceAxios post ...');
+    let resultPost = null;
+    try {
+      resultPost = await instanceAxios.post('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
+      console.log('instanceAxios posted ...');
+    } catch (e) {
+      console.log('instanceAxios post ko ...');
+      console.log(e);
+    }
 
-    // Importing key by executing command in docker container
-    const result = await this.docker.dockerExecute(containerName, command);
-    debug('importKey', `Command result: "${result}"`);
-
-    // If docker execute failed we will return false
-    if (!result) {
+    debug('importKey', `resultPost ${resultPost}`);
+    let result = null;
+    if (resultPost && resultPost.data) {
+      result = JSON.stringify(resultPost.data);
+      debug('importKey', `Command result: "${result}"`);
+      console.log(`Command result: "${result}"`);
+    } else {
       return false;
     }
 
     // Checking command result
     if (!result.includes('"result":null')) {
+      console.log(`Command result: "${result}"`);
       console.log(`Can't add key. ${type} - ${publicKey}. Will retry the next time...`);
     } else {
       console.log(`The ${type} - ${publicKey} key was successfully added to service keystore.`);
     }
 
     // Check if key is present in containers file system
-    const keyAdded = await this.checkKeyAdded(containerName, publicKey, type);
+    const keyAdded = await this.checkKeyAdded(publicKey, type);
     if (!keyAdded) {
       console.log(`Key (${type} - ${publicKey}) can not be found in container. Will retry to add the next time...`);
       return false;
     }
+
+    this.config.polkadotSessionKeyToCheck = JSON.stringify(resultPost.data.result).slice(1).slice(0, -1);
+    await this.checkSessionKeysOnNode();
 
     // Add key into imported key list
     this.importedKeys.push(publicKey);
@@ -109,25 +128,29 @@ class Polkadot {
   }
 
   // Check if a key was successfully added
-  async checkKeyAdded (containerName, key, keyType) {
+  async checkKeyAdded (key, keyType) {
+    const instanceAxios = axios.create({
+      headers: { 'Content-Type': 'application/json;charset=utf-8' }
+    });
+
     // Constructing command to check a key
-    const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-      `{
-        "jsonrpc":"2.0",
-        "id":1,
-        "method":"author_hasKey",
-        "params": [
-          "${key}",
-          "${keyType}"
-        ]
-      }`];
+    const parameters = `{
+      "jsonrpc":"2.0",
+      "id":1,
+      "method":"author_hasKey",
+      "params": [
+        "${key}",
+        "${keyType}"
+      ]
+    }`;
 
-    // Executing command in docker container
-    const result = await this.docker.dockerExecute(containerName, command);
-    debug('checkKeyAdded', `HasKey command result: "${result}"`);
-
-    // If docker execute failed we will return false
-    if (!result) {
+    const resultPost = await instanceAxios.post('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
+    let result = '';
+    if (resultPost && resultPost.data) {
+      result = JSON.stringify(resultPost.data);
+      debug('checkKeyAdded', `HasKey command result: "${result}"`);
+    } else {
+      debug('no result. Error: Can\'t check session key');
       return false;
     }
 
@@ -139,17 +162,14 @@ class Polkadot {
     const mode = await this.checkLaunchedContainer();
     return {
       sessionKeysString: this.config.polkadotSessionKeyToCheck,
-      checkSessionKeysOnNode: await this.checkSessionKeysOnNode(mode),
+      checkSessionKeysOnNode: await this.checkSessionKeysOnNode(),
       launchedContainer: mode
     };
   }
 
   // Check if session keys were successfully set
-  async checkSessionKeysOnNode (mode) {
+  async checkSessionKeysOnNode () {
     try {
-      // Which container we must check
-      const containerName = mode === 'active' ? this.config.polkadotPrefix + 'polkadot-validator' : this.config.polkadotPrefix + 'polkadot-sync';
-
       // Check if session key was set
       if (!this.config.polkadotSessionKeyToCheck) {
         debug('polkadotSessionKeyToCheck must be set to use checkSessionKeysOnNode functionality');
@@ -158,25 +178,29 @@ class Polkadot {
 
       debug('checkSessionKeyOnNode', `Checking session keys on node: ${this.config.polkadotSessionKeyToCheck}`);
       // Constructing command to check session key
-      const command = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-      `{
+      const parameters = `{
         "jsonrpc":"2.0",
         "id":1,
         "method":"author_hasSessionKeys",
         "params": [
           "${this.config.polkadotSessionKeyToCheck}"
         ]
-      }`];
+      }`;
 
-      // Executing command to check session keys
-      const result = await this.docker.dockerExecute(containerName, command);
-      debug('checkSessionKeyOnNode', `Author_hasSessionKeys result: "${result}"`);
+      const instanceAxios = axios.create({
+        headers: { 'Content-Type': 'application/json;charset=utf-8' }
+      });
+      const resultPost = await instanceAxios.post('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
 
-      // If docker execute failed we will return false
-      if (!result) {
+      let result = '';
+      if (resultPost && resultPost.data) {
+        debug('checkSessionKeyOnNode', `Author_hasSessionKeys result: "${resultPost.data}"`);
+        result = JSON.stringify(resultPost.data);
+        console.log(resultPost.data);
+      } else {
+        debug('no result. Error: Can\'t check session key');
         return false;
       }
-
       return result.includes('true');
     } catch (error) {
       debug('checkSessionKeysOnNode', error);
@@ -185,7 +209,7 @@ class Polkadot {
   }
 
   // Import wallets to polkadot keystore
-  async polkadotKeysImport (containerName) {
+  async polkadotKeysImport () {
     try {
       // Check if there is no already 6 keys added
       if (this.importedKeys.length >= 6) {
@@ -196,13 +220,13 @@ class Polkadot {
       await new Promise(resolve => setTimeout(resolve, 5000));
 
       // Importing 6 validator keys into keystore
-      console.log('Importing keys to keystore...');
-      await this.importKey(containerName, this.config.polkadotKeyGran, 'ed25519', 'gran');
-      await this.importKey(containerName, this.config.polkadotKeyBabe, 'sr25519', 'babe');
-      await this.importKey(containerName, this.config.polkadotKeyImon, 'sr25519', 'imon');
-      await this.importKey(containerName, this.config.polkadotKeyPara, 'sr25519', 'para');
-      await this.importKey(containerName, this.config.polkadotKeyAsgn, 'sr25519', 'asgn');
-      await this.importKey(containerName, this.config.polkadotKeyAudi, 'sr25519', 'audi');
+      console.log('Importing keys to keystore....');
+      await this.importKey(this.config.polkadotKeyGran, 'ed25519', 'gran');
+      await this.importKey(this.config.polkadotKeyBabe, 'sr25519', 'babe');
+      await this.importKey(this.config.polkadotKeyImon, 'sr25519', 'imon');
+      await this.importKey(this.config.polkadotKeyPara, 'sr25519', 'para');
+      await this.importKey(this.config.polkadotKeyAsgn, 'sr25519', 'asgn');
+      await this.importKey(this.config.polkadotKeyAudi, 'sr25519', 'audi');
 
       return true;
     } catch (error) {
@@ -213,18 +237,8 @@ class Polkadot {
   }
 
   // Check if polkadot node is ready to operate
-  async isServiceReadyToStart (mode) {
+  async isServiceReadyToStart () {
     try {
-      // Which container we must check
-      const containerName = mode === 'active' ? this.config.polkadotPrefix + 'polkadot-validator' : this.config.polkadotPrefix + 'polkadot-sync';
-
-      // Check if container exists and is running
-      const containerExistAndRunning = await this.docker.isContainerRunning(containerName);
-      if (!containerExistAndRunning) {
-        debug('isServiceReadyToStart', `Service is not ready to start. Container : "${containerName}" is not running. `);
-        return false;
-      }
-
       // Check if a simulate synch option was set
       if (this.config.polkadotSimulateSynch) {
         debug('isServiceReadyToStart', 'Test mode simulate synch node.');
@@ -232,19 +246,23 @@ class Polkadot {
       }
 
       // Construct command to check node system_health
-      const commandSystemHealth = ['curl', 'http://localhost:' + this.config.polkadotRpcPort.toString(), '-H', 'Content-Type:application/json;charset=utf-8', '-d',
-                       `{
-                        "jsonrpc":"2.0",
-                        "id":1,
-                        "method":"system_health"
-      }`];
+      const parameters = `{
+        "jsonrpc":"2.0",
+        "id":1,
+        "method":"system_health"
+      }`;
 
-      // Call system_health command in docker container
-      const resultSystemHealth = await this.docker.dockerExecute(containerName, commandSystemHealth);
-      debug('isServiceReadyToStart', `Command system_health result: "${resultSystemHealth}"`);
+      const instanceAxios = axios.create({
+        headers: { 'Content-Type': 'application/json;charset=utf-8' }
+      });
+      const resultPost = await instanceAxios.post('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
 
-      // If docker execute failed we will return false
-      if (!resultSystemHealth) {
+      let resultSystemHealth = '';
+      if (resultPost && resultPost.data) {
+        resultSystemHealth = JSON.stringify(resultPost.data);
+        debug('isServiceReadyToStart', `Command system_health result: "${resultSystemHealth}"`);
+      } else {
+        debug('isServiceReadyToStart', `Command system_health ko: "${resultPost}"`);
         return false;
       }
 
@@ -433,7 +451,7 @@ class Polkadot {
     await this.docker.createVolume(mountSource);
 
     // Creating second volume to fix orphelin volumes
-    await this.docker.createVolume(mountSource2);
+   // await this.docker.createVolume(mountSource2);
 
     // Constructing mount data
     const mounts = [];
@@ -443,14 +461,14 @@ class Polkadot {
       Type: 'volume',
       ReadOnly: false
     });
-
+/*
     mounts.push({
       Target: mountTarget2,
       Source: mountSource2,
       Type: 'volume',
       ReadOnly: false
     });
-
+*/
     // Constructing container data
     const containerData = {
       name: '',

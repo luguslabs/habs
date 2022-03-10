@@ -14,6 +14,7 @@ process.env.POLKADOT_KEY_ASGN = 'rough open marine belt rib violin december gest
 process.env.POLKADOT_KEY_AUDI = 'oak tail stomach fluid trade aunt fire fringe mercy roast style garlic';
 process.env.POLKADOT_ADDITIONAL_OPTIONS = '--chain kusama --db-cache 512';
 process.env.TESTING = 'true';
+process.env.DEBUG = 'polkadot';
 
 // Test configuration
 const testTimeout = 360000;

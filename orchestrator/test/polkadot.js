@@ -92,26 +92,25 @@ describe('Polkadot test', function () {
         assert.equal(JSON.stringify(polkadot.importedKeys), JSON.stringify(mustBeImportedKeys), 'check if keys where imported correctly');
 
         // Try to reimport existing keys
-        let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
-        let importKey = await polkadot.importKey(containerName, process.env.POLKADOT_KEY_GRAN, 'ed25519', 'gran');
+        let importKey = await polkadot.importKey(process.env.POLKADOT_KEY_GRAN, 'ed25519', 'gran');
         assert.equal(importKey, false, 'check if trying to import already imported key the function returns false');
 
         // The curl command to import keys fails
         const savePolkadotRpcPort = polkadot.config.polkadotRpcPort;
         polkadot.config.polkadotRpcPort = 1234;
-        importKey = await polkadot.importKey(containerName, 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud', 'ed25519', 'gran');
+        importKey = await polkadot.importKey('mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud', 'ed25519', 'gran');
         assert.equal(importKey, false, 'check if import command fails the function returns false');
         polkadot.config.polkadotRpcPort = savePolkadotRpcPort;
 
         // Test if check key added command fails
         const saveCheckKeyAdded = polkadot.checkKeyAdded;
         polkadot.checkKeyAdded = async () => false;
-        importKey = await polkadot.importKey(containerName, 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud', 'ed25519', 'gran');
+        importKey = await polkadot.importKey('mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud', 'ed25519', 'gran');
         assert.equal(importKey, false, 'check if check command fails the function returns false');
         polkadot.checkKeyAdded = saveCheckKeyAdded;
 
         // Finally check successfull add
-        importKey = await polkadot.importKey(containerName, 'mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud', 'ed25519', 'gran');
+        importKey = await polkadot.importKey('mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud', 'ed25519', 'gran');
         assert.equal(importKey, true, 'check if import key command returns true');
         mustBeImportedKeys = [
             '0xa588f6cd3f7a970a9ebf2b5a7c10dc4e5c8cd3b5fc5dbd29955538d8d2b045d8',
@@ -125,7 +124,7 @@ describe('Polkadot test', function () {
         assert.equal(JSON.stringify(polkadot.importedKeys), JSON.stringify(mustBeImportedKeys), 'check if keys where imported correctly');
 
         // Trying to relaunch all processus of key addition
-        const importAllKeys = await polkadot.polkadotKeysImport(containerName);
+        const importAllKeys = await polkadot.polkadotKeysImport();
         assert.equal(importAllKeys, false, 'check if keys import returns false cause there is more than 6 keys already in the keystore');
 
         polkadot.importedKeys = [];
@@ -149,7 +148,7 @@ describe('Polkadot test', function () {
         const savePolkadotSessionKeyToCheck = polkadot.config.polkadotSessionKeyToCheck;
 
         polkadot.config.polkadotSessionKeyToCheck = mustBeImportedKeys[0];
-        let result = await polkadot.checkSessionKeysOnNode('active');
+        let result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, false, 'check if session keys on node check fails with bad key');
 
         /*
@@ -176,21 +175,21 @@ describe('Polkadot test', function () {
 
         polkadot.docker.dockerExecute = async () => { throw Error('Error simulation') };
 
-        result = await polkadot.checkSessionKeysOnNode('passive');
+        result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, false, 'check if function returns false if error was thrown');
 
         polkadot.docker.dockerExecute = async () => false;
 
-        result = await polkadot.checkSessionKeysOnNode('passive');
+        result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, false, 'check if function returns false if docker execute returns false');
 
         polkadot.docker.dockerExecute = async () => { return "{ this: true }" };
 
-        result = await polkadot.checkSessionKeysOnNode('passive');
+        result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, true, 'check if function returns true if docker execute result contains true value');
 
         delete polkadot.config.polkadotSessionKeyToCheck;
-        result = await polkadot.checkSessionKeysOnNode('passive');
+        result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, false, 'check if session keys on node check fails with empty session key to check');
 
         polkadot.docker.dockerExecute = saveDockerExecuteSave;
@@ -213,30 +212,28 @@ describe('Polkadot test', function () {
         ];
         assert.equal(JSON.stringify(polkadot.importedKeys), JSON.stringify(mustBeImportedKeys), 'check if keys where imported correctly');
     
-        let containerName = `${process.env.POLKADOT_PREFIX}polkadot-sync`;
-    
-        let result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[0], 'gran');
+        let result = await polkadot.checkKeyAdded(mustBeImportedKeys[0], 'gran');
         assert.equal(result, true, 'Check if gran key was added correctly');
 
-        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[1], 'babe');
+        result = await polkadot.checkKeyAdded(mustBeImportedKeys[1], 'babe');
         assert.equal(result, true, 'Check if babe key was added correctly');
 
-        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[2], 'imon');
+        result = await polkadot.checkKeyAdded(mustBeImportedKeys[2], 'imon');
         assert.equal(result, true, 'Check if imon key was added correctly');
 
-        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[3], 'para');
+        result = await polkadot.checkKeyAdded(mustBeImportedKeys[3], 'para');
         assert.equal(result, true, 'Check if para key was added correctly');
 
-        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[4], 'asgn');
+        result = await polkadot.checkKeyAdded(mustBeImportedKeys[4], 'asgn');
         assert.equal(result, true, 'Check if asgn key was added correctly');
 
-        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[5], 'audi');
+        result = await polkadot.checkKeyAdded(mustBeImportedKeys[5], 'audi');
         assert.equal(result, true, 'Check if audi key was added correctly');
 
         const saveDockerExecute = polkadot.docker.dockerExecute;
         polkadot.docker.dockerExecute = async () => false;
 
-        result = await polkadot.checkKeyAdded(containerName, mustBeImportedKeys[5], 'audi');
+        result = await polkadot.checkKeyAdded(mustBeImportedKeys[5], 'audi');
         assert.equal(result, false, 'Check if check key added returns false if docker execute returns false');
 
         polkadot.importedKeys = [];
@@ -250,8 +247,7 @@ describe('Polkadot test', function () {
         // Make import key to throw an error
         polkadot.importKey = async () => { throw Error('Simulating general fail'); }
 
-        let containerName = `${process.env.POLKADOT_PREFIX}polkadot-validator`;
-        const keysImportResult = await polkadot.polkadotKeysImport(containerName);
+        const keysImportResult = await polkadot.polkadotKeysImport();
 
         assert.equal(keysImportResult, false, 'Must return false cause import key throws an error');
 
@@ -259,7 +255,7 @@ describe('Polkadot test', function () {
     });
 
     it('Test if service ready to start functionality', async () => {
-        let serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        let serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready if container is not launched');
 
         // Launching service and testing
@@ -268,14 +264,14 @@ describe('Polkadot test', function () {
         // Forcing polkadotSimulateSynch
         const saveSimulateSynch = polkadot.config.polkadotSimulateSynch;
         polkadot.config.polkadotSimulateSynch = true;
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, true, 'check if service is ready when simulate synch is set');
         polkadot.config.polkadotSimulateSynch = saveSimulateSynch;
 
         // Fail system health get
         const saveRpcPort = polkadot.config.polkadotRpcPort;
         polkadot.config.polkadotRpcPort = 1234;
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready cause system health get fails');
         polkadot.config.polkadotRpcPort = saveRpcPort;
 
@@ -285,52 +281,52 @@ describe('Polkadot test', function () {
         let systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":true,"shouldHavePeers":true},"id":1}`;
         polkadot.docker.dockerExecute = () => systemHealthGetResult;
 
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready cause peers info is not available');
 
         systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":true,"peers":0,"shouldHavePeers":true},"id":1}`;
         polkadot.docker.dockerExecute = () => systemHealthGetResult;
 
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready cause connected to zero peers');
 
         systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":true,"peers":20,"shouldHavePeers":true},"id":1}`;
         polkadot.docker.dockerExecute = () => systemHealthGetResult;
 
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready cause is synching is true');
 
         systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":20,"shouldHavePeers":true},"id":1}`;
         polkadot.docker.dockerExecute = () => systemHealthGetResult;
 
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, true, 'check if service is ready for active service');
 
         polkadot.importedKeys = [];
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready to start for active service cause not all keys where added to keystore');
 
         // Launching service and testing
         const saveGetCurrentBlock = polkadot.getCurrentBlock;
         await polkadot.start('passive');
 
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, true, 'check if service is ready for passive service');
 
         polkadot.docker.dockerExecute = () => false;
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if docker execute failed');
 
         systemHealthGetResult = `{"jsonrpc":"2.0"}`;
         polkadot.docker.dockerExecute = () => systemHealthGetResult;
 
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if no result field given by docker execute');
 
         systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":20,"shouldHavePeers":true},"id":1}`;
         polkadot.docker.dockerExecute = () => systemHealthGetResult;
 
-        serviceReadyToStart = await polkadot.isServiceReadyToStart('passive');
+        serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, true, 'check if service is ready returns true cause all checks passed');
 
         polkadot.importedKeys = [];
@@ -343,7 +339,7 @@ describe('Polkadot test', function () {
         const saveDockerContainerRunning = polkadot.docker.isContainerRunning;
         polkadot.docker.isContainerRunning = async () => { throw Error('Simulate error throw'); }
 
-        let serviceReadyToStart = await polkadot.isServiceReadyToStart('active');
+        let serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready cause an exception was thrown');
 
         polkadot.docker.isContainerRunning = saveDockerContainerRunning;
