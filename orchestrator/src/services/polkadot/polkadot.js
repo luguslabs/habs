@@ -30,7 +30,6 @@ class Polkadot {
 
     // Polkadot volume init
     this.polkadotVolume = '';
-    this.polkadotVolume2 = '';
 
     // Common PolkadotOptions
     this.commonPolkadotOptions = [];
@@ -381,18 +380,7 @@ class Polkadot {
     } else {
       this.polkadotVolume = this.config.polkadotPrefix + 'polkadot-volume';
     }
-    console.log(`Polkadot will use volume 1 '${this.polkadotVolume}'...`);
-
-    // This is the fix to avoid multiple volumes creation
-    // Normally volume in official polkadot container will be changed in latest releases
-    const orchestratorServiceVolume2 = await this.docker.getMount(os.hostname(), 'service2');
-
-    if (orchestratorServiceVolume2) {
-      this.polkadotVolume2 = orchestratorServiceVolume2.Name;
-    } else {
-      this.polkadotVolume2 = this.config.polkadotPrefix + 'polkadot-volume2';
-    }
-    console.log(`Polkadot will use volume 2 '${this.polkadotVolume2}'...`);
+    console.log(`Polkadot will use volume '${this.polkadotVolume}'...`);
 
     // Mark service as prepared
     this.prepared = true;
@@ -433,8 +421,7 @@ class Polkadot {
   };
 
   // Start passive or active service container
-  // TODO: Remove second mount when it will be removed from official docker container
-  async startServiceContainer (type, activeName, passiveName, image, cmd, mountTarget, mountSource, networkMode, mountTarget2, mountSource2) {
+  async startServiceContainer (type, activeName, passiveName, image, cmd, mountTarget, mountSource, networkMode) {
     // Check if active service container is already running
     if (type === 'active' && await this.docker.isContainerRunning(activeName)) {
       console.log(`Service is already running in ${type} mode...`);
@@ -450,9 +437,6 @@ class Polkadot {
     // Creating volume
     await this.docker.createVolume(mountSource);
 
-    // Creating second volume to fix orphelin volumes
-   // await this.docker.createVolume(mountSource2);
-
     // Constructing mount data
     const mounts = [];
     mounts.push({
@@ -461,14 +445,7 @@ class Polkadot {
       Type: 'volume',
       ReadOnly: false
     });
-/*
-    mounts.push({
-      Target: mountTarget2,
-      Source: mountSource2,
-      Type: 'volume',
-      ReadOnly: false
-    });
-*/
+
     // Constructing container data
     const containerData = {
       name: '',
@@ -522,9 +499,7 @@ class Polkadot {
         ['--name', activeNodeName, ...this.commonPolkadotOptions, '--validator'],
         this.config.databasePath,
         this.polkadotVolume,
-        this.networkMode,
-        '/polkadot',
-        this.polkadotVolume2
+        this.networkMode
       );
 
       if (serviceStarted) {
@@ -545,9 +520,7 @@ class Polkadot {
         ['--name', `${this.name}-${mode}`, ...this.commonPolkadotOptions],
         this.config.databasePath,
         this.polkadotVolume,
-        this.networkMode,
-        '/polkadot',
-        this.polkadotVolume2
+        this.networkMode
       );
 
       if (serviceStarted) {
