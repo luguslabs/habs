@@ -210,8 +210,8 @@ class Polkadot {
         debug('polkadotKeysImport', 'There are aleady 6 or more keys in the keystore.');
         return false;
       }
-      console.log('Waiting 5 seconds before importing keys...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      console.log('Waiting 10 seconds before importing keys...');
+      await new Promise(resolve => setTimeout(resolve, 10000));
 
       // Importing 6 validator keys into keystore
       console.log('Importing keys to keystore....');
