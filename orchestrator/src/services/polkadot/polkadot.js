@@ -117,10 +117,7 @@ class Polkadot {
       console.log(`Key (${type} - ${publicKey}) can not be found in container. Will retry to add the next time...`);
       return false;
     }
-
-    this.config.polkadotSessionKeyToCheck = JSON.stringify(resultPost.data.result).slice(1).slice(0, -1);
     await this.checkSessionKeysOnNode();
-
     // Add key into imported key list
     this.importedKeys.push(publicKey);
     return true;
@@ -174,8 +171,7 @@ class Polkadot {
         debug('polkadotSessionKeyToCheck must be set to use checkSessionKeysOnNode functionality');
         return false;
       }
-
-      debug('checkSessionKeyOnNode', `Checking session keys on node: ${this.config.polkadotSessionKeyToCheck}`);
+      debug('checkSessionKeyOnNode', `Checking session keys on node: [${this.config.polkadotSessionKeyToCheck}]`);
       // Constructing command to check session key
       const parameters = `{
         "jsonrpc":"2.0",
@@ -185,7 +181,6 @@ class Polkadot {
           "${this.config.polkadotSessionKeyToCheck}"
         ]
       }`;
-
       const instanceAxios = axios.create({
         headers: { 'Content-Type': 'application/json;charset=utf-8' }
       });
@@ -369,9 +364,7 @@ class Polkadot {
     if (!this.config.testing) {
       // Setting network mode
       this.networkMode = `container:${os.hostname()}`;
-      console.log(`Container network mode: ${this.networkMode}...`);
     }
-
     // Get service volume from orchestrator and give this volume to polkadot container
     const orchestratorServiceVolume = await this.docker.getMount(os.hostname(), 'service');
 
@@ -459,7 +452,6 @@ class Polkadot {
     if (networkMode !== '') {
       containerData.HostConfig.NetworkMode = networkMode;
     }
-
     // If we want to start active container
     if (type === 'active') {
       return await this.prepareAndStart(containerData, activeName, passiveName);
