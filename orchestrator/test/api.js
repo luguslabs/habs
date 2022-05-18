@@ -100,6 +100,7 @@ describe('Orchestrator test', function () {
 
     // Mock isServiceReadyToStart method of service
     orchestrator.service.serviceInstance.isServiceReadyToStart = () => true;
+    orchestrator.service.serviceInstance.importKey = () => true;
 
     // Init api
     const initApiReturn = await initApi(orchestrator);

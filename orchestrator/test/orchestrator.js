@@ -97,6 +97,9 @@ describe('Orchestrator test', function () {
 
     // Mock isServiceReadyToStart method of service
     orchestrator.service.serviceInstance.isServiceReadyToStart = () => true;
+    orchestrator.service.serviceInstance.importKey = () => true;
+    // no delay for import
+    orchestrator.service.serviceInstance.importedKeysDelay = 1;
   });
 
   after(async () => {
@@ -1241,6 +1244,7 @@ describe('Orchestrator test', function () {
     orchestrator.noLivenessThreshold = saveNoLivenessThreshold;
   });
 
+  
   it('If other node is leader, is offline and someone other and current node are alive test threshold', async function () {
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
@@ -1699,6 +1703,7 @@ describe('Orchestrator test', function () {
     orchestrator.mnemonic = saveMnemonic;
     orchestrator.chain.setLeader = saveChainSetLeader;
   });
+  
 
   it('Test orchestration with bad service mode', async function () {
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
@@ -1751,6 +1756,8 @@ describe('Orchestrator test', function () {
     orchestrator.serviceMode = saveServiceMode; 
   });
 
+  
+
   it('Test orchestrator with polkadot service and config file', async function () {
     const saveChainGetHeartbeat = orchestrator.chain.getHeartbeat;
 
@@ -1782,6 +1789,7 @@ describe('Orchestrator test', function () {
 
     // Mock isServiceReadyToStart method of service
     orchestratorNew.service.serviceInstance.isServiceReadyToStart = () => true;
+    orchestratorNew.service.serviceInstance.importKey = () => true;
 
     let isLeadedGroupTrue = await chain.isLeadedGroup(1);
     assert.equal(isLeadedGroupTrue, false, 'check if the group is not leaded');

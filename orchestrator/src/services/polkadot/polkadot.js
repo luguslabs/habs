@@ -22,8 +22,15 @@ class Polkadot {
     // Already imported keys list
     this.importedKeys = [];
 
+    // Delay to wait polkadot container and api to be ready to received import axios call
+    this.importedKeysDelay = 20000;
+
     // Creating docker instance
     this.docker = new Docker();
+
+    this.instanceAxios = axios.create({
+      headers: { 'Content-Type': 'application/json;charset=utf-8' }
+    });
 
     // Init config
     this.config = constructConfiguration();
@@ -53,6 +60,22 @@ class Polkadot {
     }
   }
 
+  async axiosPostInsertKey (url, parameters) {
+    return await this.instanceAxios.post(url, parameters);
+  }
+
+  async axiosPostHasKey (url, parameters) {
+    return await this.instanceAxios.post(url, parameters);
+  }
+
+  async axiosPostHasSessionKeys (url, parameters) {
+    return await this.instanceAxios.post(url, parameters);
+  }
+
+  async axiosPostHealth (url, parameters) {
+    return await this.instanceAxios.post(url, parameters);
+  }
+
   // Importing a key in keystore
   async importKey (mnemonic, crypto, type) {
     // Get public key hex from mnemonic
@@ -67,10 +90,6 @@ class Polkadot {
     console.log(`Importing ... ${type} ${publicKey}`);
     debug('importKey', `Importing ${type} ${publicKey} ...`);
 
-    const instanceAxios = axios.create({
-      headers: { 'Content-Type': 'application/json;charset=utf-8' }
-    });
-    
     const parameters = `{
       "jsonrpc":"2.0",
       "id":1,
@@ -86,7 +105,7 @@ class Polkadot {
     console.log('instanceAxios post ...');
     let resultPost = null;
     try {
-      resultPost = await instanceAxios.post('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
+      resultPost = await this.axiosPostInsertKey('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
       console.log('instanceAxios posted ...');
     } catch (e) {
       console.log('instanceAxios post ko ...');
@@ -118,6 +137,7 @@ class Polkadot {
       return false;
     }
     await this.checkSessionKeysOnNode();
+
     // Add key into imported key list
     this.importedKeys.push(publicKey);
     return true;
@@ -125,10 +145,6 @@ class Polkadot {
 
   // Check if a key was successfully added
   async checkKeyAdded (key, keyType) {
-    const instanceAxios = axios.create({
-      headers: { 'Content-Type': 'application/json;charset=utf-8' }
-    });
-
     // Constructing command to check a key
     const parameters = `{
       "jsonrpc":"2.0",
@@ -140,7 +156,7 @@ class Polkadot {
       ]
     }`;
 
-    const resultPost = await instanceAxios.post('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
+    const resultPost = await this.axiosPostHasKey('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
     let result = '';
     if (resultPost && resultPost.data) {
       result = JSON.stringify(resultPost.data);
@@ -181,10 +197,8 @@ class Polkadot {
           "${this.config.polkadotSessionKeyToCheck}"
         ]
       }`;
-      const instanceAxios = axios.create({
-        headers: { 'Content-Type': 'application/json;charset=utf-8' }
-      });
-      const resultPost = await instanceAxios.post('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
+
+      const resultPost = await this.axiosPostHasSessionKeys('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
 
       let result = '';
       if (resultPost && resultPost.data) {
@@ -210,8 +224,9 @@ class Polkadot {
         debug('polkadotKeysImport', 'There are aleady 6 or more keys in the keystore.');
         return false;
       }
-      console.log('Waiting 20 seconds before importing keys...');
-      await new Promise(resolve => setTimeout(resolve, 20000));
+      console.log('Waiting ' + this.importedKeysDelay + ' milliseconds before importing keys...');
+
+      await new Promise(resolve => setTimeout(resolve, this.importedKeysDelay));
 
       // Importing 6 validator keys into keystore
       console.log('Importing keys to keystore....');
@@ -246,10 +261,7 @@ class Polkadot {
         "method":"system_health"
       }`;
 
-      const instanceAxios = axios.create({
-        headers: { 'Content-Type': 'application/json;charset=utf-8' }
-      });
-      const resultPost = await instanceAxios.post('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
+      const resultPost = await this.axiosPostHealth('http://127.0.0.1:' + this.config.polkadotRpcPort.toString(), parameters);
 
       let resultSystemHealth = '';
       if (resultPost && resultPost.data) {

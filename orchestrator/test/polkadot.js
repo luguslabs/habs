@@ -11,6 +11,39 @@ let docker;
 
 // Test configuration
 const testTimeout = 360000;
+const axiosPostInsertKeyResultOK = {
+    data :{
+        "result": null
+    }
+}
+
+const axiosPostInsertKeyResultCrash = {
+    error :{
+        "result": "crashed"
+    }
+}
+const axiosPostHasKeyResultTrue = {
+    data :{
+        "result": true
+    }
+}
+const axiosPostHasKeyResultFalse = {
+    data :{
+        "result": false
+    }
+}
+
+const axiosPostHasSessionKeysResultTrue = {
+    data :{
+        "result": true
+    }
+}
+const axiosPostHasSessionKeysResultFalse = {
+    data :{
+        "result": false
+    }
+}
+
 
 describe('Polkadot test', function () {
     this.timeout(testTimeout);
@@ -29,6 +62,10 @@ describe('Polkadot test', function () {
         process.env.POLKADOT_ADDITIONAL_OPTIONS = '--chain kusama --db-cache 512';
         process.env.TESTING = 'true';
         polkadot = new Polkadot();
+        // no delay for import
+        polkadot.importedKeysDelay = 1;
+        polkadot.axiosPostInsertKey = () => axiosPostInsertKeyResultOK;
+        polkadot.axiosPostHasKey = () => axiosPostHasKeyResultTrue;
         docker = new Docker();
     });
 
@@ -88,7 +125,6 @@ describe('Polkadot test', function () {
             '0x9ad38069449ccbe42ad74dc8db390b4fc1adce5f1e8e59504dfee5ae6eb8a20e'
         ];
         assert.equal(JSON.stringify(polkadot.importedKeys), JSON.stringify(mustBeImportedKeys), 'check if keys where imported correctly');
-
         // Try to reimport existing keys
         let importKey = await polkadot.importKey(process.env.POLKADOT_KEY_GRAN, 'ed25519', 'gran');
         assert.equal(importKey, false, 'check if trying to import already imported key the function returns false');
@@ -96,9 +132,11 @@ describe('Polkadot test', function () {
         // The curl command to import keys fails
         const savePolkadotRpcPort = polkadot.config.polkadotRpcPort;
         polkadot.config.polkadotRpcPort = 1234;
+        polkadot.axiosPostInsertKey = () => axiosPostInsertKeyResultCrash;
         importKey = await polkadot.importKey('mushroom ladder bomb tornado clown wife bean creek axis flat pave cloud', 'ed25519', 'gran');
         assert.equal(importKey, false, 'check if import command fails the function returns false');
         polkadot.config.polkadotRpcPort = savePolkadotRpcPort;
+        polkadot.axiosPostInsertKey = () => axiosPostInsertKeyResultOK;
 
         // Test if check key added command fails
         const saveCheckKeyAdded = polkadot.checkKeyAdded;
@@ -146,10 +184,10 @@ describe('Polkadot test', function () {
         const savePolkadotSessionKeyToCheck = polkadot.config.polkadotSessionKeyToCheck;
 
         polkadot.config.polkadotSessionKeyToCheck = mustBeImportedKeys[0];
+        polkadot.axiosPostHasSessionKeys= () => axiosPostHasSessionKeysResultFalse;
         let result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, false, 'check if session keys on node check fails with bad key');
 
-        /*
         // Can't check for now cause to do this test chain must be synchronized
         const keysForSessionKeyString = [
             '0xa588f6cd3f7a970a9ebf2b5a7c10dc4e5c8cd3b5fc5dbd29955538d8d2b045d8',
@@ -158,31 +196,25 @@ describe('Polkadot test', function () {
             '0xf8e2f01f36176af753773aaf83685858b7a5314108ab5283601f73dc8c0b726a',
             '0x9ad38069449ccbe42ad74dc8db390b4fc1adce5f1e8e59504dfee5ae6eb8a20e'
         ];
-
         polkadot.config.polkadotSessionKeyToCheck = keysForSessionKeyString.reduce((string, element) => `${string}${element.substring(2)}`, '0x');
         console.log(polkadot.config.polkadotSessionKeyToCheck);
+        polkadot.axiosPostHasSessionKeys= () => axiosPostHasSessionKeysResultTrue;
         // Check correct session keys on node
         result = await polkadot.checkSessionKeysOnNode('active');
         assert.equal(result, true, 'check if session keys on node check returns true');
-        */
 
         // Make the same check for passive polkadot
         await polkadot.start('passive');
 
-        const saveDockerExecuteSave = polkadot.docker.dockerExecute;
-
-        polkadot.docker.dockerExecute = async () => { throw Error('Error simulation') };
-
+        polkadot.axiosPostHasSessionKeys= () => { throw Error('Error simulation') };
         result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, false, 'check if function returns false if error was thrown');
 
-        polkadot.docker.dockerExecute = async () => false;
-
+        polkadot.axiosPostHasSessionKeys= () => axiosPostHasSessionKeysResultFalse;
         result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, false, 'check if function returns false if docker execute returns false');
 
-        polkadot.docker.dockerExecute = async () => { return "{ this: true }" };
-
+        polkadot.axiosPostHasSessionKeys= () => axiosPostHasSessionKeysResultTrue;
         result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, true, 'check if function returns true if docker execute result contains true value');
 
@@ -190,7 +222,6 @@ describe('Polkadot test', function () {
         result = await polkadot.checkSessionKeysOnNode();
         assert.equal(result, false, 'check if session keys on node check fails with empty session key to check');
 
-        polkadot.docker.dockerExecute = saveDockerExecuteSave;
         polkadot.config.polkadotSessionKeyToCheck = savePolkadotSessionKeyToCheck;
         polkadot.importedKeys = [];
         await polkadot.cleanUp();
@@ -228,14 +259,14 @@ describe('Polkadot test', function () {
         result = await polkadot.checkKeyAdded(mustBeImportedKeys[5], 'audi');
         assert.equal(result, true, 'Check if audi key was added correctly');
 
-        const saveDockerExecute = polkadot.docker.dockerExecute;
-        polkadot.docker.dockerExecute = async () => false;
+        const saveHasKey =  polkadot.axiosPostHasKey;
+        polkadot.axiosPostHasKey = () => axiosPostHasKeyResultFalse;
 
         result = await polkadot.checkKeyAdded(mustBeImportedKeys[5], 'audi');
         assert.equal(result, false, 'Check if check key added returns false if docker execute returns false');
 
         polkadot.importedKeys = [];
-        polkadot.docker.dockerExecute = saveDockerExecute;
+        polkadot.axiosPostHasKey = saveHasKey;
         await polkadot.cleanUp();
     });
 
@@ -274,28 +305,76 @@ describe('Polkadot test', function () {
         polkadot.config.polkadotRpcPort = saveRpcPort;
 
         // Mock system health get
-        const saveDockerExecute = polkadot.docker.dockerExecute;
 
-        let systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":true,"shouldHavePeers":true},"id":1}`;
-        polkadot.docker.dockerExecute = () => systemHealthGetResult;
+      //  let systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":true,"shouldHavePeers":true},"id":1}`;
+        let systemHealthGetResult =
+        {
+            data :{
+                "result":
+                {
+                    "isSyncing":true,
+                    "shouldHavePeers":true
+                }
+             }
+        }
 
+        polkadot.axiosPostHealth = () => systemHealthGetResult;
         serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready cause peers info is not available');
 
-        systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":true,"peers":0,"shouldHavePeers":true},"id":1}`;
-        polkadot.docker.dockerExecute = () => systemHealthGetResult;
+        systemHealthGetResult =
+        {
+            data :{
+                "result":
+                {
+                    "isSyncing":true,
+                    "peers":0,
+                    "shouldHavePeers":true
+                }
+             }
+        }
+        polkadot.axiosPostHealth = () => systemHealthGetResult;
 
         serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready cause connected to zero peers');
 
-        systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":true,"peers":20,"shouldHavePeers":true},"id":1}`;
-        polkadot.docker.dockerExecute = () => systemHealthGetResult;
+        systemHealthGetResult =
+        {
+            data :{
+                "result":
+                {
+                    "isSyncing":true,
+                    "peers":20,
+                    "shouldHavePeers":true
+                }
+             }
+        }
+        polkadot.axiosPostHealth = () => systemHealthGetResult;
 
         serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is not ready cause is synching is true');
 
-        systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":20,"shouldHavePeers":true},"id":1}`;
-        polkadot.docker.dockerExecute = () => systemHealthGetResult;
+        systemHealthGetResult =
+        {
+            data :{
+                "result":
+                {
+                    "isSyncing":false,
+                    "peers":20,
+                    "shouldHavePeers":true
+                }
+             }
+        }
+        polkadot.axiosPostHealth = () => systemHealthGetResult;
+
+        polkadot.importedKeys = [
+            '0xa588f6cd3f7a970a9ebf2b5a7c10dc4e5c8cd3b5fc5dbd29955538d8d2b045d8',
+            '0x8ee8898041d849ac9e8d9967a98555f54f7664376c5df55e1429f0d8545d6002',
+            '0xe86d86b9e0f53ded99ac69a92cd66c2ccc224b63ec278afa1c6432619a764c2a',
+            '0xf8e2f01f36176af753773aaf83685858b7a5314108ab5283601f73dc8c0b726a',
+            '0xe4b3843690cc86b6583c44817044a4dda2dfa82bc1b26801fbef33be011e8364',
+            '0x9ad38069449ccbe42ad74dc8db390b4fc1adce5f1e8e59504dfee5ae6eb8a20e'
+        ];
 
         serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, true, 'check if service is ready for active service');
@@ -311,25 +390,37 @@ describe('Polkadot test', function () {
         serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, true, 'check if service is ready for passive service');
 
-        polkadot.docker.dockerExecute = () => false;
+        polkadot.axiosPostHealth = () => false;
         serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if docker execute failed');
 
-        systemHealthGetResult = `{"jsonrpc":"2.0"}`;
-        polkadot.docker.dockerExecute = () => systemHealthGetResult;
+        systemHealthGetResult =
+        {
+            data :{}
+        }
+        polkadot.axiosPostHealth = () => systemHealthGetResult;
 
         serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, false, 'check if service is ready returns false if no result field given by docker execute');
 
-        systemHealthGetResult = `{"jsonrpc":"2.0","result":{"isSyncing":false,"peers":20,"shouldHavePeers":true},"id":1}`;
-        polkadot.docker.dockerExecute = () => systemHealthGetResult;
+        systemHealthGetResult =
+        {
+            data :{
+                "result":
+                {
+                    "isSyncing":false,
+                    "peers":20,
+                    "shouldHavePeers":true
+                }
+             }
+        }
+        polkadot.axiosPostHealth = () => systemHealthGetResult;
 
         serviceReadyToStart = await polkadot.isServiceReadyToStart();
         assert.equal(serviceReadyToStart, true, 'check if service is ready returns true cause all checks passed');
 
         polkadot.importedKeys = [];
         polkadot.getCurrentBlock = saveGetCurrentBlock;
-        polkadot.docker.dockerExecute = saveDockerExecute;
         await polkadot.cleanUp();
     });
 
