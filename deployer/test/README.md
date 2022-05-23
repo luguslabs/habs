@@ -17,28 +17,14 @@ This directory contains scripts to bootstrap a federation of 3 Archipel Nodes.
 ## Launch federation
 
 ```bash
-./launch.sh
+./orchestrator/launch.sh
 ```
 
 ## Remove federation
 
 ```bash
-./remove.sh
+./orchestrator/remove.sh
 ```
-
-## Stop Archipel Node
-```bash
-./stop-archipel.sh $NODENUMBER
-```
-* NODENUMBER must be 1,2 or 3.
-* Warning! Before using this script you must launch Archipel Federation with launch script.
-
-## Restart Archipel Node
-```bash
-./restart-archipel.sh $NODENUMBER
-```
-* NODENUMBER must be 1,2 or 3.
-* Warning! Before using this script you must launch Archipel Federation with launch script.
 
 ## Archipel Chain Node Endpoints
 ```bash

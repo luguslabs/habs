@@ -30,48 +30,49 @@ const readToObj = path => {
 
 // fromModeToNodeStatus
 const fromModeToNodeStatus = mode => {
-  let result = 0;
   if (mode === 'active') {
-    result = 1;
+    return 1;
   }
   if (mode === 'passive') {
-    result = 2;
+    return 2;
   }
-  if (mode === 'sentry') {
-    result = 3;
-  }
-  return result;
+  return 0;
 };
 
 // Cleanup on exit
-const catchExitSignals = (cleanUpCallback, docker, service) => {
+const catchExitSignals = (cleanUpCallback) => {
   // catching signals and calling cleanup callback before exit
   ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
     'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
   ].forEach(sig => {
     process.on(sig, async () => {
-      if (typeof sig === 'string') {
-        console.log('Received %s - terminating app ...', sig);
-        // Waiting for cleanup to be finished
-        await cleanUpCallback(docker, service);
-        // Exiting
-        process.exit(1);
-      }
+      console.log('Received %s - terminating app ...', sig);
+      // Waiting for cleanup to be finished
+      await cleanUpCallback();
+      // Exiting
+      process.exit(1);
     });
   });
 };
 
+// Check is string is not set or is empty
 const isEmptyString = (str) => {
-  return (!str || str.length === 0);
+  return (str === undefined || str.length === 0);
 };
 
+// Check is a variable is set
 const checkVariable = (value, name) => {
   if (isEmptyString(value)) {
     throw Error(`Error! Variable ${name} was not set.`);
   }
+  return true;
 };
 
+// Format option list permits to create telemetry url params and reserved nodes params
 const formatOptionList = (option, inputList) => {
+  if (option === '' || inputList === '') {
+    return [];
+  }
   return inputList.split(',').reduce((resultArray, item) => {
     resultArray.push(option);
     resultArray.push(item);
@@ -79,7 +80,11 @@ const formatOptionList = (option, inputList) => {
   }, []);
 };
 
+// Create a list of params from a string separated by a space
 const formatOptionCmds = inputCmds => {
+  if (!inputCmds) {
+    return [];
+  }
   if (inputCmds.split(' ').length === 1) {
     return [inputCmds];
   }
@@ -89,18 +94,64 @@ const formatOptionCmds = inputCmds => {
   }, []);
 };
 
+// Construct nodes list with wallets and nodes names
 const constructNodesList = (nodesWallets, archipelName) => {
-  const result = [];
-  if (!isEmptyString(nodesWallets) && !isEmptyString(archipelName)) {
-    const nodesWalletsList = nodesWallets.toString().split(',');
-    nodesWalletsList.forEach((value, index) => {
-      result.push({
-        wallet: value,
-        name: `${archipelName.toString()}-NODE-${index + 1}`
-      });
-    });
+  if (isEmptyString(nodesWallets) || isEmptyString(archipelName)) {
+    return [];
   }
-  return result;
+  return nodesWallets.toString().split(',').reduce((resultArray, item, index) => {
+    resultArray.push({
+      wallet: item,
+      name: `${archipelName.toString()}-NODE-${index + 1}`
+    });
+    return resultArray;
+  }, []);
+};
+
+// Show transaction status in debug
+const transactionGetStatus = (status) => {
+  if (!status) return 'Failed to get status.';
+  if (status.isInvalid) return 'Transaction is invalid.';
+  if (status.isDropped) return 'Transaction is dropped.';
+  if (status.isUsurped) return 'Transaction is usurped.';
+  if (status.isReady) return 'Transaction is ready.';
+  if (status.isFuture) return 'Transaction is future.';
+  if (status.isFinalized) return 'Transaction is finalized.';
+  if (status.isBroadcast) return 'Transaction is broadcast.';
+  if (status.isInBlock) return 'Transaction is included in block.';
+  if (status.isRetracted) return 'Transaction is retracted.';
+  if (status.isFinalityTimeout) return 'Transaction is finality timeout.';
+  return 'Unknown transaction state.';
+};
+
+// Copy a file from one directory to another and set permissions
+const copyAFile = (sourceDir, targetDir, fileName, userId, groupId, startFrom = 1) => {
+  // Check if from and to dirs where set
+  if (!sourceDir || !targetDir || !fileName) throw Error('Source, target dirs and file to copy must be set');
+  // Check if full path was specified
+  if (sourceDir[0] !== '/' || targetDir[0] !== '/') throw Error('Please specify absolute path for source and target dirs');
+
+  // Create target directory
+  fs.ensureDirSync(targetDir, 0o2755);
+
+  // Copy file
+  console.log(`Copying ${fileName} from ${sourceDir}/ to ${targetDir}/...`);
+  fs.copySync(`${sourceDir}/${fileName}`, `${targetDir}/${fileName}`);
+
+  // Set permissions
+  if (userId && groupId) {
+    // Set every folder to path permissions
+    targetDir.split('/').slice(1).reduce((path, element, index) => {
+      if (path !== '' && index >= startFrom) {
+        fs.chownSync(path, userId, groupId);
+      }
+      return path + '/' + element;
+    }, '');
+    // Set full path permissions
+    fs.chownSync(targetDir, userId, groupId);
+    // Set node keyfile permissions
+    fs.chownSync(`${targetDir}/${fileName}`, userId, groupId);
+  }
 };
 
 module.exports = {
@@ -113,5 +164,7 @@ module.exports = {
   formatOptionList,
   formatOptionCmds,
   constructNodesList,
-  fromModeToNodeStatus
+  fromModeToNodeStatus,
+  transactionGetStatus,
+  copyAFile
 };

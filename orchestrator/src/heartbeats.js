@@ -1,51 +1,61 @@
 const debug = require('debug')('heartbeats');
+const {
+  constructNodesList
+} = require('./utils');
 
-// Heartbeats class to simplify heartbeats management
 class Heartbeats {
-  constructor (nodes = []) {
+  constructor (nodesWallets, archipelName) {
     this.heartbeats = new Map();
-    this.nodes = nodes;
+    this.nodes = constructNodesList(nodesWallets, archipelName);
   }
 
   // Add heartbeat into Map
   addHeartbeat (wallet, group, nodeStatus, blockNumber) {
-    let name = '';
-
     // Get node name from nodes array
     const node = this.nodes.find(element => element.wallet === wallet);
-    if (node !== undefined) {
-      name = node.name;
-    }
+    const name = node !== undefined ? node.name : '';
 
     debug('addHeartbeat', `name ${name} group ${group} nodeStatus ${nodeStatus} blockNumber ${blockNumber}.`);
-    var nodeHeartbeat = {
-      name,
-      group,
-      nodeStatus,
-      blockNumber
-    };
-
-    this.heartbeats.set(wallet, nodeHeartbeat);
+    // Add heartbeat
+    this.heartbeats.set(wallet,
+      {
+        name,
+        group,
+        nodeStatus,
+        blockNumber: parseInt(blockNumber)
+      });
   }
 
-  // If any node in Map is alive
+  // Check if anyone is alive
   anyOneAlive (excludeNode, aliveTime, group, bestNumber) {
     debug('anyOneAlive', `excludeNode ${excludeNode} aliveTime ${aliveTime} group ${group} bestNumber ${bestNumber}.`);
+    // Create variables to store liveness results
+    let otherNodeAlive = false;
+    let currentNodeAlive = false;
+
+    // Search in heartbeats map
     for (const [key, value] of this.heartbeats.entries()) {
-      if (key !== excludeNode) {
-        debug('anyOneAlive', `heartbeat found. key:${key}, group:${value.group}, blockNumber:${value.blockNumber}.`);
-        const lastSeenAgo = bestNumber - value.blockNumber;
-        if (lastSeenAgo < aliveTime) {
-          debug('anyOneAlive', `${key} is alive.`);
-          return true;
+      debug('anyOneAlive', `heartbeat found. key:${key}, group:${value.group}, blockNumber:${value.blockNumber}.`);
+      // Check if someone was alive less blocks then aliveTime ago
+      const lastSeenAgo = bestNumber - value.blockNumber;
+      if (value.blockNumber !== 0 && lastSeenAgo < aliveTime) {
+        debug('anyOneAlive', `${key} is alive.`);
+        // Fill other node or current node liveness
+        if (key !== excludeNode) {
+          otherNodeAlive = true;
+        } else {
+          currentNodeAlive = true;
         }
       }
     }
-    return false;
+
+    // One other node and current node must be alive
+    return otherNodeAlive && currentNodeAlive;
   }
 
   // Get all heartbeats from heartbeat map
   getAllHeartbeats () {
+    // Here we will create a list of objects
     const result = [];
     this.heartbeats.forEach((value, key) => {
       result.push({
@@ -57,13 +67,13 @@ class Heartbeats {
       });
     });
 
-    // Return sorted result by node name
+    // Sort and return heartbeats object list
     return result.sort((el1, el2) => {
       return el1.name.toString().localeCompare(el2.name.toString());
     });
   }
 
-  // Get getHeartbeat of a node
+  // Get a heartbeat of a node
   getHeartbeat (wallet) {
     return this.heartbeats.get(wallet);
   }

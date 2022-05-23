@@ -4,123 +4,81 @@ const debug = require('debug')('docker');
 const { streamToString } = require('./utils');
 
 class Docker {
-  constructor () {
+  constructor (socketPath = '/var/run/docker.sock') {
+    this.docker = new Dockerode({ socketPath });
+  }
+
+  // Get docker image instance
+  async getImage (imageName) {
     try {
-      this.docker = new Dockerode({ socketPath: '/var/run/docker.sock' });
+      const imageInstance = await this.docker.getImage(imageName);
+      imageInstance.description = await imageInstance.inspect();
+      return imageInstance;
     } catch (error) {
-      debug('constructor', error);
-      throw error;
-    }
-  }
-
-  // Pull docker image progress
-  static onProgress (event) {
-    if (event.progress) console.log(event.progress);
-  }
-
-  // Pull docker image
-  async dockerPull (image) {
-    return new Promise((resolve, reject) => {
-      // Pulling docker image
-      this.docker.pull(image, (error, stream) => {
-        console.log(`Pulling ${image} image...`);
-        if (error) return reject(error);
-        // Following pull progress
-        this.docker.modem.followProgress(stream, error => {
-          if (error) return reject(error);
-          console.log('Image was successfully pulled.');
-          return resolve(true);
-        }, Docker.onProgress);
-      });
-    });
-  }
-
-  // Execute a command in a docker container
-  async dockerExecute (name, command) {
-    try {
-      // Get container instance
-      const container = this.docker.getContainer(name);
-
-      // Exec a command and get a stream
-      const exec = await container.exec({ Cmd: command, AttachStdin: true, AttachStdout: true });
-      const stream = await exec.start();
-
-      // Convert stream to a string to return it
-      return await streamToString(stream);
-    } catch (error) {
-      debug('dockerExecute', error);
-      console.error(error);
+      debug('getImage', error);
       return false;
     }
   }
 
-  // Get container instance by name
-  async getContainerByName (name) {
+  // Pull docker image
+  async pullImage (image) {
     try {
-      const containers = await this.docker.listContainers({ all: true });
-      return containers.find(element => {
-        return element.Names[0] === '/' + name ? element : false;
+      const imagePull = await new Promise((resolve, reject) => {
+        // Pulling docker image
+        this.docker.pull(image, (error, stream) => {
+          console.log(`Pulling ${image} image...`);
+          if (error) return reject(error);
+          // Following pull progress
+          this.docker.modem.followProgress(stream, error => {
+            if (error) return reject(error);
+            console.log('Image was successfully pulled.');
+            return resolve(true);
+          }, (event) => {
+            if (event.progress) console.log(event.progress);
+          });
+        });
       });
+      return imagePull;
     } catch (error) {
-      debug('getContainerByName', error);
-      throw error;
+      debug('pullImage', error);
+      console.error(error.toString());
+      return false;
     }
   }
 
-  // return true if container is running
-  async isContainerRunningByName (name) {
-    let result = false;
+  // Remove image
+  async removeImage (imageName) {
     try {
-      const container = await this.getContainerByName(name);
-      if (container && container.State === 'running') {
-        result = true;
+      const imageInstance = await this.getImage(imageName);
+      if (imageInstance) {
+        await imageInstance.remove({ force: true });
+        return true;
       }
-    } catch (e) {
-      result = false;
+      return false;
+    } catch (error) {
+      debug('removeImage', error);
+      return false;
     }
-    return result;
   }
 
   // Get volume instance by name
-  async getVolumeByName (name) {
+  async getVolume (name) {
     try {
-      const volumes = await this.docker.listVolumes();
-      return volumes.Volumes.find(element => {
-        return element.Name === name ? element : false;
-      });
+      const volume = await this.docker.getVolume(name);
+      volume.description = await volume.inspect();
+      return volume;
     } catch (error) {
-      debug('getVolumeByName', error);
-      throw error;
+      debug('getVolume', error);
+      return false;
     }
   }
-
-  // Pulling image, creating and starting a container
-  async startContainer (containerData) {
-    try {
-      // Pulling image
-      await this.dockerPull(containerData.Image);
-
-      // Starting container
-      console.log('Creating and starting container...');
-      const container = await this.docker.createContainer(containerData);
-      await container.start();
-
-      return true;
-    } catch (error) {
-      debug('startContainer', error);
-      throw error;
-    }
-  };
 
   // Creating a volume
   async createVolume (name) {
     try {
-      const volume = await this.getVolumeByName(name);
-      if (volume === undefined) {
-        const options = {
-          Name: name
-        };
-        await this.docker.createVolume(options);
+      const volume = await this.getVolume(name);
+      if (!volume) {
+        await this.docker.createVolume({ Name: name });
         return true;
       } else {
         debug('createVolume', 'Volume already exists.');
@@ -128,175 +86,176 @@ class Docker {
       }
     } catch (error) {
       debug('createVolume', error);
-      throw error;
+      return false;
     }
   }
 
-  // Prune volumes
-  async pruneVolumes (name) {
+  // Remove volume
+  async removeVolume (name) {
     try {
-      const volume = await this.getVolumeByName(name);
-      if (volume !== undefined) {
-        const options = {
-          Name: name
-        };
-        await this.docker.pruneVolumes(options);
+      const volume = await this.getVolume(name);
+      if (volume) {
+        await volume.remove();
         return true;
-      } else {
-        debug('pruneVolumes', 'Volume do not exist.');
-        return false;
-      }
-    } catch (error) {
-      debug('pruneVolumes', error);
-      throw error;
-    }
-  }
-
-  // Remove 'down' container and start 'up' container
-  async prepareAndStart (containerData, upName, downName) {
-    try {
-      // Get passive and active containers
-      const containerUp = await this.getContainerByName(upName);
-      const containerDown = await this.getContainerByName(downName);
-
-      // Setting container name
-      containerData.name = upName;
-
-      // We must stop down container if necessary
-      if (containerDown !== undefined) {
-        console.log(`Stopping ${downName} container...`);
-        await this.removeContainer(downName);
-      }
-
-      if (containerUp === undefined) {
-        // Starting container
-        console.log(`Starting ${upName} container...`);
-        await this.startContainer(containerData);
-        return true;
-      } else {
-        // If container exits but is not in running state
-        // We will stop and restart it
-        if (containerUp.State !== 'running') {
-          console.log(`Restarting container ${containerData.name}...`);
-          await this.removeContainer(containerData.name);
-          await this.startContainer(containerData);
-        }
-
-        console.log('Service is already started.');
-        return false;
-      }
-    } catch (error) {
-      debug('prepareAndStart', error);
-      throw error;
-    }
-  };
-
-  // Start passive or active service container
-  async startServiceContainer (type, activeName, passiveName, image, cmd, mountTarget, mountSource, networkMode) {
-    try {
-      // Check if active service container is already running
-      if (type === 'active' && await this.isContainerRunningByName(activeName)) {
-        console.log(`Service is already running in ${type} mode...`);
-        return;
-      }
-
-      // Check if passive service container is already running
-      if ((type === 'passive' || type === 'sentry') && await this.isContainerRunningByName(passiveName)) {
-        console.log(`Service is already running in ${type} mode...`);
-        return;
-      }
-
-      // Creating volume
-      await this.createVolume(mountSource);
-
-      // Constructing container data
-      const containerData = {
-        name: '',
-        Image: image,
-        Cmd: cmd,
-        HostConfig: {
-          Mounts: [
-            {
-              Target: mountTarget,
-              Source: mountSource,
-              Type: 'volume',
-              ReadOnly: false
-            }
-          ]
-        }
-      };
-
-      if (networkMode !== '') {
-        containerData.HostConfig.NetworkMode = networkMode;
-      }
-
-      // If we want to start active container
-      if (type === 'active') {
-        return await this.prepareAndStart(containerData, activeName, passiveName);
-      // We want to start passive container
-      } else {
-        return await this.prepareAndStart(containerData, passiveName, activeName);
-      }
-    } catch (error) {
-      debug('startServiceContainer', error);
-      throw error;
-    }
-  }
-
-  // Stop and remove container
-  async removeContainer (name) {
-    try {
-      const containerByName = await this.getContainerByName(name);
-      console.log(`Deleting container ${name}...`);
-      if (containerByName !== undefined) {
-        const container = await this.docker.getContainer(containerByName.Id);
-        await container.remove({ force: true });
-        return true;
-      } else {
-        console.log(`Container ${name} was not found.`);
-        return false;
-      }
-    } catch (error) {
-      debug('removeContainer', error);
-      throw error;
-    }
-  }
-
-  async getContainer (name) {
-    try {
-      return this.docker.getContainer(name);
-    } catch (error) {
-      debug('getContainer', error);
-      throw error;
-    }
-  }
-
-  async getContainerById (nameOrId) {
-    try {
-      const containers = await this.docker.listContainers({ all: true });
-      // return containers;
-      return containers.find(element => {
-        return element.Id.startsWith(nameOrId) || (element.Names.length > 0 && element.Names[0].includes(nameOrId)) ? element : false;
-      });
-    } catch (error) {
-      debug('getContainerById', error);
-      throw error;
-    }
-  }
-
-  async getMountThatContains (nameOrId, str) {
-    try {
-      const container = await this.getContainerById(nameOrId);
-
-      if (container) {
-        return container.Mounts.find(element => {
-          return element.Source.includes(str) ? element : false;
-        });
       }
       return false;
     } catch (error) {
-      debug('getContainerById', error);
-      throw error;
+      debug('removeVolume', error);
+      return false;
+    }
+  }
+
+  // Get container instance by id or name
+  async getContainer (nameOrId) {
+    try {
+      // List all available containers on host
+      const containers = await this.docker.listContainers({ all: true });
+
+      // Search a container by its name or id
+      const foundContainer = containers.find(container => {
+        return container.Id === nameOrId || (container.Names.length > 0 && container.Names[0] === '/' + nameOrId) ? container : false;
+      });
+
+      // Get container instance
+      const containerInstance = foundContainer && foundContainer.Id ? await this.docker.getContainer(foundContainer.Id) : false;
+
+      // Save container description in container instance
+      if (containerInstance) {
+        containerInstance.description = await containerInstance.inspect();
+      }
+
+      // Merging container instance and container info
+      return containerInstance;
+    } catch (error) {
+      debug('getContainer', error);
+      return false;
+    }
+  }
+
+  // Pulling image, creating and starting a container
+  async startContainer (containerData) {
+    try {
+      const container = await this.getContainer(containerData.name);
+
+      // If container doesnt exist we will create one
+      if (!container) {
+        // Pulling image
+        if (!await this.getImage(containerData.Image)) {
+          debug('startContainer', `Image ${containerData.Image} was not found at host.`);
+          const pullImage = await this.pullImage(containerData.Image);
+          if (!pullImage) {
+            return false;
+          }
+        }
+
+        // Starting container
+        debug('startContainer', `Creating and starting container ${containerData.name}.`);
+        const newContainer = await this.docker.createContainer(containerData);
+        await newContainer.start();
+        return true;
+      }
+
+      // If container exists but is not running trying to just start it
+      if (container && !container.description.State.Running) {
+        await container.start();
+        return true;
+      }
+
+      // If container exists and is running just sending false
+      debug('startContainer', `Container ${containerData.Name} already exists and is running.`);
+      return false;
+    } catch (error) {
+      debug('startContainer', error);
+      return false;
+    }
+  };
+
+  // Stop a container
+  async stopContainer (nameOrId) {
+    try {
+      const container = await this.getContainer(nameOrId);
+      debug('stopContainer', `Stopping container ${nameOrId}...`);
+      if (container) {
+        await container.stop();
+        return true;
+      }
+      debug('stopContainer', `Container ${nameOrId} was not found.`);
+      return false;
+    } catch (error) {
+      debug('stopContainer', error);
+      return false;
+    }
+  }
+
+  // Stop a container
+  async removeContainer (nameOrId) {
+    try {
+      const container = await this.getContainer(nameOrId);
+      debug('removeContainer', `Deleting container ${nameOrId}...`);
+      if (container) {
+        await container.remove({ force: true });
+        return true;
+      }
+      debug('removeContainer', `Container ${nameOrId} was not found.`);
+      return false;
+    } catch (error) {
+      debug('removeContainer', error);
+      return false;
+    }
+  }
+
+  // return true if container is running
+  async isContainerRunning (nameOrId) {
+    try {
+      const container = await this.getContainer(nameOrId);
+      if (container && container.description.State.Running) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      debug('isContainerRunning', error);
+      return false;
+    }
+  }
+
+  // Get mount from a container
+  async getMount (containerNameOrId, volumeName) {
+    try {
+      // Get container instance
+      const container = await this.getContainer(containerNameOrId);
+
+      if (container) {
+        // Search for volume by name in mounts
+        const mount = container.description.Mounts.find(element => {
+          return 'Name' in element && element.Name.endsWith(volumeName) ? element : false;
+        });
+        return mount || false;
+      }
+      return false;
+    } catch (error) {
+      debug('getMount', error);
+      return false;
+    }
+  }
+
+  // Execute a command in a docker container
+  async dockerExecute (nameOrId, command) {
+    try {
+      // Get container instance
+      const container = await this.getContainer(nameOrId);
+
+      // Exec a command and get a stream
+      if (container) {
+        const exec = await container.exec({ Cmd: command, AttachStdin: true, AttachStdout: true });
+        const stream = await exec.start();
+
+        // Convert stream to a string to return it
+        return await streamToString(stream);
+      }
+      return false;
+    } catch (error) {
+      debug('dockerExecute', error);
+      return false;
     }
   }
 };

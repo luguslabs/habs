@@ -3,6 +3,10 @@
 ## Unreleased
 
 <!--New features/improvements/fixes go here-->
+=======
+## [v3.0.0](https://github.com/luguslabs/archipel/releases/tag/v3.0.0)
+
+Refactoring code and tests for new deployemnt infra.
 
 ## [v2.2.5](https://github.com/luguslabs/archipel/releases/tag/v2.2.5)
 

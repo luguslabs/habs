@@ -158,7 +158,9 @@ function Main (props) {
               </Grid.Column>
             </Grid.Row>
           ) : null}
-        {data
+        {data &&
+        data.status === '200' &&
+        data.heartbeats
           ? data.heartbeats.map((heartbeat, index) => (
             <Grid.Row>
               <Grid.Column>
@@ -199,11 +201,6 @@ function Main (props) {
                         {(heartbeat.wallet !== data.leader && heartbeat.nodeStatus && parseInt(heartbeat.nodeStatus) === 2) ? (
                           <Label color="grey" ribbon="right" size="large">
                             <Icon name="bed" /> Passive
-                          </Label>
-                        ) : null}
-                        {(heartbeat.wallet !== data.leader && heartbeat.nodeStatus && parseInt(heartbeat.nodeStatus) === 3) ? (
-                          <Label color="purple" ribbon="right" size="large">
-                            <Icon name="shield" /> Sentry
                           </Label>
                         ) : null}
                       </Grid.Column>
@@ -400,8 +397,7 @@ function Main (props) {
                   <Table.HeaderCell>
                     {data &&
                     (data.serviceContainer === 'active' ||
-                      data.serviceContainer === 'passive' ||
-                       data.serviceContainer === 'sentry') ? (
+                      data.serviceContainer === 'passive') ? (
                         <div>
                           <Button
                             onClick={async () => {
@@ -430,8 +426,7 @@ function Main (props) {
                       ) : null}
                     {data &&
                     !postLoading &&
-                    data.serviceContainer === 'none' &&
-                    data.serviceMode !== 'sentry' ? (
+                    data.serviceContainer === 'none'? (
                         <div>
                           <Button
                             onClick={async () => {
@@ -442,23 +437,6 @@ function Main (props) {
                             }}
                           >
                           Start Passive Service Container
-                          </Button>
-                        </div>
-                      ) : null}
-                    {data &&
-                    !postLoading &&
-                    data.serviceContainer === 'none' &&
-                    data.serviceMode === 'sentry' ? (
-                        <div>
-                          <Button
-                            onClick={async () => {
-                              await executeServiceStart({
-                                data: { mode: 'sentry' }
-                              });
-                              revalidate();
-                            }}
-                          >
-                          Start Sentry Service Container
                           </Button>
                         </div>
                       ) : null}
@@ -493,9 +471,6 @@ function Main (props) {
                     {data && data.serviceMode === 'active' ? (
                       <Icon name="winner" />
                     ) : null}
-                    {data && data.serviceMode === 'sentry' ? (
-                      <Icon name="shield" />
-                    ) : null}
                     {data && data.serviceMode === 'none' ? (
                       <Icon name="close" />
                     ) : null}
@@ -510,9 +485,6 @@ function Main (props) {
                     ) : null}
                     {data && data.serviceContainer === 'active' ? (
                       <Icon name="winner" />
-                    ) : null}
-                    {data && data.serviceContainer === 'sentry' ? (
-                      <Icon name="shield" />
                     ) : null}
                     {data && data.serviceContainer === 'none' ? (
                       <Icon name="close" />

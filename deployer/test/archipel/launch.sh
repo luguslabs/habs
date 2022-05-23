@@ -14,7 +14,7 @@ function launch_archipel () {
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $1:/root/chain/data \
     -v $1_service:/service \
-    -v $SCRIPTPATH/chain/keys:/config \
+    -v $SCRIPTPATH/../chain/keys:/config \
     -p ${17}:3000 \
     --network archipel \
     --ip "$6" \
@@ -24,6 +24,7 @@ function launch_archipel () {
     --env ARCHIPEL_NODE_ALIAS=$1 \
     --env ARCHIPEL_LISTEN_PORT=30334 \
     --env ARCHIPEL_KEY_SEED="$2" \
+    --env MNEMONIC="$2" \
     --env ARCHIPEL_NODE_KEY_FILE="${10}" \
     --env ARCHIPEL_RESERVED_PEERS="$7" \
     --env ARCHIPEL_SERVICE_MODE="orchestrator" \
@@ -43,6 +44,7 @@ function launch_archipel () {
     --env POLKADOT_NODE_KEY_FILE="${11}" \
     --env POLKADOT_SIMULATE_SYNCH="true" \
     --env POLKADOT_ADDITIONAL_OPTIONS="--chain kusama --db-cache 512" \
+    --env NODES_WALLETS="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s,5GYxkGrnJ9nkuhVyZ6Qf73CLwgu3tEKXP58KFRCiKjtEBHWm" \
     --env ARCHIPEL_AUTHORITIES_SR25519_LIST="5FmqMTGCW6yGmqzu2Mp9f7kLgyi5NfLmYPWDVMNw9UqwU2Bs,5H19p4jm177Aj4X28xwL2cAAbxgyAcitZU5ox8hHteScvsex,5DqDvHkyfyBR8wtMpAVuiWA2wAAVWptA8HtnsvQT7Uacbd4s,5GYxkGrnJ9nkuhVyZ6Qf73CLwgu3tEKXP58KFRCiKjtEBHWm" \
     --env ARCHIPEL_AUTHORITIES_ED25519_LIST="5FbQNUq3kDC9XHtQP6iFP5PZmug9khSNcSRZwdUuwTz76yQY,5GiUmSvtiRtLfPPAVovSjgo6NnDUDs4tfh6V28RgZQgunkAF,5EGkuW6uSqiZZiZCyVfQZB9SKw5sQc4Cok8kP5aGEq3mpyVj,5Dww1iPtLbZTUjuXciBdki2Wtnh55M8g1FB4hx32JcSo4NMk" \
     --env DEBUG="app,chain,docker,heartbeats,polkadot,service" \
@@ -52,7 +54,7 @@ function launch_archipel () {
     --env WIREGUARD_PEERS_PUB_ADDR="${14}" \
     --env WIREGUARD_PEERS_ALLOWED_IP="${15}" \
     --env WIREGUARD_PEERS_EXTERNAL_ADDR="${16}" \
-    --env NODES_ROLE="operator,operator,operator,sentry" \
+    --env NODES_ROLE="operator,operator,operator,operator" \
     --env NODE_ROLE="${18}" \
     luguslabs/archipel:$ARCHIPEL_VERSION
 
@@ -98,13 +100,13 @@ docker volume create archipel3_service
 docker volume create archipel4
 docker volume create archipel4_service
 
-NODE1_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key1-peer-id.txt)
+NODE1_LOCAL_ID=$(cat $SCRIPTPATH/../chain/keys/key1-peer-id.txt)
 echo "Local archipel1 node identity is '$NODE1_LOCAL_ID'"
-NODE2_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key2-peer-id.txt)
+NODE2_LOCAL_ID=$(cat $SCRIPTPATH/../chain/keys/key2-peer-id.txt)
 echo "Local archipel2 node identity is '$NODE2_LOCAL_ID'"
-NODE3_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-peer-id.txt)
+NODE3_LOCAL_ID=$(cat $SCRIPTPATH/../chain/keys/key3-peer-id.txt)
 echo "Local archipel3 node identity is '$NODE3_LOCAL_ID'"
-NODE4_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key4-peer-id.txt)
+NODE4_LOCAL_ID=$(cat $SCRIPTPATH/../chain/keys/key4-peer-id.txt)
 echo "Local archipel4 node identity is '$NODE4_LOCAL_ID'"
 
 
@@ -118,14 +120,14 @@ POLKADOT_NODE3_IP="172.17.0.4"
 POLKADOT_NODE4_IP="172.17.0.5"
 
 # Getting polkadot nodes local node identity
-NODE1_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key1-polkadot-peer-id.txt)
+NODE1_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/../chain/keys/key1-polkadot-peer-id.txt)
 echo "Local node1-polkadot-sync node identity is '$NODE1_POLKADOT_LOCAL_ID'"
-NODE2_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key2-polkadot-peer-id.txt)
+NODE2_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/../chain/keys/key2-polkadot-peer-id.txt)
 echo "Local node2-polkadot-sync node identity is '$NODE2_POLKADOT_LOCAL_ID'"
-NODE3_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key3-polkadot-peer-id.txt)
+NODE3_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/../chain/keys/key3-polkadot-peer-id.txt)
 echo "Local node3-polkadot-sync node identity is '$NODE3_POLKADOT_LOCAL_ID'"
-NODE4_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/chain/keys/key4-polkadot-peer-id.txt)
-echo "Local node4-polkadot-sentry node identity is '$NODE4_POLKADOT_LOCAL_ID'"
+NODE4_POLKADOT_LOCAL_ID=$(cat $SCRIPTPATH/../chain/keys/key4-polkadot-peer-id.txt)
+echo "Local node4-polkadot-sync node identity is '$NODE4_POLKADOT_LOCAL_ID'"
 
 # Constructing reserved peers polkadot list
 POLKADOT_RESERVED_NODES="/ip4/$WIREGUARD_ADDRESS_NODE1/tcp/30333/p2p/$NODE1_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE2/tcp/30333/p2p/$NODE2_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE3/tcp/30333/p2p/$NODE3_POLKADOT_LOCAL_ID,/ip4/$WIREGUARD_ADDRESS_NODE4/tcp/30333/p2p/$NODE4_POLKADOT_LOCAL_ID"
@@ -208,7 +210,7 @@ launch_archipel "archipel4" \
                 "$WIREGUARD_PEERS_ALLOWED_IP" \
                 "$WIREGUARD_PEERS_EXTERNAL_ADDR" \
                 3004 \
-                "sentry" \
+                "operator" \
 
 echo "Launching UI..."
 
@@ -235,4 +237,3 @@ echo "--------------------------------------------------------"
 echo "-------------------- [ARCHIPEL UI] ---------------------"
 echo "Archipel UI http://$ARCHIPEL_UI_IP/ is available at http://localhost:3000/" 
 echo "--------------------------------------------------------"
-

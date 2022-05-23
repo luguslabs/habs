@@ -9,9 +9,8 @@ const disableOrchestration = async orchestrator => {
     orchestrator.orchestrationEnabled = false;
     console.log('[API] Waiting 5 sec to be sure that last orchestration cycle ended...');
     await new Promise(resolve => setTimeout(resolve, 5000));
-    console.log('[API] Forcing service in passive or sentry mode...');
-    const mode = (orchestrator.role === 'operator') ? 'passive' : 'sentry';
-    await orchestrator.serviceStart(mode);
+    console.log('[API] Forcing service in passive mode...');
+    await orchestrator.serviceStart('passive');
     console.log('[API] Orchestration was disabled...');
     return true;
   }

@@ -1,145 +1,49 @@
 const { setIntervalAsync } = require('set-interval-async/fixed');
 const debug = require('debug')('app');
-const dotenv = require('dotenv');
 
 const { Chain } = require('./chain');
 const { Heartbeats } = require('./heartbeats');
-const {
-  catchExitSignals,
-  checkVariable,
-  constructNodesList
-} = require('./utils');
+const { catchExitSignals } = require('./utils');
 const { Orchestrator } = require('./orchestrator');
-const {
-  initApi
-} = require('./api');
-const {
-  initApiSms
-} = require('./apiSms');
-
-// Import env variables from .env file
-dotenv.config();
-const {
-  NODE_WS,
-  MNEMONIC,
-  ALIVE_TIME,
-  SERVICES,
-  ARCHIPEL_SERVICE_MODE,
-  ARCHIPEL_HEARTBEATS_ENABLE,
-  ARCHIPEL_ORCHESTRATION_ENABLE,
-  NODES_WALLETS,
-  ARCHIPEL_NAME,
-  NODE_ROLE,
-  NODE_GROUP,
-  NODE_GROUP_ID,
-  NODES_ROLE,
-  SMS_STONITH_ACTIVE,
-  SMS_STONITH_CALLBACK_MANDATORY,
-  SMS_STONITH_CALLBACK_MAX_DELAY,
-  AUTHORITIES_LIST,
-  NEXMO_API_KEY,
-  NEXMO_API_SECRET,
-  NEXMO_API_SIGNATURE_METHOD,
-  NEXMO_API_SIGNATURE_SECRET,
-  NEXMO_API_CHECK_MSG_SIGNATURE,
-  NEXMO_PHONE_NUMBER,
-  OUTLET_PHONE_NUMBER_LIST
-
-} = process.env;
-
-// Check if all necessary env vars were set
-const checkEnvVars = () => {
-  try {
-    checkVariable(NODE_WS, 'NODE_WS');
-    checkVariable(MNEMONIC, 'MNEMONIC');
-    checkVariable(ALIVE_TIME, 'ALIVE_TIME');
-    checkVariable(SERVICES, 'SERVICES');
-    checkVariable(ARCHIPEL_NAME, 'ARCHIPEL_NAME');
-    checkVariable(NODES_WALLETS, 'NODES_WALLETS');
-    checkVariable(NODE_ROLE, 'NODE_ROLE');
-    checkVariable(NODE_GROUP, 'NODE_GROUP');
-    checkVariable(NODE_GROUP_ID, 'NODE_GROUP_ID');
-    checkVariable(NODES_ROLE, 'NODES_ROLE');
-    checkVariable(SMS_STONITH_ACTIVE, 'SMS_STONITH_ACTIVE');
-    checkVariable(SMS_STONITH_CALLBACK_MANDATORY, 'SMS_STONITH_CALLBACK_MANDATORY');
-    checkVariable(SMS_STONITH_CALLBACK_MAX_DELAY, 'SMS_STONITH_CALLBACK_MAX_DELAY');
-    checkVariable(NEXMO_API_CHECK_MSG_SIGNATURE, 'NEXMO_API_CHECK_MSG_SIGNATURE');
-    checkVariable(AUTHORITIES_LIST, 'AUTHORITIES_LIST');
-  } catch (error) {
-    debug('checkEnvVars', error);
-    throw error;
-  }
-};
+const { initApi } = require('./api');
+const { constructConfiguration } = require('./config');
 
 // Main function
 async function main () {
   try {
-    // Checking env variables
-    checkEnvVars();
+    // Create configuration
+    const config = constructConfiguration();
 
     // Connect to Polkadot API
     console.log('Connecting to Archipel Chain node...');
-    const chain = new Chain(NODE_WS, NODE_ROLE);
+    const chain = new Chain(config.nodeWs);
     await chain.connect();
 
-    // Construct nodes list
-    const nodes = constructNodesList(NODES_WALLETS, ARCHIPEL_NAME);
-
     // Create Heartbeats instance
-    const heartbeats = new Heartbeats(nodes);
+    const heartbeats = new Heartbeats(config.nodesWallets, config.archipelName);
 
-    // Create orchestrator instance
+    // Create Orchestrator instance
     const orchestrator = new Orchestrator(
+      config,
       chain,
-      SERVICES,
-      heartbeats,
-      MNEMONIC,
-      ALIVE_TIME,
-      ARCHIPEL_NAME,
-      ARCHIPEL_SERVICE_MODE,
-      NODE_ROLE,
-      NODE_GROUP_ID,
-      SMS_STONITH_ACTIVE,
-      SMS_STONITH_CALLBACK_MANDATORY,
-      SMS_STONITH_CALLBACK_MAX_DELAY,
-      NEXMO_API_KEY.replace(/"/g, ''),
-      NEXMO_API_SECRET.replace(/"/g, ''),
-      NEXMO_API_SIGNATURE_METHOD.replace(/"/g, ''),
-      NEXMO_API_SIGNATURE_SECRET.replace(/"/g, ''),
-      NEXMO_API_CHECK_MSG_SIGNATURE,
-      NEXMO_PHONE_NUMBER.replace(/"/g, ''),
-      OUTLET_PHONE_NUMBER_LIST.replace(/"/g, ''),
-      AUTHORITIES_LIST);
+      heartbeats);
 
-    if (ARCHIPEL_HEARTBEATS_ENABLE.includes('false')) {
-      orchestrator.chain.heartbeatSendEnabledAdmin = false;
-    }
-    if (ARCHIPEL_ORCHESTRATION_ENABLE.includes('false')) {
-      orchestrator.orchestrationEnabled = false;
-    }
+    // Bootstrap orchestration before orchestration
+    await orchestrator.bootstrapOrchestrator();
 
-    if (ARCHIPEL_SERVICE_MODE === 'orchestrator') {
-      // Start service in passive mode
-      console.log('ARCHIPEL_SERVICE_MODE is orchestrator. Starting service in passive or sentry mode...');
-      await orchestrator.serviceStart(NODE_ROLE === 'operator' ? 'passive' : 'sentry');
-    } else if (ARCHIPEL_SERVICE_MODE === 'sentry') {
-      console.log('ARCHIPEL_SERVICE_MODE is force as sentry mode...');
-      await orchestrator.serviceStart('sentry');
-    } else if (ARCHIPEL_SERVICE_MODE === 'passive') {
-      console.log('ARCHIPEL_SERVICE_MODE is force as passive mode...');
-      await orchestrator.serviceStart('passive');
-    } else if (ARCHIPEL_SERVICE_MODE === 'active') {
-      console.log('ARCHIPEL_SERVICE_MODE is force as active mode...');
-      await orchestrator.serviceStart('active');
-    }
-
-    // Listen events
-    chain.listenEvents(heartbeats, orchestrator, MNEMONIC);
+    // Create chain event listener
+    chain.listenEvents(heartbeats, config.mnemonic, orchestrator);
 
     // Add heartbeats every 10 seconds
     setIntervalAsync(async () => {
       try {
-        await chain.addHeartbeat(NODE_GROUP_ID, orchestrator.mode, MNEMONIC);
+        // Checking if heartbeats send is enabled
+        console.log('Checking if heartbeats send is enabled...');
+        if (!orchestrator.heartbeatSendEnabled || !orchestrator.heartbeatSendEnabledAdmin) {
+          console.log('Heartbeat send is disabled...');
+          return;
+        }
+        await chain.addHeartbeat(orchestrator.getServiceMode(), config.mnemonic, config.nodeGroupId);
       } catch (error) {
         console.error(error);
       }
@@ -155,25 +59,11 @@ async function main () {
       }
     }, 10000);
 
-    // Checking if the orchestrator is connected to chain every 5 secs
-    setIntervalAsync(async () => {
-      try {
-        if (!chain.isConnected()) {
-          console.log('Warning! Connection with chain was lost...');
-          console.log('Enforcing passive mode or sentry for service...');
-          await orchestrator.serviceStart(NODE_ROLE === 'operator' ? 'passive' : 'sentry');
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }, 5000);
-
     // Attach service cleanup to exit signals
     catchExitSignals(orchestrator.serviceCleanUp.bind(orchestrator));
 
     // Init api
     initApi(orchestrator);
-    initApiSms(orchestrator);
 
     // Printing end message
     console.log('Orchestrator was successfully launched...');
