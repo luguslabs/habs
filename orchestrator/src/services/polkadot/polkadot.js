@@ -506,10 +506,9 @@ class Polkadot {
         this.networkMode
       );
 
-      if (serviceStarted) {
-        // Import keys to service container
-        await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-validator');
-      }
+      // Import keys to service container
+      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-validator');
+
       return serviceStarted;
     }
 
@@ -527,10 +526,8 @@ class Polkadot {
         this.networkMode
       );
 
-      if (serviceStarted) {
-        // Import keys to service container
-        await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-sync');
-      }
+      // Import keys to service container
+      await this.polkadotKeysImport(this.config.polkadotPrefix + 'polkadot-sync');
 
       return serviceStarted;
     }
