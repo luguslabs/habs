@@ -3,10 +3,18 @@
 ## Unreleased
 
 <!--New features/improvements/fixes go here-->
-
+=======
 ## [v3.0.0](https://github.com/luguslabs/archipel/releases/tag/v3.0.0)
 
 Refactoring code and tests for new deployemnt infra.
+
+## [v2.2.5](https://github.com/luguslabs/archipel/releases/tag/v2.2.5)
+
+[#284](https://github.com/luguslabs/archipel/issues/284) : isServiceReadyToStart function ko. migrate curl to axios missing
+
+## [v2.2.4](https://github.com/luguslabs/archipel/releases/tag/v2.2.4)
+
+[#282](https://github.com/luguslabs/archipel/issues/282) : Curl removed in polkadot 0.9.11 fix
 
 ## [v2.2.3](https://github.com/luguslabs/archipel/releases/tag/v2.2.3)
 
