@@ -9,7 +9,7 @@ Welcome to **HABS** monorepository!
 
 # LUGUS LABS Polkadot validators are Live!
 
-Check blog post for more information : https://medium.com/luguslabs/archipel-polkadot-validators-are-live-eec9c76c32bb
+Check [blog post](https://medium.com/luguslabs/archipel-polkadot-validators-are-live-eec9c76c32bb) for more information.
 
 And all previous blog posts at https://medium.com/luguslabs/
 
@@ -48,7 +48,7 @@ To achieve the high availability of services at a DAppNode, we are adding HABS o
 | [Orchestrator](orchestrator/)                                            | Orchestrator is the decision-making component in HABS federation                   |
 | [CLI](cli/)                                                              | CLI is a component that generates configuration and bootstraps an HABS federation  |
 | [UI](ui/)                                                                | UI is the HABS chain state visualization component                                 |
-| [Deployer](deployer/)                                                    | Archipel End-To-End tests, build scripts and deploy tools                              |
+| [Deployer](deployer/)                                                    | HABS End-To-End tests, build scripts and deploy tools                              |
 | [DAppNodePackage](https://github.com/luguslabs/DAppNodePackage-habs) | DAppNode package wrapping HABS                                                     |
 
 Please refer to the README instructions in the sub-repositories for more information on building, using, and testing each software component.
